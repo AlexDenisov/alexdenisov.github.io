@@ -4,7 +4,7 @@
   <title><![CDATA[AlexDenisov]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2014-12-28T00:53:40+01:00</updated>
+  <updated>2014-12-28T11:02:08+01:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -26,6 +26,9 @@ The following topics are covered:</p>
 <li>setting up IDE/compiling</li>
 <li>debugging</li>
 </ul>
+
+
+<!-- more -->
 
 
 <p><em>The article doesn&rsquo;t cover basics of compiler construction. If you&rsquo;re looking for a theory take a look at Summary section at the bottom of the page.</em></p>
