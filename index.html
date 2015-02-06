@@ -9,9 +9,7 @@
   <meta name="author" content="AlexDenisov">
 
   
-  <meta name="description" content="This article is a guide how to set up development environment for Clang on OS X.
-The following topics are covered: getting sources
-setting up IDE/ &hellip;">
+  <meta name="description" content="Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -75,6 +73,74 @@ setting up IDE/ &hellip;">
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
+Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
+
+<p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">development</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev</span>
+</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev123</span>
+</span><span class='line'><span class="c1"># ...</span>
+</span><span class='line'><span class="l-Scalar-Plain">production</span><span class="p-Indicator">:</span>
+</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">root</span>
+</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">supersecurepassword</span>
+</span><span class='line'><span class="c1"># ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>I wish I can use the same approach in my daily iOS development.</p>
+
+<p>Fortunately, I can!</p>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/yaml-based-configuration-for-objc-projects/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -147,6 +213,10 @@ The following topics are covered:</p>
   <ul id="recent_posts">
     
       <li class="post">
+        <a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a>
+      </li>
+    
+      <li class="post">
         <a href="/blog/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started With LLVM/Clang on OS X</a>
       </li>
     
@@ -200,7 +270,7 @@ The following topics are covered:</p>
     </div>
   </div>
   <footer role="contentinfo"><p>
-  Copyright &copy; 2014 - AlexDenisov -
+  Copyright &copy; 2015 - AlexDenisov -
   <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> with <a href="https://github.com/johnkeith/boldandblue">BoldAndBlue</a></span>
 </p>
 

@@ -1,19 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/</loc>
+    <lastmod>2015-02-06T00:43:11+01:00</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>http://alexdenisov.github.io/blog/getting-started-with-llvm-slash-clang-on-os-x/</loc>
     <lastmod>2014-12-27T23:03:50+01:00</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>http://alexdenisov.github.io/blog/archives/</loc>
-    <lastmod>2014-12-28T11:02:08+01:00</lastmod>
+    <lastmod>2015-02-06T01:16:12+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
     <loc>http://alexdenisov.github.io/</loc>
-    <lastmod>2014-12-28T11:02:08+01:00</lastmod>
+    <lastmod>2015-02-06T01:16:12+01:00</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>

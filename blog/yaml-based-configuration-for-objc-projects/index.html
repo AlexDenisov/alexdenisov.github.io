@@ -1,24 +1,106 @@
-<?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[AlexDenisov]]></title>
-  <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
-  <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-02-06T01:16:12+01:00</updated>
-  <id>http://alexdenisov.github.io/</id>
-  <author>
-    <name><![CDATA[AlexDenisov]]></name>
-    
-  </author>
-  <generator uri="http://octopress.org/">Octopress</generator>
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>YAML-based Configuration for ObjC Projects - AlexDenisov</title>
+  <meta name="author" content="AlexDenisov">
 
   
-  <entry>
-    <title type="html"><![CDATA[YAML-based Configuration for ObjC Projects]]></title>
-    <link href="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/"/>
-    <updated>2015-02-06T00:43:11+01:00</updated>
-    <id>http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects</id>
-    <content type="html"><![CDATA[<p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
+  <meta name="description" content="Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these &hellip;">
+  
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="AlexDenisov" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href='https://fonts.googleapis.com/css?family=Noto+Serif:400,700' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-58043349-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">AlexDenisov</a></h1>
+  
+    <h2>Software Developer</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  
+  
+</ul>
+
+<ul class="main-navigation">
+  <li><a href="/">Blog</a></li>
+  <li><a href="/blog/archives">Archives</a></li>
+  <li><a href="/atom.xml" title="subscribe via RSS">RSS</a></li>
+  <li><a href="https://github.com/AlexDenisov">Github</a></li>
+  <li><a href="https://twitter.com/1101_debian">Twitter</a></li>
+</ul>
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">YAML-based Configuration for ObjC Projects</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
 Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
 
 <p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
@@ -163,7 +245,7 @@ Still you have to perform way too many actions for such a simple task.</p>
 
 <p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
 
-<p><img src="http://alexdenisov.github.io/images/yaml-based-configuration/new_file.png"></p>
+<p><img src="/images/yaml-based-configuration/new_file.png"></p>
 
 <p>Put there initial configuration:</p>
 
@@ -197,13 +279,13 @@ Still you have to perform way too many actions for such a simple task.</p>
 
 <p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -> <code>Compile Sources</code> -> <code>+</code> and add <code>config.yaml</code></p>
 
-<p><img src="http://alexdenisov.github.io/images/yaml-based-configuration/compile_yaml.png"></p>
+<p><img src="/images/yaml-based-configuration/compile_yaml.png"></p>
 
 <p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
 Also, we need to specify output file, otherwise it won&rsquo;t work:
 <code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
 
-<p><img src="http://alexdenisov.github.io/images/yaml-based-configuration/xcconf.png"></p>
+<p><img src="/images/yaml-based-configuration/xcconf.png"></p>
 
 <p>Now we&rsquo;re ready to use it:</p>
 
@@ -230,7 +312,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
 
 <p>Build&amp;Run:</p>
 
-<p><img src="http://alexdenisov.github.io/images/yaml-based-configuration/output.png"></p>
+<p><img src="/images/yaml-based-configuration/output.png"></p>
 
 <h3>Summary</h3>
 
@@ -239,210 +321,214 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
 <p>I&rsquo;d really appreciate any feedback.</p>
 
 <p>P.S. Pull Requests are welcome! :)</p>
-]]></content>
-  </entry>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
   
-  <entry>
-    <title type="html"><![CDATA[Getting Started With LLVM/Clang on OS X]]></title>
-    <link href="http://alexdenisov.github.io/blog/getting-started-with-llvm-slash-clang-on-os-x/"/>
-    <updated>2014-12-27T23:03:50+01:00</updated>
-    <id>http://alexdenisov.github.io/blog/getting-started-with-llvm-slash-clang-on-os-x</id>
-    <content type="html"><![CDATA[<p>This article is a guide how to set up development environment for Clang on OS X.
-The following topics are covered:</p>
 
-<ul>
-<li>getting sources</li>
-<li>setting up IDE/compiling</li>
-<li>debugging</li>
-</ul>
+<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
 
+      
 
-<!-- more -->
 
 
-<p><em>The article doesn&rsquo;t cover basics of compiler construction. If you&rsquo;re looking for a theory take a look at Summary section at the bottom of the page.</em></p>
 
-<h3>Getting sources</h3>
 
-<p>Clang (and other projects from LLVM suite) uses SVN as a main version control system, but also provides a git mirror. Alternatively, you can use unofficial git mirror from Github, which updates every hour.</p>
 
-<p>In this tutorial I use git as a VCS, but you may use an SVN without any restrictions.</p>
 
-<p>To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.</p>
 
-<p>Let’s grab the latest sources:</p>
-
-<figure class='code'><figcaption><span>Checkout latest LLVM version</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir ~/Projects/clang_dev
-</span><span class='line'><span class="nb">cd</span> ~/Projects/clang_dev
-</span><span class='line'>git clone http://llvm.org/git/llvm.git
-</span><span class='line'>git clone http://llvm.org/git/clang.git llvm/tools/clang
-</span><span class='line'>git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra
-</span><span class='line'>git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>You can checkout particular branch if you&rsquo;re interested in a particular version (e.g. 3.4)</p>
-
-<figure class='code'><figcaption><span>Checkout particular LLVM version</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>mkdir ~/Projects/clang_dev
-</span><span class='line'><span class="nb">cd</span> ~/Projects/clang_dev
-</span><span class='line'><span class="nb">export </span><span class="nv">BRANCH</span><span class="o">=</span>release_34
-</span><span class='line'>git clone http://llvm.org/git/llvm.git -b <span class="nv">$BRANCH</span>
-</span><span class='line'>git clone http://llvm.org/git/clang.git llvm/tools/clang -b <span class="nv">$BRANCH</span>
-</span><span class='line'>git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b <span class="nv">$BRANCH</span>
-</span><span class='line'>git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b <span class="nv">$BRANCH</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>From to time to time you have to update the sources if you use <code>HEAD</code>. If you don’t want to do it manually, just put the script into <code>clang_dev</code> directory:</p>
-
-<figure class='code'><figcaption><span>update.sh</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="c">#!/bin/env sh</span>
-</span><span class='line'><span class="nv">root</span><span class="o">=</span><span class="sb">`</span>~/Projects/clang_dev<span class="sb">`</span>
-</span><span class='line'><span class="nb">cd</span> <span class="nv">$root</span>/llvm <span class="o">&amp;&amp;</span> git pull origin master
-</span><span class='line'><span class="nb">cd</span> <span class="nv">$root</span>/llvm/tools/clang <span class="o">&amp;&amp;</span> git pull origin master
-</span><span class='line'><span class="nb">cd</span> <span class="nv">$root</span>/llvm/projects/compiler-rt <span class="o">&amp;&amp;</span> git pull origin master
-</span><span class='line'><span class="nb">cd</span> <span class="nv">$root</span>/llvm/tools/clang/tools/extra <span class="o">&amp;&amp;</span> git pull origin master
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and make it executable</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>chmod +x update.sh
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Setting up IDE and compiling</h3>
-
-<p>LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.</p>
-
-<p>Let’s create the project for Xcode</p>
-
-<figure class='code'><figcaption><span>Generate Xcode project</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nb">cd</span> ~/Projects/clang_dev
-</span><span class='line'>mkdir build
-</span><span class='line'><span class="nb">cd </span>build
-</span><span class='line'>cmake -G Xcode <span class="nv">CMAKE_BUILD_TYPE</span><span class="o">=</span><span class="s2">&quot;Debug&quot;</span> ../llvm
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>open it</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>open LLVM.xcodeproj
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and find something to do (it’s not about ‘make tea’, but about ‘go for a party&#8217;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.</p>
-
-<p>Well, once the project indexing is over you can build the clang.</p>
-
-<p>But before, probably, you need to cleanup the list of targets/schemes.</p>
-
-<p>Click on &lsquo;ALL_BUILD&rsquo;</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/all_build_target.png"></p>
-
-<p>choose ‘Manage Schemes&hellip;&#8217;</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/manage_schemes.png"></p>
-
-<p>you’ll see a huge list of available targets, you don’t need most of them so feel free to hide &lsquo;useless&rsquo; ones by unchecking &lsquo;Show&rsquo; flag:</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/schemes.png"></p>
-
-<p>If we just build and run clang, then it’ll do nothing, let’s add some parameters, for instance, print version.</p>
-
-<p>Select <code>Edit scheme</code>:</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/edit_scheme.png"></p>
-
-<p>and add <code>-v</code> to the <code>Arguments passed on launch</code>:</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/version_arguments.png"></p>
-
-<p>That’s pretty much it, just hit <code>Cmd + R</code> and it’ll build clang and run built binary with a specified parameter.</p>
-
-<p>When build done (it also takes a while) and program executed you’ll see the clang version in the Xcode output window</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/clang_version.png"></p>
-
-<h3>Debugging</h3>
-
-<p>Clang is a big project therefore debugging without a decent GUI tool is not an easy task. Fortunately, we have Xcode.</p>
-
-<p>In this example we’re going to debug a parser and semantic analysis phase of clang.</p>
-
-<p>Create a file <code>/tmp/sum.c</code> which contains the following code:</p>
-
-<figure class='code'><figcaption><span>/tmp/sum.c</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>     <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>and specify the file as an argument for a clang binary, with additional parameters:</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/debug_arguments.png"></p>
-
-<p><code>clang</code> executable itself is just a driver, which determines what to do next with all received parameters. By default it calls &lsquo;clang compiler’ and passes the parameters, but it calls it as a separate process, so it’s hard to debug in a traditional way. By specifying <code>-cc1</code> option it calls compiler directly, in the same process.</p>
-
-<p>Since we aren’t going to compile the source, but only make semantic analysis, we can add <code>-fsyntax-only</code> argument.</p>
-
-<p>Let’s start debugging.</p>
-
-<p>Find a <code>ParseExpr.cpp</code>, set a breakpoint at the <code>ParseExpression</code> method:</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/breakpoint.png"></p>
-
-<p>and run. When program reach this breakpoint you can retrieve some useful information.</p>
-
-<p>Most of LLVM&#8217; classes have method <code>dump</code> which prints all valuable information about an object. You can easily access it by evaluating LLDB command <code>expression</code> (or simply <code>expr</code>):</p>
-
-<p><img src="http://alexdenisov.github.io/images/getting-started-with-clang/dump.png"></p>
-
-<p>Here you see an AST representation of the addition expression from a <code>sum</code> method: <code>a + b</code>.</p>
-
-<h3>Summary</h3>
-
-<p>As you can see this article is not a comprehensive guide, but only a very small instruction set, which might be helpful if you just started playing with compiler internals and want to try to touch them.</p>
-
-<p>If you&rsquo;re looking for a more theoretical and practical information I&rsquo;d recommend to read the following articles:</p>
-
-<p><a href="http://aosabook.org/en/llvm.html">The Architecture of Open Source Applications: LLVM</a> by <a href="http://nondot.org/~sabre/">Chris Lattner</a></p>
-
-<p><a href="http://www.objc.io/issue-6/compiler.html">objc.io #6. The Compiler</a> by <a href="https://twitter.com/chriseidhof">Chris Eidhof</a></p>
-
-<hr />
-
-<p><strong>Stay tuned if you interested how-to write tests for Clang and LLVM.</strong></p>
-
-<p><strong>Happy hacking!</strong></p>
-]]></content>
-  </entry>
   
-</feed>
+
+
+
+<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/blog/categories/iosdev/'>iosdev</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/getting-started-with-llvm-slash-clang-on-os-x/" title="Previous Post: Getting started with LLVM/Clang on OS X">&laquo; Getting started with LLVM/Clang on OS X</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+  <aside class="sidebar">
+   
+<form action="https://www.google.com/search" method="get">
+  <fieldset role="search">
+    <input type="hidden" name="q" value="site:alexdenisov.github.io" />
+    <input class="search" type="text" name="q" results="0" placeholder="Search"/>
+  </fieldset>
+</form>
+  
+  
+    <section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a>
+      </li>
+    
+      <li class="post">
+        <a href="/blog/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started With LLVM/Clang on OS X</a>
+      </li>
+    
+  </ul>
+</section>
+
+<section>
+  <h1>GitHub Repos</h1>
+  <ul id="gh_repos">
+    <li class="loading">Status updating&#8230;</li>
+  </ul>
+  
+  <script type="text/javascript">
+    $(document).ready(function(){
+        if (!window.jXHR){
+            var jxhr = document.createElement('script');
+            jxhr.type = 'text/javascript';
+            jxhr.src = '/javascripts/libs/jXHR.js';
+            var s = document.getElementsByTagName('script')[0];
+            s.parentNode.insertBefore(jxhr, s);
+        }
+
+        github.showRepos({
+            user: 'AlexDenisov',
+            count: 5,
+            skip_forks: true,
+            target: '#gh_repos'
+        });
+    });
+  </script>
+  <script src="/javascripts/github.js" type="text/javascript"> </script>
+</section>
+
+
+
+<section class="googleplus googleplus-hidden">
+  <h1>
+    <a href="https://plus.google.com/+AlexeyDenisov?rel=author">
+      <img src="http://www.google.com/images/icons/ui/gprofile_button-32.png" width="32" height="32">
+      Google+
+    </a>
+  </h1>
+</section>
+
+
+
+  
+</aside>
+
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2015 - AlexDenisov -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> with <a href="https://github.com/johnkeith/boldandblue">BoldAndBlue</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alex-denisov';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/';
+        var disqus_url = 'http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+<script>
+  $(document).ready(function() {  
+  var stickyNavTop = $('nav').offset().top;  
+    
+  var stickyNav = function(){  
+  var scrollTop = $(window).scrollTop();  
+         
+  if (scrollTop > stickyNavTop) {   
+      $('nav').addClass('sticky');  
+  } else {  
+      $('nav').removeClass('sticky');   
+  }  
+  };  
+    
+  stickyNav();  
+    
+  $(window).scroll(function() {  
+      stickyNav();  
+  });  
+  });  
+</script>
+
+
+</body>
+</html>
