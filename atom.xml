@@ -4,7 +4,7 @@
   <title><![CDATA[AlexDenisov]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-02-06T01:16:12+01:00</updated>
+  <updated>2015-04-13T22:55:23+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,98 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Circular Containers in Objective-C]]></title>
+    <link href="http://alexdenisov.github.io/blog/circular-containers-in-objective-c/"/>
+    <updated>2015-04-13T22:44:26+02:00</updated>
+    <id>http://alexdenisov.github.io/blog/circular-containers-in-objective-c</id>
+    <content type="html"><![CDATA[<p>Some time ago I accidentally wrote this code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">environments</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">key</span> <span class="k">in</span> <span class="p">[</span><span class="n">dictionary</span> <span class="n">allKeys</span><span class="p">])</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">XCCEnvironment</span> <span class="o">*</span><span class="n">environment</span> <span class="o">=</span> <span class="p">[[</span><span class="n">XCCEnvironment</span> <span class="n">new</span><span class="p">]</span> <span class="nl">initWithName</span><span class="p">:</span><span class="n">key</span>
+</span><span class='line'>                                                          <span class="nl">parameters</span><span class="p">:</span><span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]];</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">environments</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">environments</span><span class="p">];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="k">return</span> <span class="n">environments</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Did you notice the problem here? Well, I didn&rsquo;t.</p>
+
+<!-- more -->
+
+
+<h3>Problem</h3>
+
+<p>When I run the program I got a crash:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="o">-</span><span class="p">[</span><span class="n">__NSArrayM</span> <span class="n">someSelector</span><span class="p">]</span><span class="o">:</span> <span class="n">unrecognized</span> <span class="n">selector</span> <span class="n">sent</span> <span class="n">to</span> <span class="n">instance</span> <span class="mh">0x100211d80</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Consumer of <code>environments</code> expected to get <code>XCCEnvironment</code>, but got <code>NSMutableArray</code>.</p>
+
+<p>At the beginning it wasn&rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">environments</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span><span class='line'><span class="p">[</span><span class="n">environments</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">environments</span><span class="p">];</span>
+</span><span class='line'><span class="c1">// ...</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Documentation says nothing about collection&rsquo;s behaviour in such situation, the only valuable (imo) reading I&rsquo;ve found is Mike Ash&rsquo;s blog-post <a href="https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html">Let&rsquo;s break Cocoa</a>.</p>
+
+<p>The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.</p>
+
+<h3>Solution</h3>
+
+<p>I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &lsquo;programmers do not dereference null pointers&rsquo; - it is still happens and probably it&rsquo;s kinda unexpected behaviour.</p>
+
+<p>I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&rsquo;t find any warning/flag/setting that does this check.</p>
+
+<p>Eventually I decided to implement it. Implementation took a couple of evenings but now it&rsquo;s <a href="https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248">in trunk</a>.</p>
+
+<p>Actual patch checks the following mutable collections:</p>
+
+<ul>
+<li>NSMutableArray</li>
+<li>NSMutableDictionary</li>
+<li>NSMutableSet</li>
+<li>NSMutableOrderedSet</li>
+<li>NSCountedSet</li>
+</ul>
+
+
+<p>And shows warning if you trying to put collection inside itself</p>
+
+<p>The warning could be enabled/disabled with <code>-wobjc-circular-container</code>/<code>-wno-objc-circular-container</code> respectively, though it&rsquo;s enabled &lsquo;by default&rsquo;.</p>
+
+<h3>Conclusion</h3>
+
+<p>Recent clang version contains this feature, but it&rsquo;s not yet available within Xcode, and I guess it&rsquo;ll appear with the next major release - in a year or so.</p>
+
+<p>But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.</p>
+
+<p>Happy hacking!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[YAML-based Configuration for ObjC Projects]]></title>
