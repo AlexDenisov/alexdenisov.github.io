@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Objc | AlexDenisov]]></title>
   <link href="http://alexdenisov.github.io/blog/categories/objc/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-04-14T06:42:38+02:00</updated>
+  <updated>2015-04-14T11:24:41+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -22,8 +22,8 @@
 
 <pre><code class="objective-c">NSMutableArray *environments = [NSMutableArray new];
 for (NSString *key in [dictionary allKeys]) {
-    XCCEnvironment *environment = [[XCCEnvironment new] initWithName:key
-                                                          parameters:dictionary[key]];
+    XCCEnvironment *environment = [[XCCEnvironment alloc] initWithName:key
+                                                            parameters:dictionary[key]];
     [environments addObject:environments];
 }
 return environments;
