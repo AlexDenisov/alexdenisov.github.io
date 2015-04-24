@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Objc | AlexDenisov]]></title>
+  <title><![CDATA[Category: Objc | AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/blog/categories/objc/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-04-23T22:29:41+02:00</updated>
+  <updated>2015-04-24T08:43:13+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
