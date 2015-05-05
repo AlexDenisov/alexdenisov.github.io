@@ -4,7 +4,7 @@
   <title><![CDATA[AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-05-05T23:26:35+02:00</updated>
+  <updated>2015-05-05T23:31:13+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -18,7 +18,7 @@
     <link href="http://alexdenisov.github.io/blog/if-self-sanity/"/>
     <updated>2015-05-05T23:08:13+02:00</updated>
     <id>http://alexdenisov.github.io/blog/if-self-sanity</id>
-    <content type="html"><![CDATA[<p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness”.</p>
+    <content type="html"><![CDATA[<p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**”.</p>
 
 <p>I believe it was a hard task, but Apple managed to find that thing:</p>
 
@@ -32,6 +32,8 @@
 </span><span class='line'><span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
 </span></code></pre></td></tr></table></div></figure>
 
+
+<p>**<em>Don&rsquo;t want to offend you, I did this silly thing for a years</em></p>
 
 <p><strong>TL;DR;</strong></p>
 
