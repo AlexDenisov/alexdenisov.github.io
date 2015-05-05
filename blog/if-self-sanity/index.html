@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>AlexDenisov&#8217;s Blog</title>
+  <title>&#8216;If (Self)&#8217; and Sanity - AlexDenisov&#8217;s Blog</title>
   <meta name="author" content="AlexDenisov">
 
   
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://alexdenisov.github.io">
+  <link rel="canonical" href="http://alexdenisov.github.io/blog/if-self-sanity">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="AlexDenisov's Blog" type="application/atom+xml">
@@ -69,15 +69,12 @@
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/if-self-sanity/">&#8216;If (Self)&#8217; and Sanity</a></h1>
+      <h1 class="entry-title">&#8216;If (Self)&#8217; and Sanity</h1>
     
     
       <p class="meta">
@@ -101,7 +98,7 @@
   </header>
 
 
-  <div class="entry-content"><p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness”.</p>
+<div class="entry-content"><p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness”.</p>
 
 <p>I believe it was a hard task, but Apple managed to find that thing:</p>
 
@@ -120,203 +117,166 @@
 
 <p>Check the value of <code>self</code> in constructor only if you use ivars.</p>
 
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/if-self-sanity/">Read on &rarr;</a>
-    </footer>
-  
+<!-- more -->
 
 
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/circular-containers-in-objective-c/">Circular Containers in Objective-C</a></h1>
-    
-    
-      <p class="meta">
-        
+<h3>Why?</h3>
 
+<p><a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSObject_Class/index.html#//apple_ref/occ/instm/NSObject/init">Documentation</a> of NSObject’s <code>-init</code> method says:</p>
 
+<blockquote><p>Return Value</p>
 
+<p>An initialized object, or nil if an object could not be created for some reason that would not result in an exception.</p></blockquote>
 
+<p>Which is completely OK, but <strong>why should we check if self is nil or not</strong>?</p>
 
-
-
-
-  
-
-
-
-<time datetime="2015-04-13T22:44:26+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-04-13T22:44:26+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Some time ago I accidentally wrote this code:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">environments</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">key</span> <span class="k">in</span> <span class="p">[</span><span class="n">dictionary</span> <span class="n">allKeys</span><span class="p">])</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">XCCEnvironment</span> <span class="o">*</span><span class="n">environment</span> <span class="o">=</span> <span class="p">[[</span><span class="n">XCCEnvironment</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithName</span><span class="p">:</span><span class="n">key</span>
-</span><span class='line'>                                                            <span class="nl">parameters</span><span class="p">:</span><span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]];</span>
-</span><span class='line'>    <span class="p">[</span><span class="n">environments</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">environments</span><span class="p">];</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="k">return</span> <span class="n">environments</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Did you notice the problem here? Well, I didn&rsquo;t.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/circular-containers-in-objective-c/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-
-<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
-Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
-
-<p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">development</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev123</span>
-</span><span class='line'><span class="c1"># ...</span>
-</span><span class='line'><span class="l-Scalar-Plain">production</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">root</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">supersecurepassword</span>
-</span><span class='line'><span class="c1"># ...</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I wish I can use the same approach in my daily iOS development.</p>
-
-<p>Fortunately, I can!</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/yaml-based-configuration-for-objc-projects/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
-      
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started With LLVM/Clang on OS X</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-
-<time datetime="2014-12-27T23:03:50+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2014-12-27T23:03:50+01:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This article is a guide how to set up development environment for Clang on OS X.
-The following topics are covered:</p>
+<p>To get the answer let’s take a look at a few possible variations of a constructor:</p>
 
 <ul>
-<li>getting sources</li>
-<li>setting up IDE/compiling</li>
-<li>debugging</li>
+<li><code>super.init</code> returns <code>nil</code>, programmer uses properties (send messages)</li>
 </ul>
 
 
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+</span><span class='line'><span class="nb">self</span><span class="p">.</span><span class="n">foo</span> <span class="o">=</span> <span class="p">@</span><span class="err">“</span><span class="n">Foo</span><span class="err">”</span><span class="p">;</span>
+</span><span class='line'><span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<ul>
+<li><code>super.init</code> returns <code>nil</code>, programmer uses ivars</li>
+</ul>
+
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
+</span><span class='line'><span class="n">_foo</span> <span class="o">=</span> <span class="p">@</span><span class="err">“</span><span class="n">Foo</span><span class="err">”</span><span class="p">;</span>
+</span><span class='line'><span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><em>I skipped options when <code>super.init</code> returns a valid object, because they’re considered correct and valid in any situation</em></p>
+
+<h4>Nil object and messaging</h4>
+
+<p>In a first case an assignment expression just converts into a function call:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="c1">// note: &#39;self&#39; is nil</span>
+</span><span class='line'><span class="nb">self</span><span class="p">.</span><span class="n">foo</span> <span class="o">=</span> <span class="p">@</span><span class="err">“</span><span class="n">Foo</span><span class="err">”</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// converts into</span>
+</span><span class='line'><span class="n">objc_msgSend</span><span class="p">(</span><span class="nb">self</span><span class="p">,</span> <span class="k">@selector</span><span class="p">(</span><span class="nl">setFoo</span><span class="p">:),</span> <span class="p">@</span><span class="err">“</span><span class="n">Foo</span><span class="err">”</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>What happens when you send a message to a Nil object?</p>
+
+<p>Well, nothing happens.</p>
+
+<h4>Nil object and pointers</h4>
+
+<p>The second constructor also has a different final form:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="c1">// note: &#39;self&#39; is nil</span>
+</span><span class='line'><span class="n">_foo</span> <span class="o">=</span> <span class="p">@</span><span class="err">“</span><span class="n">Foo</span><span class="err">”</span><span class="p">;</span>
+</span><span class='line'><span class="c1">// actually means</span>
+</span><span class='line'><span class="nb">self</span><span class="o">-&gt;</span><span class="n">_foo</span> <span class="o">=</span> <span class="p">@</span><span class="err">“</span><span class="n">Foo</span><span class="err">”</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OK, another question: what happens when you dereference null pointer?</p>
+
+<p>Behaviour in this case is undefined, but for iOS/OS X platforms it’s usually a crash.</p>
+
+<h3>Conclusion</h3>
+
+<p>Based on the statements above we can conclude that we don’t need to check <code>self</code> in every constructor, but only when ivars are used.</p>
+
+<p>As far as I see some developers do this check, but they don’t know why.</p>
+
+<p>The reason, imho, is obvious: ObjC is an old language and tons of documentation/examples were written when properties were not introduced yet and programmers had to use ivars.</p>
+
+<p>After doing this for a years it’s just turned into a habit.</p>
+
+<p>Nowadays we have properties, that allow us to write clean and robust code, so let’s do it and, please, <strong>check the value of <code>self</code> in constructor only if you use ivars.</strong></p>
+
+<p>Happy and sane hacking!</p>
 </div>
+
+
+  <footer>
+    <p class="meta">
+      
   
-  
-    <footer>
-      <a rel="full-article" href="/blog/getting-started-with-llvm-slash-clang-on-os-x/">Read on &rarr;</a>
-    </footer>
+
+<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
+
+      
+
+
+
+
+
+
+
+
   
 
 
-    </article>
+
+<time datetime="2015-05-05T23:08:13+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-05-05T23:08:13+02:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+      
+
+<span class="categories">
   
-  <div class="pagination">
+    <a class='category' href='/blog/categories/iosdev/'>iosdev</a>, <a class='category' href='/blog/categories/objc/'>objc,</a>
+  
+</span>
+
+
+    </p>
     
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/blog/if-self-sanity/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/blog/if-self-sanity/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
 </div>
-<aside class="sidebar">
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/blog/circular-containers-in-objective-c/" title="Previous Post: Circular containers in Objective-C">&laquo; Circular containers in Objective-C</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+  <aside class="sidebar">
    
   
     
@@ -397,6 +357,7 @@ The following topics are covered:</p>
 </aside>
 
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -411,7 +372,10 @@ The following topics are covered:</p>
       var disqus_shortname = 'alex-denisov';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alexdenisov.github.io/blog/if-self-sanity/';
+        var disqus_url = 'http://alexdenisov.github.io/blog/if-self-sanity/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
