@@ -1,0 +1,67 @@
+==================================================================
+https://keybase.io/alexdenisov
+--------------------------------------------------------------------
+
+I hereby claim:
+
+  * I am an admin of https://alexdenisov.github.io
+  * I am alexdenisov (https://keybase.io/alexdenisov) on keybase.
+  * I have a public key with fingerprint 9C3C BEE7 5BD9 38BF D931  6099 A9D9 5F61 584A 75FA
+
+To do so, I am signing this object:
+
+{
+    "body": {
+        "key": {
+            "fingerprint": "9c3cbee75bd938bfd9316099a9d95f61584a75fa",
+            "host": "keybase.io",
+            "key_id": "a9d95f61584a75fa",
+            "kid": "010164ec66358401d55d4b586c2f1c818513ad46ff8fedbcff6ea491358ad8655f4e0a",
+            "uid": "444b9f2764d8785185e023f3d3d73619",
+            "username": "alexdenisov"
+        },
+        "service": {
+            "hostname": "alexdenisov.github.io",
+            "protocol": "https:"
+        },
+        "type": "web_service_binding",
+        "version": 1
+    },
+    "ctime": 1432708923,
+    "expire_in": 157680000,
+    "prev": "8a685aeee347395c2781eb4152c013fd8c4c7c6064b5bd1f6bd9fad61c28fb3c",
+    "seqno": 6,
+    "tag": "signature"
+}
+
+which yields the signature:
+
+-----BEGIN PGP MESSAGE-----
+Comment: GPGTools - https://gpgtools.org
+
+owFtUl9IFEEYv8uM8yTTzv5SWKshiOjO7e7s7FmgKYGKQWQhRF27OzPnpu2ed3tq
+iQ9RD2ll6YNUJvRHJFPEqCTLoAKNMNAHoezBLInwoT+UEeVDzVo91TzMMN/3+/3m
++33znVse5/K6e6aCakVJ7Id7bE5z7SGh/AZOs/ARLtDAVZHFgxpmiETCEcO0uQCn
+6IKuESJLGlYEpFG2A8griqpgRaIQSEhUZYmqXDZXaUUdBpPR1CjJMSwWY5eggVn0
+P/iqxQQPeABFokMosBwPsCRhUZMQ1P0U6AggCQgqFiGliBKs6ZRCoooKYGgVIyhJ
+VCS8IxdblBNFUVOoX4YiRjLjIonwfoEKWMCyAIHiAKMkYqqHiVNVNanHxDSiVi3X
+mM2xRK2hE6cLjpl/QTkhw66Mab+9hSOWbelWNYNU2nY4GnAk7CNhh1NHtOAftaBm
+mJj1lDFqSSRqWCYXAAyp24YjD0TBL/NI8QvZHKkPGxESNByEJEPEs+W8Q2qZJFIh
+klRCiCDKgiLpfhkBoolA8us8EChGuqjLOuQh656GAYXsx6iKIdD9iGqCzjn+akyL
+C0BWphrikgJc1AiZqh2LEK7R2+TesNTl9rqWxS9x5sLlTUj+OyxrqjyuB83rT9zf
+Mvnk5pyv4sJMru9h5/p1odSS4nnPsr0lRRvzBvJfjW4zv648fe76o/m5jItVZU27
+J0hL5uqZ8oNJRsK96oX0tKspBe2d3zu+T3tfD7oy0wtWzHwbv3R24kHu2tD5Al/D
+p/azvqdm4hs3uTby4f3Aic9Zzck5ue+e9388vDTlzmRf27DWMTJREz7VFj+uth49
+1P/u9k85MdqS1lD3In3q2eZgt2d1Z8L2VTs3ZY51d5HU1pNFg+G8rNnhkfLeNw+L
+p9f29PbcWLiav+3burKt+3YcV75cLpot/YLshcn9hZ7HiXi+FN/tMuLODI3HXhbW
+HHtb3Dc7muEbunVF3XXgFw==
+=vEoH
+-----END PGP MESSAGE-----
+
+And finally, I am proving ownership of this host by posting or
+appending to this document.
+
+View my publicly-auditable identity here: https://keybase.io/alexdenisov
+
+==================================================================
+
