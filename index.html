@@ -9,7 +9,7 @@
   <meta name="author" content="AlexDenisov">
 
   
-  <meta name="description" content="Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every &hellip;">
+  <meta name="description" content="Asynchronous tests are not reliable So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. &hellip;">
   
 
   <!-- http://t.co/dKP3o1e -->
@@ -71,6 +71,54 @@
     <div id="content">
       <div class="blog-index">
   
+  
+  
+    <article>
+      
+  <header>
+    
+      <h1 class="entry-title"><a href="/blog/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a></h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2015-06-17T12:31:15+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-06-17T12:31:15+02:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+        
+      </p>
+    
+  </header>
+
+
+  <div class="entry-content"><h3>Asynchronous tests are not reliable</h3>
+
+<p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
+
+<p>While these tools are really great, wether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
+
+<h3>Getting rid of asynchrony</h3>
+
+</div>
+  
+  
+    <footer>
+      <a rel="full-article" href="/blog/getting-rid-of-asynchronous-tests/">Read on &rarr;</a>
+    </footer>
+  
+
+
+    </article>
   
   
     <article>
@@ -375,6 +423,10 @@ The following topics are covered:</p>
 <section>
   <h1>Recent Posts</h1>
   <ul id="recent_posts">
+    
+      <li class="post">
+        <a href="/blog/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
+      </li>
     
       <li class="post">
         <a href="/blog/if-self-sanity/">&#8216;If (Self)&#8217; and Sanity</a>

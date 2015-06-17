@@ -4,7 +4,7 @@
   <title><![CDATA[AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-05-06T06:22:51+02:00</updated>
+  <updated>2015-06-17T14:55:43+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,349 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
+    <link href="http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests/"/>
+    <updated>2015-06-17T12:31:15+02:00</updated>
+    <id>http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests</id>
+    <content type="html"><![CDATA[<h3>Asynchronous tests are not reliable</h3>
+
+<p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
+
+<p>While these tools are really great, wether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
+
+<h3>Getting rid of asynchrony</h3>
+
+<!-- more -->
+
+
+<p>To make those tests reliable we need to get rid of asynchrony. There are a few frameworks that simplify this task, like: <a href="http://ocmock.org">OCMock</a>, <a href="https://github.com/jonreid/OCMockito">OCMockito</a> or <a href="https://github.com/pivotal/cedar">Cedar</a>.</p>
+
+<p>As big fan of ObjC++, I’ll go with Cedar, but any one of the above can get the job done.</p>
+
+<p>Let’s first consider the components of a system under test:</p>
+
+<p><code>Loader</code> - loads raw <code>NSData</code> from the network or returns an error</p>
+
+<p><code>Client</code> - handles error/raw data from the <code>Loader</code> and sends it to an end user</p>
+
+<p>Here is the interface of the <code>Loader</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">@interface</span> <span class="nc">Loader</span> : <span class="bp">NSObject</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">loadDataWithCompletion:</span><span class="p">(</span><span class="kt">void</span> <span class="p">(</span><span class="o">^</span><span class="p">)</span> <span class="p">(</span><span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">))</span><span class="nv">completion</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>the interface of the <code>Client</code></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">^</span><span class="n">Callback</span><span class="p">)</span> <span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="n">users</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'><span class="k">@class</span> <span class="nc">Loader</span>;
+</span><span class='line'>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">Client</span> : <span class="bp">NSObject</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@property</span> <span class="n">Loader</span> <span class="o">*</span><span class="n">loader</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">loadUsersWithCallback:</span><span class="p">(</span><span class="n">Callback</span><span class="p">)</span><span class="nv">callback</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and it’s implementation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">@implementation</span> <span class="nc">Client</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">loadUsersWithCallback:</span><span class="p">(</span><span class="n">Callback</span><span class="p">)</span><span class="nv">callback</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">[</span><span class="nb">self</span><span class="p">.</span><span class="n">loader</span> <span class="nl">loadDataWithCompletion</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="bp">NSArray</span> <span class="o">*</span><span class="n">users</span> <span class="o">=</span> <span class="n">parseUsers</span><span class="p">(</span><span class="n">data</span><span class="p">);</span>
+</span><span class='line'>    <span class="bp">NSError</span> <span class="o">*</span><span class="n">finalError</span> <span class="o">=</span> <span class="n">processError</span><span class="p">(</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'>    <span class="n">callback</span><span class="p">(</span><span class="n">users</span><span class="p">,</span> <span class="n">finalError</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}];</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Our goal is to test that the client parses data and handles errors in a correct way:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="n">describe</span><span class="p">(@</span><span class="err">“</span><span class="n">Client</span><span class="err">”</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>  <span class="n">Client</span> <span class="o">*</span><span class="n">client</span> <span class="o">=</span> <span class="p">[</span><span class="n">Client</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">it</span><span class="p">(@</span><span class="err">“</span><span class="n">should</span> <span class="n">parse</span> <span class="n">data</span><span class="err">”</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="bp">NSArray</span> <span class="o">*</span><span class="n">expectedUsers</span> <span class="o">=</span> <span class="n">ethalonUsers</span><span class="p">();</span>
+</span><span class='line'>    <span class="bp">NSArray</span> <span class="o">*</span><span class="n">actualUsers</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">[</span><span class="n">client</span> <span class="nl">loadUsersWithCallback</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="n">users</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">actualUsers</span> <span class="o">=</span> <span class="n">users</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">actualUsers</span> <span class="n">should</span> <span class="nf">equal</span><span class="p">(</span><span class="n">expectedUsers</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">it</span><span class="p">(@</span><span class="err">“</span><span class="n">should</span> <span class="n">process</span> <span class="n">error</span><span class="err">”</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="bp">NSError</span> <span class="o">*</span><span class="n">expectedError</span> <span class="o">=</span> <span class="n">ethalonError</span><span class="p">();</span>
+</span><span class='line'>    <span class="bp">NSError</span> <span class="o">*</span><span class="n">actualError</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">[</span><span class="n">client</span> <span class="nl">loadUsersWithCallback</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="n">users</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">actualError</span> <span class="o">=</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">actualError</span> <span class="n">should</span> <span class="nf">equal</span><span class="p">(</span><span class="n">expectedError</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To test this we just need to replace the <code>client.loader</code> with a fake object that is going to mimic the desired behavior.</p>
+
+<p>Here is how it looks like with Cedar:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">^</span><span class="n">LoaderCallback</span><span class="p">)(</span><span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// parse data</span>
+</span><span class='line'><span class="kt">SEL</span> <span class="n">sel</span> <span class="o">=</span> <span class="k">@selector</span><span class="p">(</span><span class="nl">loadDataWithCompletion</span><span class="p">:);</span>
+</span><span class='line'><span class="n">Loader</span> <span class="o">*</span><span class="n">loader</span> <span class="o">=</span> <span class="n">fake_for</span><span class="p">(</span><span class="n">Loader</span><span class="p">.</span><span class="k">class</span><span class="p">);</span>
+</span><span class='line'><span class="n">loader</span> <span class="nf">stub_method</span><span class="p">(</span><span class="n">sel</span><span class="p">).</span><span class="n">and_do</span><span class="p">(</span><span class="o">^</span><span class="p">(</span><span class="bp">NSInvocation</span> <span class="o">*</span><span class="n">invocation</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">LoaderCallback</span> <span class="n">callback</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>  <span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">getUsersData</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">invocation</span> <span class="nl">getArgument</span><span class="p">:</span><span class="o">&amp;</span><span class="n">callback</span> <span class="nl">atIndex</span><span class="p">:</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">callback</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">nil</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">// parse data</span>
+</span><span class='line'><span class="kt">SEL</span> <span class="n">sel</span> <span class="o">=</span> <span class="k">@selector</span><span class="p">(</span><span class="nl">loadDataWithCompletion</span><span class="p">:);</span>
+</span><span class='line'><span class="n">Loader</span> <span class="o">*</span><span class="n">loader</span> <span class="o">=</span> <span class="n">fake_for</span><span class="p">(</span><span class="n">Loader</span><span class="p">.</span><span class="k">class</span><span class="p">);</span>
+</span><span class='line'><span class="n">loader</span> <span class="nf">stub_method</span><span class="p">(</span><span class="n">sel</span><span class="p">).</span><span class="n">and_do</span><span class="p">(</span><span class="o">^</span><span class="p">(</span><span class="bp">NSInvocation</span> <span class="o">*</span><span class="n">invocation</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">LoaderCallback</span> <span class="n">callback</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>  <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span> <span class="o">=</span> <span class="n">getError</span><span class="p">();</span>
+</span><span class='line'>  <span class="p">[</span><span class="n">invocation</span> <span class="nl">getArgument</span><span class="p">:</span><span class="o">&amp;</span><span class="n">callback</span> <span class="nl">atIndex</span><span class="p">:</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">callback</span><span class="p">(</span><span class="nb">nil</span><span class="p">,</span> <span class="n">error</span><span class="p">);</span>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>For those unfamiliar with <a href="https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html"><code>NSInvocation</code></a> let me cite it&rsquo;s documentation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="cm">/*</span>
+</span><span class='line'><span class="cm">buffer:</span>
+</span><span class='line'><span class="cm">  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">index:</span>
+</span><span class='line'><span class="cm">  An integer specifying the index of the argument to get.</span>
+</span><span class='line'><span class="cm">  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.</span>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">getArgument:</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span> <span class="n">nonnull</span><span class="p">)</span><span class="nv">buffer</span> <span class="nf">atIndex:</span><span class="p">(</span><span class="bp">NSInteger</span><span class="p">)</span><span class="nv">index</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>After putting these parts together you&rsquo;ll have this cryptic code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">^</span><span class="n">LoaderCallback</span><span class="p">)(</span><span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="n">Loader</span> <span class="o">*</span><span class="nf">fakeUsersLoader</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">SEL</span> <span class="n">sel</span> <span class="o">=</span> <span class="k">@selector</span><span class="p">(</span><span class="nl">loadDataWithCompletion</span><span class="p">:);</span>
+</span><span class='line'>  <span class="n">Loader</span> <span class="o">*</span><span class="n">loader</span> <span class="o">=</span> <span class="n">fake_for</span><span class="p">(</span><span class="n">Loader</span><span class="p">.</span><span class="k">class</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">loader</span> <span class="n">stub_method</span><span class="p">(</span><span class="n">sel</span><span class="p">).</span><span class="n">and_do</span><span class="p">(</span><span class="o">^</span><span class="p">(</span><span class="bp">NSInvocation</span> <span class="o">*</span><span class="n">invocation</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">LoaderCallback</span> <span class="n">callback</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>    <span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span> <span class="o">=</span> <span class="n">getUsersData</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">invocation</span> <span class="nl">getArgument</span><span class="p">:</span><span class="o">&amp;</span><span class="n">callback</span> <span class="nl">atIndex</span><span class="p">:</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">callback</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">nil</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="n">Loader</span> <span class="o">*</span><span class="nf">fakeErrorLoader</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">SEL</span> <span class="n">sel</span> <span class="o">=</span> <span class="k">@selector</span><span class="p">(</span><span class="nl">loadDataWithCompletion</span><span class="p">:);</span>
+</span><span class='line'>  <span class="n">Loader</span> <span class="o">*</span><span class="n">loader</span> <span class="o">=</span> <span class="n">fake_for</span><span class="p">(</span><span class="n">Loader</span><span class="p">.</span><span class="k">class</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">loader</span> <span class="n">stub_method</span><span class="p">(</span><span class="n">sel</span><span class="p">).</span><span class="n">and_do</span><span class="p">(</span><span class="o">^</span><span class="p">(</span><span class="bp">NSInvocation</span> <span class="o">*</span><span class="n">invocation</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">LoaderCallback</span> <span class="n">callback</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>    <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span> <span class="o">=</span> <span class="n">getError</span><span class="p">();</span>
+</span><span class='line'>    <span class="p">[</span><span class="n">invocation</span> <span class="nl">getArgument</span><span class="p">:</span><span class="o">&amp;</span><span class="n">callback</span> <span class="nl">atIndex</span><span class="p">:</span><span class="mi">2</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">callback</span><span class="p">(</span><span class="nb">nil</span><span class="p">,</span> <span class="n">error</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">describe</span><span class="p">(@</span><span class="err">“</span><span class="n">Client</span><span class="err">”</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>  <span class="n">Client</span> <span class="o">*</span><span class="n">client</span> <span class="o">=</span> <span class="p">[</span><span class="n">Client</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">it</span><span class="p">(@</span><span class="err">“</span><span class="n">should</span> <span class="n">parse</span> <span class="n">data</span><span class="err">”</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>    <span class="n">client</span><span class="p">.</span><span class="n">loader</span> <span class="o">=</span> <span class="n">fakeUsersLoader</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="bp">NSArray</span> <span class="o">*</span><span class="n">expectedUsers</span> <span class="o">=</span> <span class="n">ethalonUsers</span><span class="p">();</span>
+</span><span class='line'>    <span class="bp">NSArray</span> <span class="o">*</span><span class="n">actualUsers</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">[</span><span class="n">client</span> <span class="nl">loadUsersWithCallback</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="n">users</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">actualUsers</span> <span class="o">=</span> <span class="n">users</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">actualUsers</span> <span class="n">should</span> <span class="nf">equal</span><span class="p">(</span><span class="n">expectedUsers</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">it</span><span class="p">(@</span><span class="err">“</span><span class="n">should</span> <span class="n">process</span> <span class="n">error</span><span class="err">”</span><span class="p">,</span> <span class="o">^</span><span class="p">{</span>
+</span><span class='line'>      <span class="n">client</span><span class="p">.</span><span class="n">loader</span> <span class="o">=</span> <span class="n">fakeErrorLoader</span><span class="p">();</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="bp">NSError</span> <span class="o">*</span><span class="n">expectedError</span> <span class="o">=</span> <span class="n">ethalonError</span><span class="p">();</span>
+</span><span class='line'>    <span class="bp">NSError</span> <span class="o">*</span><span class="n">actualError</span> <span class="o">=</span> <span class="nb">nil</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="p">[</span><span class="n">client</span> <span class="nl">loadUsersWithCallback</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSArray</span> <span class="o">*</span><span class="n">users</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">actualError</span> <span class="o">=</span> <span class="n">error</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}];</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">actualError</span> <span class="n">should</span> <span class="nf">equal</span><span class="p">(</span><span class="n">expectedError</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">});</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">});</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Summary</h3>
+
+<p>One of our modules had lots of asynchronous network tests which were failing randomly. As you might imagine, that’s not an optimal situation to find yourself in. By getting rid of asynchrony, we didn’t only get rid of random failures, but also decreased execution time from ~2.5s to ~0.01s.</p>
+
+<p>Have fun writing those reliable, deterministic tests!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA['If (Self)' and Sanity]]></title>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Iosdev | AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/blog/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-05-06T06:22:51+02:00</updated>
+  <updated>2015-06-17T14:55:43+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,206 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
+    <link href="http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests/"/>
+    <updated>2015-06-17T12:31:15+02:00</updated>
+    <id>http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests</id>
+    <content type="html"><![CDATA[<h3>Asynchronous tests are not reliable</h3>
+
+<p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
+
+<p>While these tools are really great, wether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
+
+<h3>Getting rid of asynchrony</h3>
+
+<!-- more -->
+
+
+<p>To make those tests reliable we need to get rid of asynchrony. There are a few frameworks that simplify this task, like: <a href="http://ocmock.org">OCMock</a>, <a href="https://github.com/jonreid/OCMockito">OCMockito</a> or <a href="https://github.com/pivotal/cedar">Cedar</a>.</p>
+
+<p>As big fan of ObjC++, I’ll go with Cedar, but any one of the above can get the job done.</p>
+
+<p>Let’s first consider the components of a system under test:</p>
+
+<p><code>Loader</code> - loads raw <code>NSData</code> from the network or returns an error</p>
+
+<p><code>Client</code> - handles error/raw data from the <code>Loader</code> and sends it to an end user</p>
+
+<p>Here is the interface of the <code>Loader</code>:</p>
+
+<pre><code class="objective-c">@interface Loader : NSObject
+
+- (void)loadDataWithCompletion:(void (^) (NSData *data, NSError *error))completion;
+
+@end
+</code></pre>
+
+<p>the interface of the <code>Client</code></p>
+
+<pre><code class="objective-c">typedef void (^Callback) (NSArray *users, NSError *error);
+@class Loader;
+
+@interface Client : NSObject
+
+@property Loader *loader;
+
+- (void)loadUsersWithCallback:(Callback)callback;
+
+@end
+</code></pre>
+
+<p>and it’s implementation:</p>
+
+<pre><code class="objective-c">@implementation Client
+
+- (void)loadUsersWithCallback:(Callback)callback {
+  [self.loader loadDataWithCompletion:^(NSData *data, NSError *error) {
+    NSArray *users = parseUsers(data);
+    NSError *finalError = processError(error);
+    callback(users, finalError);
+  }];
+}
+
+@end
+</code></pre>
+
+<p>Our goal is to test that the client parses data and handles errors in a correct way:</p>
+
+<pre><code class="objective-c">describe(@“Client”, ^{
+  Client *client = [Client new];
+
+  it(@“should parse data”, ^{
+    NSArray *expectedUsers = ethalonUsers();
+    NSArray *actualUsers = nil;
+
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualUsers = users;
+    }];
+
+    actualUsers should equal(expectedUsers);
+  });
+
+  it(@“should process error”, ^{
+    NSError *expectedError = ethalonError();
+    NSError *actualError = nil;
+
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualError = error;
+    }];
+
+    actualError should equal(expectedError);
+  });
+
+});
+</code></pre>
+
+<p>To test this we just need to replace the <code>client.loader</code> with a fake object that is going to mimic the desired behavior.</p>
+
+<p>Here is how it looks like with Cedar:</p>
+
+<pre><code class="objective-c">typedef void (^LoaderCallback)(NSData *data, NSError *error);
+
+// parse data
+SEL sel = @selector(loadDataWithCompletion:);
+Loader *loader = fake_for(Loader.class);
+loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+    LoaderCallback callback = nil;
+    NSData *data = getUsersData();
+    [invocation getArgument:&amp;callback atIndex:2];
+    callback(data, nil);
+});
+
+// parse data
+SEL sel = @selector(loadDataWithCompletion:);
+Loader *loader = fake_for(Loader.class);
+loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+    LoaderCallback callback = nil;
+    NSError *error = getError();
+    [invocation getArgument:&amp;callback atIndex:2];
+    callback(nil, error);
+});
+</code></pre>
+
+<p>For those unfamiliar with <a href="https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html"><code>NSInvocation</code></a> let me cite it&rsquo;s documentation:</p>
+
+<pre><code class="objective-c">/*
+buffer:
+  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.
+
+index:
+  An integer specifying the index of the argument to get.
+  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.
+*/
+- (void)getArgument:(void * nonnull)buffer atIndex:(NSInteger)index;
+</code></pre>
+
+<p>After putting these parts together you&rsquo;ll have this cryptic code:</p>
+
+<pre><code class="objective-c">typedef void (^LoaderCallback)(NSData *data, NSError *error);
+
+static Loader *fakeUsersLoader() {
+    SEL sel = @selector(loadDataWithCompletion:);
+    Loader *loader = fake_for(Loader.class);
+    loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+      LoaderCallback callback = nil;
+    NSData *data = getUsersData();
+    [invocation getArgument:&amp;callback atIndex:2];
+    callback(data, nil);
+    });
+}
+
+static Loader *fakeErrorLoader() {
+    SEL sel = @selector(loadDataWithCompletion:);
+    Loader *loader = fake_for(Loader.class);
+    loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+      LoaderCallback callback = nil;
+    NSError *error = getError();
+    [invocation getArgument:&amp;callback atIndex:2];
+    callback(nil, error);
+    });
+}
+
+describe(@“Client”, ^{
+  Client *client = [Client new];
+
+  it(@“should parse data”, ^{
+    client.loader = fakeUsersLoader();
+
+    NSArray *expectedUsers = ethalonUsers();
+    NSArray *actualUsers = nil;
+
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualUsers = users;
+    }];
+
+    actualUsers should equal(expectedUsers);
+  });
+
+  it(@“should process error”, ^{
+        client.loader = fakeErrorLoader();
+
+    NSError *expectedError = ethalonError();
+    NSError *actualError = nil;
+
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualError = error;
+    }];
+
+    actualError should equal(expectedError);
+  });
+
+});
+</code></pre>
+
+<h3>Summary</h3>
+
+<p>One of our modules had lots of asynchronous network tests which were failing randomly. As you might imagine, that’s not an optimal situation to find yourself in. By getting rid of asynchrony, we didn’t only get rid of random failures, but also decreased execution time from ~2.5s to ~0.01s.</p>
+
+<p>Have fun writing those reliable, deterministic tests!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA['If (Self)' and Sanity]]></title>
