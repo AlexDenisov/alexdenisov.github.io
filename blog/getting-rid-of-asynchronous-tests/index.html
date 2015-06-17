@@ -102,7 +102,7 @@
 
 <p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
 
-<p>While these tools are really great, wether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
+<p>While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
 
 <h3>Getting rid of asynchrony</h3>
 
