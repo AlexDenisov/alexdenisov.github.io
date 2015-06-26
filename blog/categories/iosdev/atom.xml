@@ -4,7 +4,7 @@
   <title><![CDATA[Category: Iosdev | AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/blog/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-17T14:59:28+02:00</updated>
+  <updated>2015-06-26T09:29:32+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,92 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
+    <link href="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/"/>
+    <updated>2015-06-26T09:22:57+02:00</updated>
+    <id>http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions</id>
+    <content type="html"><![CDATA[<p>Few hours ago I finally finished with my patch to Clang.
+It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.</p>
+
+<p>I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.</p>
+
+<p>For those who wants to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
+<a href="http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures">docs</a></p>
+
+<h3>Boxed Expressions and Structures</h3>
+
+<p>Boxed expressions got limited support of NSValue:</p>
+
+<pre><code class="objective-c">NSValue *center = @(view.center);    // Point p = view.center;
+                                     // [NSValue valueWithBytes:&amp;p objCType:@encode(Point)];
+NSValue *frame = @(view.frame);      // Rect r = view.frame;
+                                     // [NSValue valueWithBytes:&amp;r objCType:@encode(Rect)];
+</code></pre>
+
+<p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>
+
+<pre><code class="objective-c">struct __attribute__((objc_boxable)) Point {
+    int x, y;
+};
+
+typedef struct __attribute__((objc_boxable)) _Size {
+    int width, height;
+} Size;
+</code></pre>
+
+<p>If you want to use C struct or record from third-party library or from legacy code you just need to ‘enable’ this feature for the record:</p>
+
+<pre><code class="objective-c">typedef struct _Rect {
+    Point origin;
+  Size size;
+} Rect;
+
+Rect r;
+NSValue *bad_rect = @(r);       // error
+
+typedef struct __attribute__((objc_boxable)) _Rect Rect;
+
+NSValue *good_rect = @(r);      // ok
+</code></pre>
+
+<h3>Availability</h3>
+
+<p>To write backward compatible code you need to check for attribute and feature availability:</p>
+
+<pre><code class="objective-c">#if __has_attribute(objc_boxable)
+    typedef struct __attribute__((objc_boxable)) _Rect Rect;
+#endif
+
+CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:@“position”];
+#if __has_feature(objc_boxed_nsvalue_expressions)
+    animation.fromValue = @(layer.position);
+    animation.toValue = @(newPosition);
+#else
+    animation.fromValue = [NSValue valueWithCGPoint:layer.position];
+    animation.toValue = [NSValue valueWithCGPoint:newPosition];
+#endif
+[layer addAnimation:animation forKey:@“move”];
+</code></pre>
+
+<h3>Boring Numbers</h3>
+
+<ul>
+<li>222 days since first version of patch</li>
+<li>85 commits in an own fork of clang</li>
+<li>50 emails in the mail thread</li>
+<li>8 versions of the patch</li>
+<li>3 different implementations</li>
+<li>1 retired reviewer</li>
+</ul>
+
+
+<h3>That&rsquo;s it</h3>
+
+<p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
@@ -22,7 +108,7 @@
 
 <p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
 
-<p>While these tools are really great, wether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
+<p>While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
 
 <h3>Getting rid of asynchrony</h3>
 
@@ -201,7 +287,6 @@ describe(@“Client”, ^{
 
     actualError should equal(expectedError);
   });
-
 });
 </code></pre>
 

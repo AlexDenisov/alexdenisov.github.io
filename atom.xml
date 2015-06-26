@@ -4,7 +4,7 @@
   <title><![CDATA[AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-17T14:59:28+02:00</updated>
+  <updated>2015-06-26T09:29:32+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,131 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
+    <link href="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/"/>
+    <updated>2015-06-26T09:22:57+02:00</updated>
+    <id>http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions</id>
+    <content type="html"><![CDATA[<p>Few hours ago I finally finished with my patch to Clang.
+It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.</p>
+
+<p>I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.</p>
+
+<p>For those who wants to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
+<a href="http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures">docs</a></p>
+
+<h3>Boxed Expressions and Structures</h3>
+
+<p>Boxed expressions got limited support of NSValue:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">center</span> <span class="o">=</span> <span class="l">@(</span><span class="n">view</span><span class="p">.</span><span class="n">center</span><span class="l">)</span><span class="p">;</span>    <span class="c1">// Point p = view.center;</span>
+</span><span class='line'>                                     <span class="c1">// [NSValue valueWithBytes:&amp;p objCType:@encode(Point)];</span>
+</span><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">frame</span> <span class="o">=</span> <span class="l">@(</span><span class="n">view</span><span class="p">.</span><span class="n">frame</span><span class="l">)</span><span class="p">;</span>      <span class="c1">// Rect r = view.frame;</span>
+</span><span class='line'>                                     <span class="c1">// [NSValue valueWithBytes:&amp;r objCType:@encode(Rect)];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">Point</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">_Size</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="n">Size</span><span class="p">;</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If you want to use C struct or record from third-party library or from legacy code you just need to ‘enable’ this feature for the record:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_Rect</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">Point</span> <span class="n">origin</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">Size</span> <span class="n">size</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span> <span class="n">Rect</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">Rect</span> <span class="n">r</span><span class="p">;</span>
+</span><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">bad_rect</span> <span class="o">=</span> <span class="l">@(</span><span class="n">r</span><span class="l">)</span><span class="p">;</span>       <span class="c1">// error</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">_Rect</span> <span class="n">Rect</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">good_rect</span> <span class="o">=</span> <span class="l">@(</span><span class="n">r</span><span class="l">)</span><span class="p">;</span>      <span class="c1">// ok</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Availability</h3>
+
+<p>To write backward compatible code you need to check for attribute and feature availability:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="cp">#if __has_attribute(objc_boxable)</span>
+</span><span class='line'>    <span class="k">typedef</span> <span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">_Rect</span> <span class="n">Rect</span><span class="p">;</span>
+</span><span class='line'><span class="cp">#endif</span>
+</span><span class='line'>
+</span><span class='line'><span class="bp">CABasicAnimation</span> <span class="n">animation</span> <span class="o">=</span> <span class="p">[</span><span class="bp">CABasicAnimation</span> <span class="nl">animationWithKeyPath</span><span class="p">:@</span><span class="err">“</span><span class="n">position</span><span class="err">”</span><span class="p">];</span>
+</span><span class='line'><span class="cp">#if __has_feature(objc_boxed_nsvalue_expressions)</span>
+</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">fromValue</span> <span class="o">=</span> <span class="l">@(</span><span class="n">layer</span><span class="p">.</span><span class="n">position</span><span class="l">)</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="l">@(</span><span class="n">newPosition</span><span class="l">)</span><span class="p">;</span>
+</span><span class='line'><span class="cp">#else</span>
+</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">fromValue</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSValue</span> <span class="nl">valueWithCGPoint</span><span class="p">:</span><span class="n">layer</span><span class="p">.</span><span class="n">position</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSValue</span> <span class="nl">valueWithCGPoint</span><span class="p">:</span><span class="n">newPosition</span><span class="p">];</span>
+</span><span class='line'><span class="cp">#endif</span>
+</span><span class='line'><span class="p">[</span><span class="n">layer</span> <span class="nl">addAnimation</span><span class="p">:</span><span class="n">animation</span> <span class="nl">forKey</span><span class="p">:@</span><span class="err">“</span><span class="n">move</span><span class="err">”</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Boring Numbers</h3>
+
+<ul>
+<li>222 days since first version of patch</li>
+<li>85 commits in an own fork of clang</li>
+<li>50 emails in the mail thread</li>
+<li>8 versions of the patch</li>
+<li>3 different implementations</li>
+<li>1 retired reviewer</li>
+</ul>
+
+
+<h3>That&rsquo;s it</h3>
+
+<p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
@@ -22,7 +147,7 @@
 
 <p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
 
-<p>While these tools are really great, wether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
+<p>While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
 
 <h3>Getting rid of asynchrony</h3>
 
@@ -290,7 +415,6 @@
 <span class='line-number'>51</span>
 <span class='line-number'>52</span>
 <span class='line-number'>53</span>
-<span class='line-number'>54</span>
 </pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">typedef</span> <span class="nf">void</span> <span class="p">(</span><span class="o">^</span><span class="n">LoaderCallback</span><span class="p">)(</span><span class="bp">NSData</span> <span class="o">*</span><span class="n">data</span><span class="p">,</span> <span class="bp">NSError</span> <span class="o">*</span><span class="n">error</span><span class="p">);</span>
 </span><span class='line'>
 </span><span class='line'><span class="k">static</span> <span class="n">Loader</span> <span class="o">*</span><span class="nf">fakeUsersLoader</span><span class="p">()</span> <span class="p">{</span>
@@ -343,7 +467,6 @@
 </span><span class='line'>
 </span><span class='line'>    <span class="n">actualError</span> <span class="n">should</span> <span class="nf">equal</span><span class="p">(</span><span class="n">expectedError</span><span class="p">);</span>
 </span><span class='line'>  <span class="p">});</span>
-</span><span class='line'>
 </span><span class='line'><span class="p">});</span>
 </span></code></pre></td></tr></table></div></figure>
 

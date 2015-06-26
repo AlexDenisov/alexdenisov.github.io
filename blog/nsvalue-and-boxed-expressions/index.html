@@ -5,7 +5,7 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>AlexDenisov&#8217;s Blog</title>
+  <title>NSValue and Boxed Expressions - AlexDenisov&#8217;s Blog</title>
   <meta name="author" content="AlexDenisov">
 
   
@@ -19,7 +19,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://alexdenisov.github.io">
+  <link rel="canonical" href="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="AlexDenisov's Blog" type="application/atom+xml">
@@ -70,15 +70,12 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 </nav>
   <div id="main">
     <div id="content">
-      <div class="blog-index">
+      <div>
+<article class="hentry" role="article">
   
-  
-  
-    <article>
-      
   <header>
     
-      <h1 class="entry-title"><a href="/blog/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a></h1>
+      <h1 class="entry-title">NSValue and Boxed Expressions</h1>
     
     
       <p class="meta">
@@ -102,7 +99,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   </header>
 
 
-  <div class="entry-content"><p>Few hours ago I finally finished with my patch to Clang.
+<div class="entry-content"><p>Few hours ago I finally finished with my patch to Clang.
 It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.</p>
 
 <p>I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.</p>
@@ -220,70 +217,16 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 <p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
 </div>
-  
-  
 
 
-    </article>
-  
-  
-    <article>
+  <footer>
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
   
 
+<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
 
-
-<time datetime="2015-06-17T12:31:15+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-06-17T12:31:15+02:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>17</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><h3>Asynchronous tests are not reliable</h3>
-
-<p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
-
-<p>While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
-
-<h3>Getting rid of asynchrony</h3>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/getting-rid-of-asynchronous-tests/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/if-self-sanity/">&#8216;If (Self)&#8217; and Sanity</a></h1>
-    
-    
-      <p class="meta">
-        
 
 
 
@@ -296,231 +239,47 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 
 
-<time datetime="2015-05-05T23:08:13+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-05-05T23:08:13+02:00'><span class='date'><span class='date-month'>May</span> <span class='date-day'>5</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**”.</p>
-
-<p>I believe it was a hard task, but Apple managed to find that thing:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="nb">self</span> <span class="o">=</span> <span class="p">[</span><span class="nb">super</span> <span class="n">init</span><span class="p">];</span>
-</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="nb">self</span><span class="p">)</span> <span class="p">{</span> <span class="c1">// &lt;- this is silly </span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="k">return</span> <span class="nb">self</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>**<em>Don&rsquo;t want to offend you, I did this silly thing for a years</em></p>
-
-<p><strong>TL;DR;</strong></p>
-
-<p>Check the value of <code>self</code> in constructor only if you use ivars.</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/if-self-sanity/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
+<time datetime="2015-06-26T09:22:57+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-06-26T09:22:57+02:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/circular-containers-in-objective-c/">Circular Containers in Objective-C</a></h1>
-    
-    
-      <p class="meta">
-        
 
-
-
-
-
-
-
-
+<span class="categories">
   
+    <a class='category' href='/blog/categories/clang/'>clang</a>, <a class='category' href='/blog/categories/iosdev/'>iosdev</a>
+  
+</span>
 
 
-
-<time datetime="2015-04-13T22:44:26+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-04-13T22:44:26+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>13</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-      </p>
+    </p>
     
-  </header>
-
-
-  <div class="entry-content"><p>Some time ago I accidentally wrote this code:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">environments</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'><span class="k">for</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="n">key</span> <span class="k">in</span> <span class="p">[</span><span class="n">dictionary</span> <span class="n">allKeys</span><span class="p">])</span> <span class="p">{</span>
-</span><span class='line'>    <span class="n">XCCEnvironment</span> <span class="o">*</span><span class="n">environment</span> <span class="o">=</span> <span class="p">[[</span><span class="n">XCCEnvironment</span> <span class="n">alloc</span><span class="p">]</span> <span class="nl">initWithName</span><span class="p">:</span><span class="n">key</span>
-</span><span class='line'>                                                            <span class="nl">parameters</span><span class="p">:</span><span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]];</span>
-</span><span class='line'>    <span class="p">[</span><span class="n">environments</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">environments</span><span class="p">];</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'><span class="k">return</span> <span class="n">environments</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>Did you notice the problem here? Well, I didn&rsquo;t.</p>
-
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/circular-containers-in-objective-c/">Read on &rarr;</a>
-    </footer>
-  
 
-
-    </article>
-  
-  
-    <article>
+    
+    <p class="meta">
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a></h1>
-    
-    
-      <p class="meta">
-        
-
-
-
-
-
-
-
-
-  
-
-
-
-<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
-Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
-
-<p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">development</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev123</span>
-</span><span class='line'><span class="c1"># ...</span>
-</span><span class='line'><span class="l-Scalar-Plain">production</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">root</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">supersecurepassword</span>
-</span><span class='line'><span class="c1"># ...</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<p>I wish I can use the same approach in my daily iOS development.</p>
-
-<p>Fortunately, I can!</p>
-
-</div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/yaml-based-configuration-for-objc-projects/">Read on &rarr;</a>
-    </footer>
-  
-
-
-    </article>
-  
-  
-    <article>
+        <a class="basic-alignment left" href="/blog/getting-rid-of-asynchronous-tests/" title="Previous Post: Getting rid of asynchronous tests">&laquo; Getting rid of asynchronous tests</a>
       
-  <header>
-    
-      <h1 class="entry-title"><a href="/blog/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started With LLVM/Clang on OS X</a></h1>
-    
-    
-      <p class="meta">
-        
+      
+    </p>
+  </footer>
+</article>
 
-
-
-
-
-
-
-
-  
-
-
-
-<time datetime="2014-12-27T23:03:50+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2014-12-27T23:03:50+01:00'><span class='date'><span class='date-month'>Dec</span> <span class='date-day'>27</span><span class='date-suffix'>th</span>, <span class='date-year'>2014</span></span></time></time>
-        
-      </p>
-    
-  </header>
-
-
-  <div class="entry-content"><p>This article is a guide how to set up development environment for Clang on OS X.
-The following topics are covered:</p>
-
-<ul>
-<li>getting sources</li>
-<li>setting up IDE/compiling</li>
-<li>debugging</li>
-</ul>
-
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
-  
-  
-    <footer>
-      <a rel="full-article" href="/blog/getting-started-with-llvm-slash-clang-on-os-x/">Read on &rarr;</a>
-    </footer>
-  
 
-
-    </article>
-  
-  <div class="pagination">
-    
-    <a href="/blog/archives">Blog Archives</a>
-    
-  </div>
-</div>
-<aside class="sidebar">
+  <aside class="sidebar">
    
   
     
@@ -605,6 +364,7 @@ The following topics are covered:</p>
 </aside>
 
 
+
     </div>
   </div>
   <footer role="contentinfo"><p>
@@ -619,7 +379,10 @@ The following topics are covered:</p>
       var disqus_shortname = 'alex-denisov';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/';
+        var disqus_url = 'http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
