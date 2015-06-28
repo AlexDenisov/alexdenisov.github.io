@@ -4,7 +4,7 @@
   <title><![CDATA[AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-26T09:29:32+02:00</updated>
+  <updated>2015-06-28T13:11:28+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -39,6 +39,11 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 </span><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">frame</span> <span class="o">=</span> <span class="l">@(</span><span class="n">view</span><span class="p">.</span><span class="n">frame</span><span class="l">)</span><span class="p">;</span>      <span class="c1">// Rect r = view.frame;</span>
 </span><span class='line'>                                     <span class="c1">// [NSValue valueWithBytes:&amp;r objCType:@encode(Rect)];</span>
 </span></code></pre></td></tr></table></div></figure>
+
+
+
+
+<!-- more -->
 
 
 <p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>

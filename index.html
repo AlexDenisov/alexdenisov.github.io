@@ -125,102 +125,14 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">Point</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">;</span>
-</span><span class='line'><span class="p">};</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">_Size</span> <span class="p">{</span>
-</span><span class='line'>    <span class="kt">int</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span> <span class="n">Size</span><span class="p">;</span>
-</span></code></pre></td></tr></table></div></figure>
 
 
-<p>If you want to use C struct or record from third-party library or from legacy code you just need to ‘enable’ this feature for the record:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_Rect</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">Point</span> <span class="n">origin</span><span class="p">;</span>
-</span><span class='line'>  <span class="n">Size</span> <span class="n">size</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span> <span class="n">Rect</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Rect</span> <span class="n">r</span><span class="p">;</span>
-</span><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">bad_rect</span> <span class="o">=</span> <span class="l">@(</span><span class="n">r</span><span class="l">)</span><span class="p">;</span>       <span class="c1">// error</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">typedef</span> <span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">_Rect</span> <span class="n">Rect</span><span class="p">;</span>
-</span><span class='line'>
-</span><span class='line'><span class="bp">NSValue</span> <span class="o">*</span><span class="n">good_rect</span> <span class="o">=</span> <span class="l">@(</span><span class="n">r</span><span class="l">)</span><span class="p">;</span>      <span class="c1">// ok</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Availability</h3>
-
-<p>To write backward compatible code you need to check for attribute and feature availability:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-</pre></td><td class='code'><pre><code class='objective-c'><span class='line'><span class="cp">#if __has_attribute(objc_boxable)</span>
-</span><span class='line'>    <span class="k">typedef</span> <span class="k">struct</span> <span class="n">__attribute__</span><span class="p">((</span><span class="n">objc_boxable</span><span class="p">))</span> <span class="n">_Rect</span> <span class="n">Rect</span><span class="p">;</span>
-</span><span class='line'><span class="cp">#endif</span>
-</span><span class='line'>
-</span><span class='line'><span class="bp">CABasicAnimation</span> <span class="n">animation</span> <span class="o">=</span> <span class="p">[</span><span class="bp">CABasicAnimation</span> <span class="nl">animationWithKeyPath</span><span class="p">:@</span><span class="err">“</span><span class="n">position</span><span class="err">”</span><span class="p">];</span>
-</span><span class='line'><span class="cp">#if __has_feature(objc_boxed_nsvalue_expressions)</span>
-</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">fromValue</span> <span class="o">=</span> <span class="l">@(</span><span class="n">layer</span><span class="p">.</span><span class="n">position</span><span class="l">)</span><span class="p">;</span>
-</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="l">@(</span><span class="n">newPosition</span><span class="l">)</span><span class="p">;</span>
-</span><span class='line'><span class="cp">#else</span>
-</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">fromValue</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSValue</span> <span class="nl">valueWithCGPoint</span><span class="p">:</span><span class="n">layer</span><span class="p">.</span><span class="n">position</span><span class="p">];</span>
-</span><span class='line'>    <span class="n">animation</span><span class="p">.</span><span class="n">toValue</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSValue</span> <span class="nl">valueWithCGPoint</span><span class="p">:</span><span class="n">newPosition</span><span class="p">];</span>
-</span><span class='line'><span class="cp">#endif</span>
-</span><span class='line'><span class="p">[</span><span class="n">layer</span> <span class="nl">addAnimation</span><span class="p">:</span><span class="n">animation</span> <span class="nl">forKey</span><span class="p">:@</span><span class="err">“</span><span class="n">move</span><span class="err">”</span><span class="p">];</span>
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Boring Numbers</h3>
-
-<ul>
-<li>222 days since first version of patch</li>
-<li>85 commits in an own fork of clang</li>
-<li>50 emails in the mail thread</li>
-<li>8 versions of the patch</li>
-<li>3 different implementations</li>
-<li>1 retired reviewer</li>
-</ul>
-
-
-<h3>That&rsquo;s it</h3>
-
-<p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
 </div>
   
+  
+    <footer>
+      <a rel="full-article" href="/blog/nsvalue-and-boxed-expressions/">Read on &rarr;</a>
+    </footer>
   
 
 
