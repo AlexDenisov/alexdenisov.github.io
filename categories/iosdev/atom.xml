@@ -1,23 +1,112 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: Iosdev | AlexDenisov's Blog]]></title>
-  <link href="http://alexdenisov.github.io/blog/categories/iosdev/atom.xml" rel="self"/>
+  <title><![CDATA[Category: iosdev | AlexDenisov's Blog]]></title>
+  <link href="http://alexdenisov.github.io/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-28T13:12:34+02:00</updated>
+  <updated>2015-06-29T21:55:59+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
-    
+    <email><![CDATA[1101.debian+blog@gmail.com]]></email>
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
   
   <entry>
+    <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
+    <link href="http://alexdenisov.github.io/nsvalue-and-boxed-expressions/"/>
+    <updated>2015-06-26T09:22:57+02:00</updated>
+    <id>http://alexdenisov.github.io/nsvalue-and-boxed-expressions</id>
+    <content type="html"><![CDATA[<p>Few hours ago I finally finished with my patch to Clang.
+It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.</p>
+
+<p>I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.</p>
+
+<p>For those who wants to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
+<a href="http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures">docs</a></p>
+
+<h3>Boxed Expressions and Structures</h3>
+
+<p>Boxed expressions got limited support of NSValue:</p>
+
+<pre><code class="objective-c">NSValue *center = @(view.center);    // Point p = view.center;
+                                     // [NSValue valueWithBytes:&amp;p objCType:@encode(Point)];
+NSValue *frame = @(view.frame);      // Rect r = view.frame;
+                                     // [NSValue valueWithBytes:&amp;r objCType:@encode(Rect)];
+</code></pre>
+
+<!-- more -->
+
+
+<p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>
+
+<pre><code class="objective-c">struct __attribute__((objc_boxable)) Point {
+    int x, y;
+};
+
+typedef struct __attribute__((objc_boxable)) _Size {
+    int width, height;
+} Size;
+</code></pre>
+
+<p>If you want to use C struct or record from third-party library or from legacy code you just need to ‘enable’ this feature for the record:</p>
+
+<pre><code class="objective-c">typedef struct _Rect {
+    Point origin;
+  Size size;
+} Rect;
+
+Rect r;
+NSValue *bad_rect = @(r);       // error
+
+typedef struct __attribute__((objc_boxable)) _Rect Rect;
+
+NSValue *good_rect = @(r);      // ok
+</code></pre>
+
+<h3>Availability</h3>
+
+<p>To write backward compatible code you need to check for attribute and feature availability:</p>
+
+<pre><code class="objective-c">#if __has_attribute(objc_boxable)
+    typedef struct __attribute__((objc_boxable)) _Rect Rect;
+#endif
+
+CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:@“position”];
+#if __has_feature(objc_boxed_nsvalue_expressions)
+    animation.fromValue = @(layer.position);
+    animation.toValue = @(newPosition);
+#else
+    animation.fromValue = [NSValue valueWithCGPoint:layer.position];
+    animation.toValue = [NSValue valueWithCGPoint:newPosition];
+#endif
+[layer addAnimation:animation forKey:@“move”];
+</code></pre>
+
+<h3>Boring Numbers</h3>
+
+<ul>
+<li>222 days since first version of patch</li>
+<li>85 commits in an own fork of clang</li>
+<li>50 emails in the mail thread</li>
+<li>8 versions of the patch</li>
+<li>3 different implementations</li>
+<li>1 retired reviewer</li>
+</ul>
+
+
+<h3>That&rsquo;s it</h3>
+
+<p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
+]]></content>
+  </entry>
+  
+  <entry>
     <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
-    <link href="http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests/"/>
+    <link href="http://alexdenisov.github.io/getting-rid-of-asynchronous-tests/"/>
     <updated>2015-06-17T12:31:15+02:00</updated>
-    <id>http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests</id>
+    <id>http://alexdenisov.github.io/getting-rid-of-asynchronous-tests</id>
     <content type="html"><![CDATA[<h3>Asynchronous tests are not reliable</h3>
 
 <p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
@@ -213,10 +302,10 @@ describe(@“Client”, ^{
   </entry>
   
   <entry>
-    <title type="html"><![CDATA['If (Self)' and Sanity]]></title>
-    <link href="http://alexdenisov.github.io/blog/if-self-sanity/"/>
+    <title type="html"><![CDATA['if (self)' and Sanity]]></title>
+    <link href="http://alexdenisov.github.io/if-self-sanity/"/>
     <updated>2015-05-05T23:08:13+02:00</updated>
-    <id>http://alexdenisov.github.io/blog/if-self-sanity</id>
+    <id>http://alexdenisov.github.io/if-self-sanity</id>
     <content type="html"><![CDATA[<p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**”.</p>
 
 <p>I believe it was a hard task, but Apple managed to find that thing:</p>
@@ -307,6 +396,175 @@ self-&gt;_foo = @“Foo”;
 <p>Nowadays we have properties, that allow us to write clean and robust code, so let’s do it and, please, <strong>check the value of <code>self</code> in constructor only if you use ivars.</strong></p>
 
 <p>Happy and sane hacking!</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[YAML-based Configuration for ObjC Projects]]></title>
+    <link href="http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects/"/>
+    <updated>2015-02-06T00:43:11+01:00</updated>
+    <id>http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects</id>
+    <content type="html"><![CDATA[<p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
+Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
+
+<p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
+
+<pre><code class="yaml">development:
+    user: dev
+    password: dev123
+# ...
+production:
+    user: root
+    password: supersecurepassword
+# ...
+</code></pre>
+
+<p>I wish I can use the same approach in my daily iOS development.</p>
+
+<p>Fortunately, I can!</p>
+
+<!-- more -->
+
+
+<p><strong>TL;DR;</strong></p>
+
+<p>Checkout project <a href="https://github.com/AlexDenisov/xcconf">xcconf</a> and <code>Sample/Sample.xcodeproj</code></p>
+
+<h3>Commonly used mechanisms</h3>
+
+<p>There are at least two common approaches to separate configurations: preprocessor definitions and plist file.
+Both of them have serious disadvantages.</p>
+
+<h4>Preprocessor Definition</h4>
+
+<p>You may saw and probably used this approach. It&rsquo;s pretty easy and simple to use:</p>
+
+<pre><code class="objectivec">#ifdef DEBUG
+NSString *const kServerAddress = @"https://staging.example.com";
+#else
+NSString *const kServerAddress = @"https://example.com";
+#endif
+</code></pre>
+
+<p>But let&rsquo;s say that you add one more environment, e.g. &ldquo;Beta&rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&rsquo;s really easy to make a typo or &ldquo;accidentally&rdquo; drop a definition. Your code will compile, but it&rsquo;d use wrong environment.
+Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.</p>
+
+<h4>Plist file</h4>
+
+<p>This is other commonly used mechanism. This approach described <a href="http://code.tutsplus.com/tutorials/ios-quick-tip-managing-configurations-with-ease--mobile-18324">here</a>.
+It&rsquo;s also has some disadvantages: if you want to add new configuration variable - you have to add it to every subsection, also you need to add a property to class and write (copy-paste?) initialization code.
+Moreover, you will distribute all your keys/endpoints to the end user, or you&rsquo;ll have to cleanup the file right before deploy to the AppStore.
+Still you have to perform way too many actions for such a simple task.</p>
+
+<p>Thanks god there is more easier and robust way.</p>
+
+<h3>XCCONF and YAML</h3>
+
+<p><a href="https://github.com/AlexDenisov/xcconf">xcconf</a> incorporates only best parts from methods described previously:</p>
+
+<ul>
+<li>all settings store in one place</li>
+<li>you don&rsquo;t expose private data</li>
+<li>everything done at compile time</li>
+</ul>
+
+
+<h5>Here is how it looks like:</h5>
+
+<p>Configuration file:</p>
+
+<pre><code class="yaml config.yaml">principalClass: Configuration
+
+Debug:
+    serverAddress: https://staging.example.com
+    APIKey: qwe123!!qwe
+
+Release:
+    serverAddress: https://example.com
+    APIKey: qwe123qwe
+</code></pre>
+
+<p>ObjC code:</p>
+
+<pre><code class="objectivec">@Interface Configuration : NSObject
+- (NSString *)serverAddress;
+- (NSString *)APIKey;
+@end
+
+// ...
+
+Config *config = [Config new];
+NSLog(@"%@", config.serverAddress);
+</code></pre>
+
+<p>No preprocessor, no boilerplate!</p>
+
+<h4>Installation and usage</h4>
+
+<p>To install <code>xcconf</code> you need to clone repo and run one command, it&rsquo;ll build executable and install it into <code>/usr/local/bin</code></p>
+
+<pre><code class="bash">git clone git@github.com:AlexDenisov/xcconf.git &amp;&amp; cd xcconf
+make install
+</code></pre>
+
+<p>Integration into project looks weird, but don&rsquo;t worry, that&rsquo;s ok :)</p>
+
+<p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
+
+<p><img src="/images/yaml-based-configuration/new_file.png"></p>
+
+<p>Put there initial configuration:</p>
+
+<pre><code class="yaml config.yaml">principalClass: Config
+
+Debug:
+    color: Green
+
+Release:
+    color: Blue
+</code></pre>
+
+<p>Prepare class interface for configuration. <strong>But do not create implementation</strong>. Its name should be equal to <code>principalClass</code> and it might contain getter methods for all available parameters, in this case it&rsquo;s just <code>color</code></p>
+
+<pre><code class="objectivec Config.h">@interface Config : NSObject
+- (NSString *)color;
+@end
+</code></pre>
+
+<p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -> <code>Compile Sources</code> -> <code>+</code> and add <code>config.yaml</code></p>
+
+<p><img src="/images/yaml-based-configuration/compile_yaml.png"></p>
+
+<p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
+Also, we need to specify output file, otherwise it won&rsquo;t work:
+<code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
+
+<p><img src="/images/yaml-based-configuration/xcconf.png"></p>
+
+<p>Now we&rsquo;re ready to use it:</p>
+
+<pre><code class="objectivec">#import "Config.h"
+
+int main(int argc, const char * argv[]) {
+    @autoreleasepool {
+        Config *config = [Config new];
+        NSLog(@"%@", config.color);
+    }
+    return 0;
+}
+</code></pre>
+
+<p>Build&amp;Run:</p>
+
+<p><img src="/images/yaml-based-configuration/output.png"></p>
+
+<h3>Summary</h3>
+
+<p>The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.</p>
+
+<p>I&rsquo;d really appreciate any feedback.</p>
+
+<p>P.S. Pull Requests are welcome! :)</p>
 ]]></content>
   </entry>
   

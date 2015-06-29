@@ -4,20 +4,20 @@
   <title><![CDATA[AlexDenisov's Blog]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-28T13:11:28+02:00</updated>
+  <updated>2015-06-29T21:55:59+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
-    
+    <email><![CDATA[1101.debian+blog@gmail.com]]></email>
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
   
   <entry>
     <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
-    <link href="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/"/>
+    <link href="http://alexdenisov.github.io/nsvalue-and-boxed-expressions/"/>
     <updated>2015-06-26T09:22:57+02:00</updated>
-    <id>http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions</id>
+    <id>http://alexdenisov.github.io/nsvalue-and-boxed-expressions</id>
     <content type="html"><![CDATA[<p>Few hours ago I finally finished with my patch to Clang.
 It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.</p>
 
@@ -145,9 +145,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
-    <link href="http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests/"/>
+    <link href="http://alexdenisov.github.io/getting-rid-of-asynchronous-tests/"/>
     <updated>2015-06-17T12:31:15+02:00</updated>
-    <id>http://alexdenisov.github.io/blog/getting-rid-of-asynchronous-tests</id>
+    <id>http://alexdenisov.github.io/getting-rid-of-asynchronous-tests</id>
     <content type="html"><![CDATA[<h3>Asynchronous tests are not reliable</h3>
 
 <p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
@@ -485,10 +485,10 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   </entry>
   
   <entry>
-    <title type="html"><![CDATA['If (Self)' and Sanity]]></title>
-    <link href="http://alexdenisov.github.io/blog/if-self-sanity/"/>
+    <title type="html"><![CDATA['if (self)' and Sanity]]></title>
+    <link href="http://alexdenisov.github.io/if-self-sanity/"/>
     <updated>2015-05-05T23:08:13+02:00</updated>
-    <id>http://alexdenisov.github.io/blog/if-self-sanity</id>
+    <id>http://alexdenisov.github.io/if-self-sanity</id>
     <content type="html"><![CDATA[<p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**”.</p>
 
 <p>I believe it was a hard task, but Apple managed to find that thing:</p>
@@ -611,9 +611,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA[Circular Containers in Objective-C]]></title>
-    <link href="http://alexdenisov.github.io/blog/circular-containers-in-objective-c/"/>
+    <link href="http://alexdenisov.github.io/circular-containers-in-objective-c/"/>
     <updated>2015-04-13T22:44:26+02:00</updated>
-    <id>http://alexdenisov.github.io/blog/circular-containers-in-objective-c</id>
+    <id>http://alexdenisov.github.io/circular-containers-in-objective-c</id>
     <content type="html"><![CDATA[<p>Some time ago I accidentally wrote this code:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
@@ -703,9 +703,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA[YAML-based Configuration for ObjC Projects]]></title>
-    <link href="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/"/>
+    <link href="http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects/"/>
     <updated>2015-02-06T00:43:11+01:00</updated>
-    <id>http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects</id>
+    <id>http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects</id>
     <content type="html"><![CDATA[<p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
 Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
 
@@ -932,9 +932,9 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
   
   <entry>
     <title type="html"><![CDATA[Getting Started With LLVM/Clang on OS X]]></title>
-    <link href="http://alexdenisov.github.io/blog/getting-started-with-llvm-slash-clang-on-os-x/"/>
+    <link href="http://alexdenisov.github.io/getting-started-with-llvm-slash-clang-on-os-x/"/>
     <updated>2014-12-27T23:03:50+01:00</updated>
-    <id>http://alexdenisov.github.io/blog/getting-started-with-llvm-slash-clang-on-os-x</id>
+    <id>http://alexdenisov.github.io/getting-started-with-llvm-slash-clang-on-os-x</id>
     <content type="html"><![CDATA[<p>This article is a guide how to set up development environment for Clang on OS X.
 The following topics are covered:</p>
 

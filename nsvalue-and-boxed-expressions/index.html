@@ -9,9 +9,8 @@
   <meta name="author" content="AlexDenisov">
 
   
-  <meta name="description" content="Few hours ago I finally finished with my patch to Clang.
-It took a lot of time, but for me it is the most interesting and challenging OSS &hellip;">
-  
+  <meta name="description" content="New Objective-C feature was added to Clang. Boxed expressions now support NSValue with C structs and unions.">
+  <meta name="keywords" content="clang, llvm, objc, objective-c, Cocoa, CocoaTouch, objc_boxable, objc_boxed_nsvalue_expressions, boxed-expressions">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -19,7 +18,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions">
+  <link rel="canonical" href="http://alexdenisov.github.io/nsvalue-and-boxed-expressions">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="AlexDenisov's Blog" type="application/atom+xml">
@@ -61,11 +60,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
 </ul>
 
-<ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/atom.xml" title="subscribe via RSS">RSS</a></li>
-</ul>
+
 
 </nav>
   <div id="main">
@@ -93,6 +88,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 
 <time datetime="2015-06-26T09:22:57+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-06-26T09:22:57+02:00'><span class='date'><span class='date-month'>Jun</span> <span class='date-day'>26</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://alexdenisov.github.io">Comments</a>
         
       </p>
     
@@ -249,7 +247,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/clang/'>clang</a>, <a class='category' href='/blog/categories/iosdev/'>iosdev</a>
+    <a class='category' href='/categories/clang/'>clang</a>, <a class='category' href='/categories/iosdev/'>iosdev</a>, <a class='category' href='/categories/objc/'>objc</a>
   
 </span>
 
@@ -258,7 +256,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/nsvalue-and-boxed-expressions/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/nsvalue-and-boxed-expressions/" >Tweet</a>
   
   
   
@@ -269,7 +267,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/getting-rid-of-asynchronous-tests/" title="Previous Post: Getting rid of asynchronous tests">&laquo; Getting rid of asynchronous tests</a>
+        <a class="basic-alignment left" href="/getting-rid-of-asynchronous-tests/" title="Previous Post: Getting Rid of Asynchronous Tests">&laquo; Getting Rid of Asynchronous Tests</a>
       
       
     </p>
@@ -317,6 +315,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
       <div>
         <a href="https://twitter.com/1101_debian"><img id="icon" src="/images/twitter.png" alt="1101_debian" title="1101_debian" />&nbsp;1101_debian</a>
       </div>
+      <div>
+        <a href="/atom.xml"><img id="icon" src="/images/rss.png" alt="RSS" title="RSS" />&nbsp;RSS</a>
+      </div>
     </div>
 </div>
 </section>
@@ -343,23 +344,23 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
+        <a href="/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
       </li>
     
       <li class="post">
-        <a href="/blog/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
+        <a href="/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
       </li>
     
       <li class="post">
-        <a href="/blog/if-self-sanity/">&#8216;If (Self)&#8217; and Sanity</a>
+        <a href="/if-self-sanity/">&#8216;if (self)&#8217; and Sanity</a>
       </li>
     
       <li class="post">
-        <a href="/blog/circular-containers-in-objective-c/">Circular Containers in Objective-C</a>
+        <a href="/circular-containers-in-objective-c/">Circular Containers in Objective-C</a>
       </li>
     
       <li class="post">
-        <a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a>
+        <a href="/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a>
       </li>
     
   </ul>
@@ -385,8 +386,8 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/';
-        var disqus_url = 'http://alexdenisov.github.io/blog/nsvalue-and-boxed-expressions/';
+        var disqus_identifier = 'http://alexdenisov.github.io/nsvalue-and-boxed-expressions/';
+        var disqus_url = 'http://alexdenisov.github.io/nsvalue-and-boxed-expressions/';
         var disqus_script = 'embed.js';
       
     (function () {

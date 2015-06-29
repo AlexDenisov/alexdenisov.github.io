@@ -9,8 +9,8 @@
   <meta name="author" content="AlexDenisov">
 
   
-  <meta name="description" content="Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these &hellip;">
-  
+  <meta name="description" content="how to store keys in ios application, different environment in ios app">
+  <meta name="keywords" content="xcconf, yaml, objc, objective-c, Cocoa, CocoaTouch, configuration, environment">
 
   <!-- http://t.co/dKP3o1e -->
   <meta name="HandheldFriendly" content="True">
@@ -18,7 +18,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects">
+  <link rel="canonical" href="http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="AlexDenisov's Blog" type="application/atom+xml">
@@ -60,11 +60,7 @@
   
 </ul>
 
-<ul class="main-navigation">
-  <li><a href="/">Blog</a></li>
-  <li><a href="/blog/archives">Archives</a></li>
-  <li><a href="/atom.xml" title="subscribe via RSS">RSS</a></li>
-</ul>
+
 
 </nav>
   <div id="main">
@@ -92,6 +88,9 @@
 
 
 <time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://alexdenisov.github.io">Comments</a>
         
       </p>
     
@@ -347,7 +346,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
 
 <span class="categories">
   
-    <a class='category' href='/blog/categories/iosdev/'>iosdev,</a>, <a class='category' href='/blog/categories/objc/'>objc</a>
+    <a class='category' href='/categories/iosdev/'>iosdev</a>, <a class='category' href='/categories/objc/'>objc</a>
   
 </span>
 
@@ -356,7 +355,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
     
       <div class="sharing">
   
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/" >Tweet</a>
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects/" data-via="1101_debian" data-counturl="http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects/" >Tweet</a>
   
   
   
@@ -367,10 +366,10 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
     
     <p class="meta">
       
-        <a class="basic-alignment left" href="/blog/getting-started-with-llvm-slash-clang-on-os-x/" title="Previous Post: Getting started with LLVM/Clang on OS X">&laquo; Getting started with LLVM/Clang on OS X</a>
+        <a class="basic-alignment left" href="/getting-started-with-llvm-slash-clang-on-os-x/" title="Previous Post: Getting Started With LLVM/Clang on OS X">&laquo; Getting Started With LLVM/Clang on OS X</a>
       
       
-        <a class="basic-alignment right" href="/blog/circular-containers-in-objective-c/" title="Next Post: Circular containers in Objective-C">Circular containers in Objective-C &raquo;</a>
+        <a class="basic-alignment right" href="/circular-containers-in-objective-c/" title="Next Post: Circular Containers in Objective-C">Circular Containers in Objective-C &raquo;</a>
       
     </p>
   </footer>
@@ -417,6 +416,9 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
       <div>
         <a href="https://twitter.com/1101_debian"><img id="icon" src="/images/twitter.png" alt="1101_debian" title="1101_debian" />&nbsp;1101_debian</a>
       </div>
+      <div>
+        <a href="/atom.xml"><img id="icon" src="/images/rss.png" alt="RSS" title="RSS" />&nbsp;RSS</a>
+      </div>
     </div>
 </div>
 </section>
@@ -443,23 +445,23 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/blog/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
+        <a href="/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
       </li>
     
       <li class="post">
-        <a href="/blog/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
+        <a href="/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
       </li>
     
       <li class="post">
-        <a href="/blog/if-self-sanity/">&#8216;If (Self)&#8217; and Sanity</a>
+        <a href="/if-self-sanity/">&#8216;if (self)&#8217; and Sanity</a>
       </li>
     
       <li class="post">
-        <a href="/blog/circular-containers-in-objective-c/">Circular Containers in Objective-C</a>
+        <a href="/circular-containers-in-objective-c/">Circular Containers in Objective-C</a>
       </li>
     
       <li class="post">
-        <a href="/blog/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a>
+        <a href="/yaml-based-configuration-for-objc-projects/">YAML-based Configuration for ObjC Projects</a>
       </li>
     
   </ul>
@@ -485,8 +487,8 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
       
         
         // var disqus_developer = 1;
-        var disqus_identifier = 'http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/';
-        var disqus_url = 'http://alexdenisov.github.io/blog/yaml-based-configuration-for-objc-projects/';
+        var disqus_identifier = 'http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects/';
+        var disqus_url = 'http://alexdenisov.github.io/yaml-based-configuration-for-objc-projects/';
         var disqus_script = 'embed.js';
       
     (function () {
