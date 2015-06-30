@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[Category: objc | Low-Level Bits]]></title>
+  <title><![CDATA[Category: objc | Low Level Bits]]></title>
   <link href="http://alexdenisov.github.io/categories/objc/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-30T13:13:40+02:00</updated>
+  <updated>2015-06-30T13:47:59+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>

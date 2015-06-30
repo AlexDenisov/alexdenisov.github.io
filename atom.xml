@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
 
-  <title><![CDATA[AlexDenisov's Blog]]></title>
+  <title><![CDATA[Low Level Bits]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-29T22:21:46+02:00</updated>
+  <updated>2015-06-30T13:46:01+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
-    <email><![CDATA[1101.debian+blog@gmail.com]]></email>
+    
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
