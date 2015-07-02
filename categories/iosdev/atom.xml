@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iosdev | Low Level Bits]]></title>
   <link href="http://alexdenisov.github.io/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-30T13:47:59+02:00</updated>
+  <updated>2015-07-02T10:36:57+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -23,7 +23,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 <p>I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.</p>
 
-<p>For those who wants to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
+<p>For those of you who want to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
 <a href="http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures">docs</a></p>
 
 <h3>Boxed Expressions and Structures</h3>
@@ -39,7 +39,7 @@ NSValue *frame = @(view.frame);      // Rect r = view.frame;
 <!-- more -->
 
 
-<p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>
+<p>To use boxed expressions on a C struct or union you&rsquo;ve defined, mark it as <code>objc_boxable</code> first:</p>
 
 <pre><code class="objective-c">struct __attribute__((objc_boxable)) Point {
     int x, y;
@@ -50,7 +50,7 @@ typedef struct __attribute__((objc_boxable)) _Size {
 } Size;
 </code></pre>
 
-<p>If you want to use C struct or record from third-party library or from legacy code you just need to ‘enable’ this feature for the record:</p>
+<p>For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:</p>
 
 <pre><code class="objective-c">typedef struct _Rect {
     Point origin;
@@ -98,7 +98,7 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:@“position
 
 <h3>That&rsquo;s it</h3>
 
-<p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
+<p>It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!</p>
 ]]></content>
   </entry>
   
@@ -511,7 +511,7 @@ make install
 
 <p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
 
-<p>{% img /images/yaml-based-configuration/new_file.png %}</p>
+<p><img src="/images/yaml-based-configuration/new_file.png"></p>
 
 <p>Put there initial configuration:</p>
 
@@ -533,13 +533,13 @@ Release:
 
 <p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -> <code>Compile Sources</code> -> <code>+</code> and add <code>config.yaml</code></p>
 
-<p>{% img /images/yaml-based-configuration/compile_yaml.png %}</p>
+<p><img src="/images/yaml-based-configuration/compile_yaml.png"></p>
 
 <p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
 Also, we need to specify output file, otherwise it won&rsquo;t work:
 <code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
 
-<p>{% img /images/yaml-based-configuration/xcconf.png %}</p>
+<p><img src="/images/yaml-based-configuration/xcconf.png"></p>
 
 <p>Now we&rsquo;re ready to use it:</p>
 
@@ -556,7 +556,7 @@ int main(int argc, const char * argv[]) {
 
 <p>Build&amp;Run:</p>
 
-<p>{% img /images/yaml-based-configuration/output.png %}</p>
+<p><img src="/images/yaml-based-configuration/output.png"></p>
 
 <h3>Summary</h3>
 

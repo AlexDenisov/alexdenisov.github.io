@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://alexdenisov.github.io/atom.xml" rel="self"/>
   <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-06-30T13:46:01+02:00</updated>
+  <updated>2015-07-02T10:36:57+02:00</updated>
   <id>http://alexdenisov.github.io/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -23,7 +23,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 <p>I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.</p>
 
-<p>For those who wants to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
+<p>For those of you who want to see the code and documentation: <a href="https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d">code</a>
 <a href="http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures">docs</a></p>
 
 <h3>Boxed Expressions and Structures</h3>
@@ -46,7 +46,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 <!-- more -->
 
 
-<p>To use C struct or union it should be marked as <code>objc_boxable</code> first:</p>
+<p>To use boxed expressions on a C struct or union you&rsquo;ve defined, mark it as <code>objc_boxable</code> first:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -65,7 +65,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>If you want to use C struct or record from third-party library or from legacy code you just need to ‘enable’ this feature for the record:</p>
+<p>For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -139,7 +139,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 
 <h3>That&rsquo;s it</h3>
 
-<p>It took about 7 months to deliver this feature, obviously I didn’t work every day and even every week + different time zones, so don’t be confused and demotivated by this amount of time and <strong>let’s contribute</strong>!</p>
+<p>It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!</p>
 ]]></content>
   </entry>
   
