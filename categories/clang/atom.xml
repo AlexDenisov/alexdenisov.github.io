@@ -2,10 +2,10 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
 
   <title><![CDATA[Category: clang | Low Level Bits]]></title>
-  <link href="http://alexdenisov.github.io/categories/clang/atom.xml" rel="self"/>
-  <link href="http://alexdenisov.github.io/"/>
-  <updated>2015-07-02T10:43:07+02:00</updated>
-  <id>http://alexdenisov.github.io/</id>
+  <link href="http://lowlevelbits.org/categories/clang/atom.xml" rel="self"/>
+  <link href="http://lowlevelbits.org/"/>
+  <updated>2015-07-02T10:44:49+02:00</updated>
+  <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
     
@@ -15,9 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
-    <link href="http://alexdenisov.github.io/nsvalue-and-boxed-expressions/"/>
+    <link href="http://lowlevelbits.org/nsvalue-and-boxed-expressions/"/>
     <updated>2015-06-26T09:22:57+02:00</updated>
-    <id>http://alexdenisov.github.io/nsvalue-and-boxed-expressions</id>
+    <id>http://lowlevelbits.org/nsvalue-and-boxed-expressions</id>
     <content type="html"><![CDATA[<p>Few hours ago I finally finished with my patch to Clang.
 It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.</p>
 
@@ -104,9 +104,9 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:@“position
   
   <entry>
     <title type="html"><![CDATA[Circular Containers in Objective-C]]></title>
-    <link href="http://alexdenisov.github.io/circular-containers-in-objective-c/"/>
+    <link href="http://lowlevelbits.org/circular-containers-in-objective-c/"/>
     <updated>2015-04-13T22:44:26+02:00</updated>
-    <id>http://alexdenisov.github.io/circular-containers-in-objective-c</id>
+    <id>http://lowlevelbits.org/circular-containers-in-objective-c</id>
     <content type="html"><![CDATA[<p>Some time ago I accidentally wrote this code:</p>
 
 <pre><code class="objective-c">NSMutableArray *environments = [NSMutableArray new];
@@ -180,9 +180,9 @@ NSMutableArray *environments = [NSMutableArray new];
   
   <entry>
     <title type="html"><![CDATA[Getting Started With LLVM/Clang on OS X]]></title>
-    <link href="http://alexdenisov.github.io/getting-started-with-llvm-slash-clang-on-os-x/"/>
+    <link href="http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/"/>
     <updated>2014-12-27T23:03:50+01:00</updated>
-    <id>http://alexdenisov.github.io/getting-started-with-llvm-slash-clang-on-os-x</id>
+    <id>http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x</id>
     <content type="html"><![CDATA[<p>This article is a guide how to set up development environment for Clang on OS X.
 The following topics are covered:</p>
 
