@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-07-03T11:58:46+02:00</updated>
+  <updated>2015-08-20T18:45:06+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,611 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Parsing Mach-O files]]></title>
+    <link href="http://lowlevelbits.org/parse-mach-o-files/"/>
+    <updated>2015-08-20T18:30:00+02:00</updated>
+    <id>http://lowlevelbits.org/parse-mach-o-files</id>
+    <content type="html"><![CDATA[<p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
+For more information consider reading official documentation and header files provided by operating system.</p>
+
+<!-- more -->
+
+
+<h2>What is Mach-O file</h2>
+
+<p>Brief description taken from <a href="https://en.wikipedia.org/wiki/Mach-O">Wikipedia</a>:</p>
+
+<blockquote><p>Mach-O, short for Mach object file format, is a file format for executables, object code, shared libraries, dynamically-loaded code, and core dumps. A replacement for the a.out format, Mach-O offers more extensibility and faster access to information in the symbol table.</p>
+
+<p>Mach-O is used by most systems based on the Mach kernel. NeXTSTEP, OS X, and iOS are examples of systems that have used this format for native executables, libraries and object code.</p></blockquote>
+
+<h2>Mach-O format</h2>
+
+<p>Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.</p>
+
+<p>Typical Mach-O file (corresponding to the <a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">official documentation</a>) consists of a three regions:</p>
+
+<ol>
+<li>Header - contains general information about the binary: byte order (magic number), cpu type, amount of load commands etc.</li>
+<li>Load Commands - it’s kind of a table of contents, that describes position of segments, symbol table, dynamic symbol table etc. Each load command includes a meta-information, such as type of command, its name, position in a binary and so on.</li>
+<li>Data - usually the biggest part of object file. It contains code and data, such as symbol tables, dynamic symbol tables and so on.</li>
+</ol>
+
+
+<p>Here is a simplified graphical representation:</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/macho_header.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<p>There are two types of object files on OS X: Mach-O files and Universal Binaries, also so-called Fat files. The difference between them: Mach-O file contains object code for one architecture (i386, x86_64, arm64, etc.) while Fat binaries might contain several object files, hence contain object code for different architectures (i386 and x86_64, arm and arm64, etc.)</p>
+
+<p>The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/fat_header.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<h2>Parse Mach-O file</h2>
+
+<p>OS X doesn’t provide us with any <code>libmacho</code> or something similar, the only thing we have here - a set of C structures defined under <code>/usr/include/mach-o/*</code>, hence we need to implement parsing on our own. It might be tricky, but it’s not that hard.</p>
+
+<h3>Memory Representation</h3>
+
+<p>Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/sample_macho.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<p>The only structures we need to represent the file:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">mach_header</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>      <span class="n">magic</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">cpu_type_t</span>    <span class="n">cputype</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">cpu_subtype_t</span> <span class="n">cpusubtype</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>      <span class="n">filetype</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>      <span class="n">ncmds</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>      <span class="n">sizeofcmds</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>      <span class="n">flags</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">struct</span> <span class="n">segment_command</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">cmd</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">cmdsize</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">char</span>      <span class="n">segname</span><span class="p">[</span><span class="mi">16</span><span class="p">];</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">vmaddr</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">vmsize</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">fileoff</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">filesize</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">vm_prot_t</span> <span class="n">maxprot</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">vm_prot_t</span> <span class="n">initprot</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">nsects</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span>  <span class="n">flags</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here is how memory mapping looks like:</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/macho_memory_layout.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 60%;
+          height: auto;" /></p>
+
+<p>If you want to read particular info from a file, you just need a correct data structure and an offset.</p>
+
+<h3>Parsing</h3>
+
+<p>Let&rsquo;s write a program that&rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.</p>
+
+<p>At the end we might have something similar:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+</pre></td><td class='code'><pre><code class='bash'><span class='line'><span class="nv">$ </span>./segname_dumper some_binary
+</span><span class='line'>i386
+</span><span class='line'>segname __PAGEZERO
+</span><span class='line'>segname __TEXT
+</span><span class='line'>segname __LINKEDIT
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Driver</h4>
+
+<p>Let&rsquo;s start with a simple &lsquo;driver&rsquo;.</p>
+
+<p>There are at least two possible ways to parse such files: load content into memory and work with buffer directly or open a file and jump back and forth through it. Both approaches have their own pros and cons, but I&rsquo;ll stick to a second one. Also, I assume that no one going to use the program in a wrong way, hence no error handling whatsoever.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="cp">#include &lt;stdio.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;stdlib.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;mach-o/loader.h&gt;</span>
+</span><span class='line'><span class="cp">#include &lt;mach-o/swap.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">dump_segments</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">*</span><span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">filename</span> <span class="o">=</span> <span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+</span><span class='line'>  <span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span> <span class="o">=</span> <span class="n">fopen</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&quot;rb&quot;</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">dump_segments</span><span class="p">(</span><span class="n">obj_file</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">fclose</span><span class="p">(</span><span class="n">obj_file</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">dump_segments</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">// Driver </span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Magic numbers, CPU and Endianness</h4>
+
+<p>To read at least the object file header we need to get all the information we need: CPU arch (32 bit or 64 bit) and the Byte Order. But first we need to retrieve a magic number:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">uint32_t</span> <span class="nf">read_magic</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">magic</span><span class="p">;</span>
+</span><span class='line'>  <span class="n">fseek</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">SEEK_SET</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">fread</span><span class="p">(</span><span class="o">&amp;</span><span class="n">magic</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="kt">uint32_t</span><span class="p">),</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj_file</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">magic</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">dump_segments</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">magic</span> <span class="o">=</span> <span class="n">read_magic</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The function <code>read_magic</code> is pretty straitforward, though one thing there might look weird: <code>fseek</code>. The problem is that whenever somebody read from a file, the internal <code>_offset</code> of the file changes. It&rsquo;s better to specify the offset explicitly, to ensure that we read what we actually want to read. Also, this small trick will be useful later on.</p>
+
+<p>Structures that represent object file with 32 and 64 bits are different (e.g.: <code>mach_header</code> and <code>mach_header_64</code>), to choose which to use we need to check file&rsquo;s architecture:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">is_magic_64</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">magic</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">magic</span> <span class="o">==</span> <span class="n">MH_MAGIC_64</span> <span class="o">||</span> <span class="n">magic</span> <span class="o">==</span> <span class="n">MH_CIGAM_64</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">dump_segments</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">magic</span> <span class="o">=</span> <span class="n">read_magic</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">is_64</span> <span class="o">=</span> <span class="n">is_magic_64</span><span class="p">(</span><span class="n">magic</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><code>MH_MAGIC_64</code> and <code>MH_CIGAM_64</code> are &lsquo;magic&rsquo; numbers provided by the system. Second one looks even more magicly than first one. Explanation is following.</p>
+
+<p>Due to historical reasons different computers might use different <a href="https://en.wikipedia.org/wiki/Endianness">byte order</a>: Big Endian (left to right) and Little Endian (right to left). Magic numbers store this information as well: <code>MH_CIGAM</code> and <code>MH_CIGAM_64</code> says that byte order differs from host OS, hence all the bytes should be swapped:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">should_swap_bytes</span><span class="p">(</span><span class="kt">uint32_t</span> <span class="n">magic</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">magic</span> <span class="o">==</span> <span class="n">MH_CIGAM</span> <span class="o">||</span> <span class="n">magic</span> <span class="o">==</span> <span class="n">MH_CIGAM_64</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">dump_segments</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">magic</span> <span class="o">=</span> <span class="n">read_magic</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">is_64</span> <span class="o">=</span> <span class="n">is_magic_64</span><span class="p">(</span><span class="n">magic</span><span class="p">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">is_swap</span> <span class="o">=</span> <span class="n">should_swap_bytes</span><span class="p">(</span><span class="n">magic</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Mach-O Header</h4>
+
+<p>Finally we can read <code>mach_header</code>. Let&rsquo;s first introduce generic function for reading data from a file.</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="o">*</span><span class="nf">load_bytes</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">int</span> <span class="n">size</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">void</span> <span class="o">*</span><span class="n">buf</span> <span class="o">=</span> <span class="n">calloc</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">size</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">fseek</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">SEEK_SET</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">fread</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="n">size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj_file</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">buf</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p><strong>Note: The data should be freed after usage!</strong></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">dump_mach_header</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is_64</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">is_64</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">header_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">mach_header_64</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">mach_header_64</span> <span class="o">*</span><span class="n">header</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">header_size</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">swap_mach_header_64</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">free</span><span class="p">(</span><span class="n">header</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">header_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">mach_header</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">mach_header</span> <span class="o">*</span><span class="n">header</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">header_size</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">swap_mach_header</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">free</span><span class="p">(</span><span class="n">header</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>  <span class="n">free</span><span class="p">(</span><span class="n">buffer</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="kt">void</span> <span class="nf">dump_segments</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">magic</span> <span class="o">=</span> <span class="n">read_magic</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">is_64</span> <span class="o">=</span> <span class="n">is_magic_64</span><span class="p">(</span><span class="n">magic</span><span class="p">);</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">is_swap</span> <span class="o">=</span> <span class="n">should_swap_bytes</span><span class="p">(</span><span class="n">magic</span><span class="p">);</span>
+</span><span class='line'>  <span class="n">dump_mach_header</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">is_64</span><span class="p">,</span> <span class="n">is_swap</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here we introduced another function <code>dump_mach_header</code> to not mess up &lsquo;driver&rsquo; function.
+The next step is to read all segment commands and print their names.
+The problem is that mach-o files usually contain other commands as well. If you recall the first field of <code>segment_command</code> structure is a <code>uint32_t cmd;</code>, this field represents type of a command.
+Here is another structure provided by the system that we&rsquo;ll use:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">load_command</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">cmd</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">cmdsize</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Besides all the information <code>mach_header</code> has number of load commands, so we can just iterate over and skip commands we&rsquo;re not interested in. Also, we need to calculate offset where the header ends. Here is the final version of <code>dump_mach_header</code>:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">dump_mach_header</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is_64</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">uint32_t</span> <span class="n">ncmds</span><span class="p">;</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">load_commands_offset</span> <span class="o">=</span> <span class="n">offset</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">is_64</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">header_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">mach_header_64</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">mach_header_64</span> <span class="o">*</span><span class="n">header</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">header_size</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">swap_mach_header_64</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>    <span class="n">ncmds</span> <span class="o">=</span> <span class="n">header</span><span class="o">-&gt;</span><span class="n">ncmds</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">load_commands_offset</span> <span class="o">+=</span> <span class="n">header_size</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">free</span><span class="p">(</span><span class="n">header</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+</span><span class='line'>    <span class="kt">int</span> <span class="n">header_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">mach_header</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">mach_header</span> <span class="o">*</span><span class="n">header</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">header_size</span><span class="p">);</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">swap_mach_header</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">ncmds</span> <span class="o">=</span> <span class="n">header</span><span class="o">-&gt;</span><span class="n">ncmds</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">load_commands_offset</span> <span class="o">+=</span> <span class="n">header_size</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">free</span><span class="p">(</span><span class="n">header</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">dump_segment_commands</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">load_commands_offset</span><span class="p">,</span> <span class="n">is_swap</span><span class="p">,</span> <span class="n">ncmds</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Segment Command</h4>
+
+<p>It&rsquo;s time to dump all segment names:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">void</span> <span class="nf">dump_segment_commands</span><span class="p">(</span><span class="kt">FILE</span> <span class="o">*</span><span class="n">obj_file</span><span class="p">,</span> <span class="kt">int</span> <span class="n">offset</span><span class="p">,</span> <span class="kt">int</span> <span class="n">is_swap</span><span class="p">,</span> <span class="kt">uint32_t</span> <span class="n">ncmds</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">actual_offset</span> <span class="o">=</span> <span class="n">offset</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span>  <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">ncmds</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">struct</span> <span class="n">load_command</span> <span class="o">*</span><span class="n">cmd</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">actual_offset</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">load_command</span><span class="p">));</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="n">swap_load_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span><span class="o">-&gt;</span><span class="n">cmd</span> <span class="o">==</span> <span class="n">LC_SEGMENT_64</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">struct</span> <span class="n">segment_command_64</span> <span class="o">*</span><span class="n">segment</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">actual_offset</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">segment_command_64</span><span class="p">));</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">swap_segment_command_64</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;segname: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">segment</span><span class="o">-&gt;</span><span class="n">segname</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">free</span><span class="p">(</span><span class="n">segment</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span> <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="n">cmd</span><span class="o">-&gt;</span><span class="n">cmd</span> <span class="o">==</span> <span class="n">LC_SEGMENT</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">struct</span> <span class="n">segment_command</span> <span class="o">*</span><span class="n">segment</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">actual_offset</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">segment_command</span><span class="p">));</span>
+</span><span class='line'>      <span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="n">swap_segment_command</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'>      <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">printf</span><span class="p">(</span><span class="s">&quot;segname: %s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">segment</span><span class="o">-&gt;</span><span class="n">segname</span><span class="p">);</span>
+</span><span class='line'>
+</span><span class='line'>      <span class="n">free</span><span class="p">(</span><span class="n">segment</span><span class="p">);</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">actual_offset</span> <span class="o">+=</span> <span class="n">cmd</span><span class="o">-&gt;</span><span class="n">cmdsize</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">free</span><span class="p">(</span><span class="n">cmd</span><span class="p">);</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>This function doesn&rsquo;t need <code>is_64</code> parameter, because we can infer it from <code>cmd</code> type itself (<code>LC_SEGMENT</code>/<code>LC_SEGMENT_64</code>). If it&rsquo;s not a segment, then we just skip the command and move forward to the next one.</p>
+
+<h4>CPU name</h4>
+
+<p>The last thing I want to show is how to retrieve the name of a processor based on a <code>cputype</code> from <code>mach_header</code>.
+I believe this is not the best option, but it&rsquo;s acceptable for this artificial example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="k">struct</span> <span class="n">_cpu_type_names</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">cpu_type_t</span> <span class="n">cputype</span><span class="p">;</span>
+</span><span class='line'>  <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">cpu_name</span><span class="p">;</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="k">struct</span> <span class="n">_cpu_type_names</span> <span class="n">cpu_type_names</span><span class="p">[]</span> <span class="o">=</span> <span class="p">{</span>
+</span><span class='line'>  <span class="p">{</span> <span class="n">CPU_TYPE_I386</span><span class="p">,</span> <span class="s">&quot;i386&quot;</span> <span class="p">},</span>
+</span><span class='line'>  <span class="p">{</span> <span class="n">CPU_TYPE_X86_64</span><span class="p">,</span> <span class="s">&quot;x86_64&quot;</span> <span class="p">},</span>
+</span><span class='line'>  <span class="p">{</span> <span class="n">CPU_TYPE_ARM</span><span class="p">,</span> <span class="s">&quot;arm&quot;</span> <span class="p">},</span>
+</span><span class='line'>  <span class="p">{</span> <span class="n">CPU_TYPE_ARM64</span><span class="p">,</span> <span class="s">&quot;arm64&quot;</span> <span class="p">}</span>
+</span><span class='line'><span class="p">};</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">static</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="nf">cpu_type_name</span><span class="p">(</span><span class="kt">cpu_type_t</span> <span class="n">cpu_type</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">static</span> <span class="kt">int</span> <span class="n">cpu_type_names_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">cpu_type_names</span><span class="p">)</span> <span class="o">/</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">_cpu_type_names</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">cpu_type_names_size</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span> <span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">if</span> <span class="p">(</span><span class="n">cpu_type</span> <span class="o">==</span> <span class="n">cpu_type_names</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">cputype</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>      <span class="k">return</span> <span class="n">cpu_type_names</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">cpu_name</span><span class="p">;</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="s">&quot;unknown&quot;</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>OS X provides <code>CPU_TYPE_*</code> for a lot of CPUs, so we can &lsquo;easily&rsquo; associate particular magic number with a string literal. To print name of a CPU we need to modify <code>dump_mach_header</code> a bit:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="n">header_size</span> <span class="o">=</span> <span class="k">sizeof</span><span class="p">(</span><span class="k">struct</span> <span class="n">mach_header_64</span><span class="p">);</span>
+</span><span class='line'><span class="k">struct</span> <span class="n">mach_header_64</span> <span class="o">*</span><span class="n">header</span> <span class="o">=</span> <span class="n">load_bytes</span><span class="p">(</span><span class="n">obj_file</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">header_size</span><span class="p">);</span>
+</span><span class='line'><span class="k">if</span> <span class="p">(</span><span class="n">is_swap</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">swap_mach_header_64</span><span class="p">(</span><span class="n">header</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'><span class="n">ncmds</span> <span class="o">=</span> <span class="n">header</span><span class="o">-&gt;</span><span class="n">ncmds</span><span class="p">;</span>
+</span><span class='line'><span class="n">load_commands_offset</span> <span class="o">+=</span> <span class="n">header_size</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">printf</span><span class="p">(</span><span class="s">&quot;%s</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">cpu_type_name</span><span class="p">(</span><span class="n">header</span><span class="o">-&gt;</span><span class="n">cputype</span><span class="p">));</span> <span class="c1">// &lt;- </span>
+</span><span class='line'>
+</span><span class='line'><span class="n">free</span><span class="p">(</span><span class="n">header</span><span class="p">);</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Fat objects</h4>
+
+<p>The article is already way too big, so I&rsquo;m not going to describe how to handle Fat objects, but you can find implementation here: <a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a></p>
+
+<h2>What&rsquo;s next</h2>
+
+<p>That&rsquo;s pretty much it.</p>
+
+<p>Here is a set of links that might be useful if you want to dig deeper and learn more about mach-o:</p>
+
+<p><a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">OS X ABI Mach-O File Format Reference</a> - official documentation from Apple</p>
+
+<p><a href="http://sourceforge.net/projects/machoview/">MachOView</a> - is a visual Mach-O file browser. It provides a complete solution for exploring and in-place editing Intel and ARM binaries.</p>
+
+<p><a href="http://www.objc.io/issues/6-build-tools/mach-o-executables/">Mach-O Executables</a> - nice article from <a href="http://www.objc.io">objc.io</a>.</p>
+
+<p><a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a> - simple C program that retrieves <a href="http://llvm.org/docs/BitCodeFormat.html">Bitcode</a> from Mach-O binaries.</p>
+
+<p><a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a> - source code from this article.</p>
+
+<p><strong>Happy hacking!</strong></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>

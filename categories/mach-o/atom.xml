@@ -1,0 +1,402 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: mach-o | Low Level Bits]]></title>
+  <link href="http://lowlevelbits.org/categories/mach-o/atom.xml" rel="self"/>
+  <link href="http://lowlevelbits.org/"/>
+  <updated>2015-08-20T18:45:06+02:00</updated>
+  <id>http://lowlevelbits.org/</id>
+  <author>
+    <name><![CDATA[AlexDenisov]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Parsing Mach-O files]]></title>
+    <link href="http://lowlevelbits.org/parse-mach-o-files/"/>
+    <updated>2015-08-20T18:30:00+02:00</updated>
+    <id>http://lowlevelbits.org/parse-mach-o-files</id>
+    <content type="html"><![CDATA[<p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
+For more information consider reading official documentation and header files provided by operating system.</p>
+
+<!-- more -->
+
+
+<h2>What is Mach-O file</h2>
+
+<p>Brief description taken from <a href="https://en.wikipedia.org/wiki/Mach-O">Wikipedia</a>:</p>
+
+<blockquote><p>Mach-O, short for Mach object file format, is a file format for executables, object code, shared libraries, dynamically-loaded code, and core dumps. A replacement for the a.out format, Mach-O offers more extensibility and faster access to information in the symbol table.</p>
+
+<p>Mach-O is used by most systems based on the Mach kernel. NeXTSTEP, OS X, and iOS are examples of systems that have used this format for native executables, libraries and object code.</p></blockquote>
+
+<h2>Mach-O format</h2>
+
+<p>Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.</p>
+
+<p>Typical Mach-O file (corresponding to the <a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">official documentation</a>) consists of a three regions:</p>
+
+<ol>
+<li>Header - contains general information about the binary: byte order (magic number), cpu type, amount of load commands etc.</li>
+<li>Load Commands - it’s kind of a table of contents, that describes position of segments, symbol table, dynamic symbol table etc. Each load command includes a meta-information, such as type of command, its name, position in a binary and so on.</li>
+<li>Data - usually the biggest part of object file. It contains code and data, such as symbol tables, dynamic symbol tables and so on.</li>
+</ol>
+
+
+<p>Here is a simplified graphical representation:</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/macho_header.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<p>There are two types of object files on OS X: Mach-O files and Universal Binaries, also so-called Fat files. The difference between them: Mach-O file contains object code for one architecture (i386, x86_64, arm64, etc.) while Fat binaries might contain several object files, hence contain object code for different architectures (i386 and x86_64, arm and arm64, etc.)</p>
+
+<p>The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/fat_header.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<h2>Parse Mach-O file</h2>
+
+<p>OS X doesn’t provide us with any <code>libmacho</code> or something similar, the only thing we have here - a set of C structures defined under <code>/usr/include/mach-o/*</code>, hence we need to implement parsing on our own. It might be tricky, but it’s not that hard.</p>
+
+<h3>Memory Representation</h3>
+
+<p>Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/sample_macho.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<p>The only structures we need to represent the file:</p>
+
+<pre><code class="c">struct mach_header {
+  uint32_t      magic;
+  cpu_type_t    cputype;
+  cpu_subtype_t cpusubtype;
+  uint32_t      filetype;
+  uint32_t      ncmds;
+  uint32_t      sizeofcmds;
+  uint32_t      flags;
+};
+
+struct segment_command {
+  uint32_t  cmd;
+  uint32_t  cmdsize;
+  char      segname[16];
+  uint32_t  vmaddr;
+  uint32_t  vmsize;
+  uint32_t  fileoff;
+  uint32_t  filesize;
+  vm_prot_t maxprot;
+  vm_prot_t initprot;
+  uint32_t  nsects;
+  uint32_t  flags;
+};
+</code></pre>
+
+<p>Here is how memory mapping looks like:</p>
+
+<p><img src="http://lowlevelbits.org/images/parse-mach-o-files/macho_memory_layout.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 60%;
+          height: auto;" /></p>
+
+<p>If you want to read particular info from a file, you just need a correct data structure and an offset.</p>
+
+<h3>Parsing</h3>
+
+<p>Let&rsquo;s write a program that&rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.</p>
+
+<p>At the end we might have something similar:</p>
+
+<pre><code class="bash">$ ./segname_dumper some_binary
+i386
+segname __PAGEZERO
+segname __TEXT
+segname __LINKEDIT
+</code></pre>
+
+<h4>Driver</h4>
+
+<p>Let&rsquo;s start with a simple &lsquo;driver&rsquo;.</p>
+
+<p>There are at least two possible ways to parse such files: load content into memory and work with buffer directly or open a file and jump back and forth through it. Both approaches have their own pros and cons, but I&rsquo;ll stick to a second one. Also, I assume that no one going to use the program in a wrong way, hence no error handling whatsoever.</p>
+
+<pre><code class="c">#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;mach-o/loader.h&gt;
+#include &lt;mach-o/swap.h&gt;
+
+void dump_segments(FILE *obj_file);
+
+int main(int argc, char *argv[]) {
+  const char *filename = argv[1];
+  FILE *obj_file = fopen(filename, "rb");
+  dump_segments(obj_file);
+  fclose(obj_file);
+
+  return 0;
+}
+
+void dump_segments(FILE *obj_file) {
+  // Driver 
+}
+</code></pre>
+
+<h4>Magic numbers, CPU and Endianness</h4>
+
+<p>To read at least the object file header we need to get all the information we need: CPU arch (32 bit or 64 bit) and the Byte Order. But first we need to retrieve a magic number:</p>
+
+<pre><code class="c">uint32_t read_magic(FILE *obj_file, int offset) {
+  uint32_t magic;
+  fseek(obj_file, offset, SEEK_SET);
+  fread(&amp;magic, sizeof(uint32_t), 1, obj_file);
+  return magic;
+}
+
+void dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, 0);
+}
+</code></pre>
+
+<p>The function <code>read_magic</code> is pretty straitforward, though one thing there might look weird: <code>fseek</code>. The problem is that whenever somebody read from a file, the internal <code>_offset</code> of the file changes. It&rsquo;s better to specify the offset explicitly, to ensure that we read what we actually want to read. Also, this small trick will be useful later on.</p>
+
+<p>Structures that represent object file with 32 and 64 bits are different (e.g.: <code>mach_header</code> and <code>mach_header_64</code>), to choose which to use we need to check file&rsquo;s architecture:</p>
+
+<pre><code class="c">int is_magic_64(uint32_t magic) {
+  return magic == MH_MAGIC_64 || magic == MH_CIGAM_64;
+}
+
+void dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, 0);
+  int is_64 = is_magic_64(magic);
+}
+</code></pre>
+
+<p><code>MH_MAGIC_64</code> and <code>MH_CIGAM_64</code> are &lsquo;magic&rsquo; numbers provided by the system. Second one looks even more magicly than first one. Explanation is following.</p>
+
+<p>Due to historical reasons different computers might use different <a href="https://en.wikipedia.org/wiki/Endianness">byte order</a>: Big Endian (left to right) and Little Endian (right to left). Magic numbers store this information as well: <code>MH_CIGAM</code> and <code>MH_CIGAM_64</code> says that byte order differs from host OS, hence all the bytes should be swapped:</p>
+
+<pre><code class="c">int should_swap_bytes(uint32_t magic) {
+  return magic == MH_CIGAM || magic == MH_CIGAM_64;
+}
+
+void dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, 0);
+  int is_64 = is_magic_64(magic);
+  int is_swap = should_swap_bytes(magic);
+}
+</code></pre>
+
+<h4>Mach-O Header</h4>
+
+<p>Finally we can read <code>mach_header</code>. Let&rsquo;s first introduce generic function for reading data from a file.</p>
+
+<pre><code class="c">void *load_bytes(FILE *obj_file, int offset, int size) {
+  void *buf = calloc(1, size);
+  fseek(obj_file, offset, SEEK_SET);
+  fread(buf, size, 1, obj_file);
+  return buf;
+}
+</code></pre>
+
+<p><strong>Note: The data should be freed after usage!</strong></p>
+
+<pre><code class="c">void dump_mach_header(FILE *obj_file, int offset, int is_64, int is_swap) {
+  if (is_64) {
+    int header_size = sizeof(struct mach_header_64);
+    struct mach_header_64 *header = load_bytes(obj_file, offset, header_size);
+    if (is_swap) {
+      swap_mach_header_64(header, 0);
+    }
+
+    free(header);
+  } else {
+    int header_size = sizeof(struct mach_header);
+    struct mach_header *header = load_bytes(obj_file, offset, header_size);
+    if (is_swap) {
+      swap_mach_header(header, 0);
+    }
+
+    free(header);
+  }
+  free(buffer);
+}
+
+void dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, 0);
+  int is_64 = is_magic_64(magic);
+  int is_swap = should_swap_bytes(magic);
+  dump_mach_header(obj_file, 0, is_64, is_swap);
+}
+</code></pre>
+
+<p>Here we introduced another function <code>dump_mach_header</code> to not mess up &lsquo;driver&rsquo; function.
+The next step is to read all segment commands and print their names.
+The problem is that mach-o files usually contain other commands as well. If you recall the first field of <code>segment_command</code> structure is a <code>uint32_t cmd;</code>, this field represents type of a command.
+Here is another structure provided by the system that we&rsquo;ll use:</p>
+
+<pre><code class="c">struct load_command {
+  uint32_t cmd;
+  uint32_t cmdsize;
+};
+</code></pre>
+
+<p>Besides all the information <code>mach_header</code> has number of load commands, so we can just iterate over and skip commands we&rsquo;re not interested in. Also, we need to calculate offset where the header ends. Here is the final version of <code>dump_mach_header</code>:</p>
+
+<pre><code class="c">void dump_mach_header(FILE *obj_file, int offset, int is_64, int is_swap) {
+  uint32_t ncmds;
+  int load_commands_offset = offset;
+
+  if (is_64) {
+    int header_size = sizeof(struct mach_header_64);
+    struct mach_header_64 *header = load_bytes(obj_file, offset, header_size);
+    if (is_swap) {
+      swap_mach_header_64(header, 0);
+    }
+    ncmds = header-&gt;ncmds;
+    load_commands_offset += header_size;
+
+    free(header);
+  } else {
+    int header_size = sizeof(struct mach_header);
+    struct mach_header *header = load_bytes(obj_file, offset, header_size);
+    if (is_swap) {
+      swap_mach_header(header, 0);
+    }
+
+    ncmds = header-&gt;ncmds;
+    load_commands_offset += header_size;
+
+    free(header);
+  }
+
+  dump_segment_commands(obj_file, load_commands_offset, is_swap, ncmds);
+}
+</code></pre>
+
+<h4>Segment Command</h4>
+
+<p>It&rsquo;s time to dump all segment names:</p>
+
+<pre><code class="c">void dump_segment_commands(FILE *obj_file, int offset, int is_swap, uint32_t ncmds) {
+  int actual_offset = offset;
+  for (int  i = 0; i &lt; ncmds; i++) {
+    struct load_command *cmd = load_bytes(obj_file, actual_offset, sizeof(struct load_command));
+    if (is_swap) {
+      swap_load_command(cmd, 0);
+    }
+
+    if (cmd-&gt;cmd == LC_SEGMENT_64) {
+      struct segment_command_64 *segment = load_bytes(obj_file, actual_offset, sizeof(struct segment_command_64));
+      if (is_swap) {
+        swap_segment_command_64(segment, 0);
+      }
+
+      printf("segname: %s\n", segment-&gt;segname);
+
+      free(segment);
+    } else if (cmd-&gt;cmd == LC_SEGMENT) {
+      struct segment_command *segment = load_bytes(obj_file, actual_offset, sizeof(struct segment_command));
+      if (is_swap) {
+        swap_segment_command(segment, 0);
+      }
+
+      printf("segname: %s\n", segment-&gt;segname);
+
+      free(segment);
+    }
+
+    actual_offset += cmd-&gt;cmdsize;
+
+    free(cmd);
+  }
+}
+</code></pre>
+
+<p>This function doesn&rsquo;t need <code>is_64</code> parameter, because we can infer it from <code>cmd</code> type itself (<code>LC_SEGMENT</code>/<code>LC_SEGMENT_64</code>). If it&rsquo;s not a segment, then we just skip the command and move forward to the next one.</p>
+
+<h4>CPU name</h4>
+
+<p>The last thing I want to show is how to retrieve the name of a processor based on a <code>cputype</code> from <code>mach_header</code>.
+I believe this is not the best option, but it&rsquo;s acceptable for this artificial example:</p>
+
+<pre><code class="c">struct _cpu_type_names {
+  cpu_type_t cputype;
+  const char *cpu_name;
+};
+
+static struct _cpu_type_names cpu_type_names[] = {
+  { CPU_TYPE_I386, "i386" },
+  { CPU_TYPE_X86_64, "x86_64" },
+  { CPU_TYPE_ARM, "arm" },
+  { CPU_TYPE_ARM64, "arm64" }
+};
+
+static const char *cpu_type_name(cpu_type_t cpu_type) {
+  static int cpu_type_names_size = sizeof(cpu_type_names) / sizeof(struct _cpu_type_names);
+  for (int i = 0; i &lt; cpu_type_names_size; i++ ) {
+    if (cpu_type == cpu_type_names[i].cputype) {
+      return cpu_type_names[i].cpu_name;
+    }
+  }
+
+  return "unknown";
+}
+</code></pre>
+
+<p>OS X provides <code>CPU_TYPE_*</code> for a lot of CPUs, so we can &lsquo;easily&rsquo; associate particular magic number with a string literal. To print name of a CPU we need to modify <code>dump_mach_header</code> a bit:</p>
+
+<pre><code class="c">int header_size = sizeof(struct mach_header_64);
+struct mach_header_64 *header = load_bytes(obj_file, offset, header_size);
+if (is_swap) {
+  swap_mach_header_64(header, 0);
+}
+ncmds = header-&gt;ncmds;
+load_commands_offset += header_size;
+
+printf("%s\n", cpu_type_name(header-&gt;cputype)); // &lt;- 
+
+free(header);
+</code></pre>
+
+<h4>Fat objects</h4>
+
+<p>The article is already way too big, so I&rsquo;m not going to describe how to handle Fat objects, but you can find implementation here: <a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a></p>
+
+<h2>What&rsquo;s next</h2>
+
+<p>That&rsquo;s pretty much it.</p>
+
+<p>Here is a set of links that might be useful if you want to dig deeper and learn more about mach-o:</p>
+
+<p><a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">OS X ABI Mach-O File Format Reference</a> - official documentation from Apple</p>
+
+<p><a href="http://sourceforge.net/projects/machoview/">MachOView</a> - is a visual Mach-O file browser. It provides a complete solution for exploring and in-place editing Intel and ARM binaries.</p>
+
+<p><a href="http://www.objc.io/issues/6-build-tools/mach-o-executables/">Mach-O Executables</a> - nice article from <a href="http://www.objc.io">objc.io</a>.</p>
+
+<p><a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a> - simple C program that retrieves <a href="http://llvm.org/docs/BitCodeFormat.html">Bitcode</a> from Mach-O binaries.</p>
+
+<p><a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a> - source code from this article.</p>
+
+<p><strong>Happy hacking!</strong></p>
+]]></content>
+  </entry>
+  
+</feed>
