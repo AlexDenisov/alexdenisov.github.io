@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-08-21T21:40:33+02:00</updated>
+  <updated>2015-08-21T21:40:38+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -616,7 +616,7 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
 
 <p><strong>Happy hacking!</strong></p>
 
-<p>P.S. This is a supplementry material for the next post, which will cover &lsquo;new&rsquo; <a href="https://developer.apple.com/library/prerelease/ios/documentation/IDEs/Conceptual/AppDistributionGuide/AppThinning/AppThinning.html#//apple_ref/doc/uid/TP40012582-CH35-SW2">Bitcode feature</a> from Apple.</p>
+<p><strong>P.S.</strong> This is a supplementry material for the next post, which will cover &lsquo;new&rsquo; <a href="https://developer.apple.com/library/prerelease/ios/documentation/IDEs/Conceptual/AppDistributionGuide/AppThinning/AppThinning.html#//apple_ref/doc/uid/TP40012582-CH35-SW2">Bitcode feature</a> from Apple.</p>
 ]]></content>
   </entry>
   
