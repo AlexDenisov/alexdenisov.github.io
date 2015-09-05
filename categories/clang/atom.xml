@@ -4,7 +4,7 @@
   <title><![CDATA[Category: clang | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/clang/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-09-05T12:20:50+02:00</updated>
+  <updated>2015-09-05T12:23:46+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Bitcode Demystified]]></title>
     <link href="http://lowlevelbits.org/bitcode-demystified/"/>
-    <updated>2015-09-05T21:45:50+02:00</updated>
+    <updated>2015-09-05T12:25:00+02:00</updated>
     <id>http://lowlevelbits.org/bitcode-demystified</id>
     <content type="html"><![CDATA[<p>Few months ago Apple announced a &lsquo;new feature&rsquo;, called &lsquo;Bitcode&rsquo;. In this article I’ll try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.</p>
 
@@ -437,31 +437,31 @@ cmake -G Xcode CMAKE_BUILD_TYPE="Debug" ../llvm
 
 <p>Click on &lsquo;ALL_BUILD&rsquo;</p>
 
-<p><img src="/images/getting-started-with-clang/all_build_target.png"></p>
+<p>{% img /images/getting-started-with-clang/all_build_target.png %}</p>
 
 <p>choose ‘Manage Schemes&hellip;&#8217;</p>
 
-<p><img src="/images/getting-started-with-clang/manage_schemes.png"></p>
+<p>{% img /images/getting-started-with-clang/manage_schemes.png %}</p>
 
 <p>you’ll see a huge list of available targets, you don’t need most of them so feel free to hide &lsquo;useless&rsquo; ones by unchecking &lsquo;Show&rsquo; flag:</p>
 
-<p><img src="/images/getting-started-with-clang/schemes.png"></p>
+<p>{% img /images/getting-started-with-clang/schemes.png %}</p>
 
 <p>If we just build and run clang, then it’ll do nothing, let’s add some parameters, for instance, print version.</p>
 
 <p>Select <code>Edit scheme</code>:</p>
 
-<p><img src="/images/getting-started-with-clang/edit_scheme.png"></p>
+<p>{% img /images/getting-started-with-clang/edit_scheme.png %}</p>
 
 <p>and add <code>-v</code> to the <code>Arguments passed on launch</code>:</p>
 
-<p><img src="/images/getting-started-with-clang/version_arguments.png"></p>
+<p>{% img /images/getting-started-with-clang/version_arguments.png %}</p>
 
 <p>That’s pretty much it, just hit <code>Cmd + R</code> and it’ll build clang and run built binary with a specified parameter.</p>
 
 <p>When build done (it also takes a while) and program executed you’ll see the clang version in the Xcode output window</p>
 
-<p><img src="/images/getting-started-with-clang/clang_version.png"></p>
+<p>{% img /images/getting-started-with-clang/clang_version.png %}</p>
 
 <h3>Debugging</h3>
 
@@ -478,7 +478,7 @@ cmake -G Xcode CMAKE_BUILD_TYPE="Debug" ../llvm
 
 <p>and specify the file as an argument for a clang binary, with additional parameters:</p>
 
-<p><img src="/images/getting-started-with-clang/debug_arguments.png"></p>
+<p>{% img /images/getting-started-with-clang/debug_arguments.png %}</p>
 
 <p><code>clang</code> executable itself is just a driver, which determines what to do next with all received parameters. By default it calls &lsquo;clang compiler’ and passes the parameters, but it calls it as a separate process, so it’s hard to debug in a traditional way. By specifying <code>-cc1</code> option it calls compiler directly, in the same process.</p>
 
@@ -488,13 +488,13 @@ cmake -G Xcode CMAKE_BUILD_TYPE="Debug" ../llvm
 
 <p>Find a <code>ParseExpr.cpp</code>, set a breakpoint at the <code>ParseExpression</code> method:</p>
 
-<p><img src="/images/getting-started-with-clang/breakpoint.png"></p>
+<p>{% img /images/getting-started-with-clang/breakpoint.png %}</p>
 
 <p>and run. When program reach this breakpoint you can retrieve some useful information.</p>
 
 <p>Most of LLVM&#8217; classes have method <code>dump</code> which prints all valuable information about an object. You can easily access it by evaluating LLDB command <code>expression</code> (or simply <code>expr</code>):</p>
 
-<p><img src="/images/getting-started-with-clang/dump.png"></p>
+<p>{% img /images/getting-started-with-clang/dump.png %}</p>
 
 <p>Here you see an AST representation of the addition expression from a <code>sum</code> method: <code>a + b</code>.</p>
 

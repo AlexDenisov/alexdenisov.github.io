@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-09-05T12:20:50+02:00</updated>
+  <updated>2015-09-05T12:20:53+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -16,7 +16,7 @@
   <entry>
     <title type="html"><![CDATA[Bitcode Demystified]]></title>
     <link href="http://lowlevelbits.org/bitcode-demystified/"/>
-    <updated>2015-09-05T21:45:50+02:00</updated>
+    <updated>2015-09-05T12:25:00+02:00</updated>
     <id>http://lowlevelbits.org/bitcode-demystified</id>
     <content type="html"><![CDATA[<p>Few months ago Apple announced a &lsquo;new feature&rsquo;, called &lsquo;Bitcode&rsquo;. In this article I’ll try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.</p>
 
