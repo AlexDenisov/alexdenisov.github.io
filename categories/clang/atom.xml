@@ -4,7 +4,7 @@
   <title><![CDATA[Category: clang | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/clang/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-08-21T21:40:38+02:00</updated>
+  <updated>2015-09-05T12:20:50+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,176 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Bitcode Demystified]]></title>
+    <link href="http://lowlevelbits.org/bitcode-demystified/"/>
+    <updated>2015-09-05T21:45:50+02:00</updated>
+    <id>http://lowlevelbits.org/bitcode-demystified</id>
+    <content type="html"><![CDATA[<p>Few months ago Apple announced a &lsquo;new feature&rsquo;, called &lsquo;Bitcode&rsquo;. In this article I’ll try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.</p>
+
+<h2>What is Bitcode?</h2>
+
+<p>To answer this question let&rsquo;s look at what compilers do for us. Here is a brief overview of compilation process:</p>
+
+<ul>
+<li><code>Lexer</code>: takes source code as an input and translates it into a stream of tokens;</li>
+<li><code>Parser</code>: takes stream of tokens as an input and translates it into an <a href="https://en.wikipedia.org/wiki/Abstract_syntax_tree">AST</a>;</li>
+<li><code>Semantic Analysis</code>: takes an AST as an input, checks if a program is correct (method called with correct amount of parameters, method called on object actually exists and non-private, etc.), fills in &lsquo;missing types&rsquo; (e.g.: <code>let x = y</code>, <code>x</code> has type of <code>y</code>) and passes AST to the next phase;</li>
+<li><code>Code Generation</code>: takes an AST as an input and emits some high level IR (intermediate representation);</li>
+<li><code>Optimization</code>: takes IR, makes optimizations and emits IR which is potentially faster and/or smaller;</li>
+<li><code>AsmPrinter</code>: another code generation phase, it takes IR and emits assembly for particular CPU;</li>
+<li><code>Assembler</code>: takes assembly and converts it into an object code (stream of <code>0</code>s and <code>1</code>s);</li>
+<li><code>Linker</code>: usually programs refer to already compiled routines from other programs (e.g.: <code>printf</code>) to avoid recompilation of the same code over and over. Until this phase these links do not have correct addresses, they&rsquo;re just placeholders. Linker&rsquo;s job is to resolve those placeholders, so that they point to the correct addresses of their corresponding routines.</li>
+</ul>
+
+
+<p><em>You can find more details here: <a href="https://www.objc.io/issues/6-build-tools/compiler/">The Compiler</a>.</em></p>
+
+<p>In the modern world these phases are split into two parts: <strong><code>compiler frontend</code></strong> (<code>lexer</code>, <code>parser</code>, <code>semantic analysis</code>, <code>code generation</code>) and <strong><code>compiler backend</code></strong> (<code>optimization</code>, <code>asm printer</code>, <code>assembler</code>, <code>linker</code>). This separation makes a lot of sense for both language designers and hardware manufacturers: if you want to create a new programming language you &lsquo;just&rsquo; need to implement a frontend and you will get all available optimizations and support of different CPUs for free; on the other hand, if you created a new chip, you &lsquo;just&rsquo; need to extend the backend and you will get all the available languages (frontends) support for your CPU.</p>
+
+<p>Below you can see a picture that illustrates compilation process using Clang and LLVM:</p>
+
+<p><img src="http://lowlevelbits.org/images/bitcode-demystified/compilation_process.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 70%;
+          height: auto;" /></p>
+
+<p>This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM <a href="http://llvm.org/docs/LangRef.html">has it&rsquo;s own</a> format, that can be encoded using LLVM bitstream file format - <a href="http://llvm.org/docs/BitCodeFormat.html">Bitcode</a>.</p>
+
+<p>Just to recall it explicitly - <strong>Bitcode is a bitstream representation of LLVM IR</strong>.</p>
+
+<h2>What problems Apple&rsquo;s Bitcode aims to solve?</h2>
+
+<p>Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend to read this article: <a href="http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html">How OS X Executes Applications</a>.</p>
+
+<p>OS X and iOS can run on different CPUs (<code>i386</code>, <code>x86_64</code>, <code>arm</code>, <code>arm64</code>, etc.), if you want to run program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:</p>
+
+<p><img src="http://lowlevelbits.org/images/bitcode-demystified/macho_file.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<p>When you run a program, OS reads the &lsquo;Table Of Contents&rsquo; and looks for a slice corresponding to the OS CPU.
+For instance, if you run operating system on <code>x86_64</code>, then OS will load object code for <code>x86_64</code> into a memory and run the program.</p>
+
+<p>What&rsquo;s happening with other slices? Basically nothing, they just waste your disk space.</p>
+
+<p>Actually, this is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for <code>arm</code> and <code>arm64</code> CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for <code>i386</code>, <code>x86_64</code>, <code>arm</code> and <code>arm64</code>, so you can use them to test the app on device and/or simulator. (Can you imagine how many copies of Google Analytics for <code>i386</code> you have in your pocket?)</p>
+
+<p>Apple didn&rsquo;t give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:</p>
+
+<p><img src="http://lowlevelbits.org/images/bitcode-demystified/app_thinning.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 70%;
+          height: auto;" /></p>
+
+<p>When you submit an app (including Bitcode) Apple&rsquo;s &lsquo;BlackBox&rsquo; recompiles it for each supported platform and drops any &lsquo;useless&rsquo; object code, so AppStore has a copy of the app for each CPU. When end user wants to install the app - she installs only version for particular processor, without any unused stuff.</p>
+
+<p><strong>Bitcode might save up to 50% of disk space per program.</strong></p>
+
+<h2>What problems Bitcode introduces?</h2>
+
+<p>The idea of Bitcode and recompiling for each platform looks really great and it&rsquo;s a huge improvement, though it has downsides as well: the biggest one is security.</p>
+
+<p>To get the benefits of Bitcode you should submit your app including Bitcode (surprisingly). If you use some proprietary third-party library, then it also should contain Bitcode, hence as a maintainer of proprietary library you should distribute the library with Bitcode.</p>
+
+<p>To recall: <strong>Bitcode is just another form of LLVM IR</strong>.</p>
+
+<h3>LLVM IR</h3>
+
+<p>Let&rsquo;s write some code to see LLVM IR in action.</p>
+
+<pre><code class="c">// main.c
+extern int printf(const char *fmt, ...);
+
+int main() {
+  printf("Hello World\n");
+  return 0;
+}
+</code></pre>
+
+<p>Run the following:</p>
+
+<pre><code class="bash">clang -S -emit-llvm main.c
+</code></pre>
+
+<p>And you&rsquo;ll have <code>main.ll</code> containing IR:</p>
+
+<pre><code class="llvm">@.str = private unnamed_addr constant [13 x i8] c"Hello World\0A\00", align 1
+
+; Function Attrs: nounwind ssp uwtable
+define i32 @main() #0 {
+  %1 = alloca i32, align 4
+  store i32 0, i32* %1
+  %2 = call i32 (i8*, ...)* @printf(i8* getelementptr inbounds ([13 x i8]* @.str, i32 0, i32 0))
+  ret i32 0
+}
+
+declare i32 @printf(i8*, ...) #1
+</code></pre>
+
+<p>What can we see here? It&rsquo;s a bit more verbose than initial C code, but it&rsquo;s still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).</p>
+
+<h3>How could malefactor get the IR?</h3>
+
+<p>iOS and OS X executables have their own format - Mach-O (read <a href="http://lowlevelbits.org/parse-mach-o-files/">Parsing Mach-O files</a> for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain <a href="https://en.wikipedia.org/wiki/Xar_%28archiver%29">xar</a> archive with Bitcode:</p>
+
+<p><img src="http://lowlevelbits.org/images/bitcode-demystified/bitcode_storage.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
+
+<p>It&rsquo;s really easy to retrieve it automatically, here I wrote simple C program that does just that: <a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a>. The workflow is pretty straightforward. Let&rsquo;s assume that <code>some_binary</code> is a Mach-O file that contains object code for two CPUs (<code>arm</code> and <code>x86_64</code>) and each object code is built using two source files:</p>
+
+<pre><code class="bash">$ bitcode_retriever some_binary
+arm.xar
+x86_64.xar
+$ xar -xvf arm.xar
+1
+2
+$ llvm-dis 1 # outputs 1.ll
+$ llvm-dis 2 # outputs 2.ll
+</code></pre>
+
+<p>Bitcode doesn&rsquo;t store any information about original filenames, but uses numbers instead (<code>1</code>, <code>2</code>, <code>3</code>, etc.).
+Also, probably you do not have <code>llvm-dis</code> installed/built on your machine, but you can easily obtain it, see this article for more details: <a href="http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started with Clang/LLVM on OS X</a>.</p>
+
+<p>Another potential issue (can&rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.</p>
+
+<p>I know only one way to secure the IR - <a href="https://en.wikipedia.org/wiki/Obfuscation_(software)" >obfuscation</a>. This task is not trivial itself and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.</p>
+
+<h2>Summary</h2>
+
+<ul>
+<li>Bitcode is a bitstream file format for LLVM IR</li>
+<li>one of its goals is to decrease size of an app by eliminating unused object code</li>
+<li>malefactor can obtain your app or library, retrieve the IR from it and steal your &lsquo;secret algorithm&rsquo;</li>
+</ul>
+
+
+<h3>Useful links</h3>
+
+<ul>
+<li><a href="http://llvm.org/docs/LangRef.html">LLVM IR</a> - language reference manual</li>
+<li><a href="http://llvm.org/docs/BitCodeFormat.html">LLVM Bitcode</a> - Bitcode file format</li>
+<li><a href="https://www.objc.io/issues/6-build-tools/compiler/">The Compiler</a> - Clang/LLVM compilation phases</li>
+<li><a href="http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html">How OS X Executes Applications</a></li>
+<li><a href="http://lowlevelbits.org/parse-mach-o-files/">Parsing Mach-O files</a></li>
+<li><a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a> - tool that retrieves xar-archives with bitcode from mach-o binary</li>
+<li><a href="https://github.com/obfuscator-llvm/obfuscator/wiki">o-llvm</a> - obfuscator based on LLVM</li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
