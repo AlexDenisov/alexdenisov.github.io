@@ -156,6 +156,9 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 
 <p>Actually, this is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for <code>arm</code> and <code>arm64</code> CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for <code>i386</code>, <code>x86_64</code>, <code>arm</code> and <code>arm64</code>, so you can use them to test the app on device and/or simulator. (Can you imagine how many copies of Google Analytics for <code>i386</code> you have in your pocket?)</p>
 
+
+<p><strong>UPD:</strong> I don't know why, but I was sure that final executable contain these slices as well (`i386`, `x86_64`, etc.), but it seems they are stripped during the build phase.</p>
+
 <p>Apple didn&rsquo;t give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:</p>
 
 <p><img src="/images/bitcode-demystified/app_thinning.png"
