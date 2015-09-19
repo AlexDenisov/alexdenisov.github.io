@@ -425,23 +425,23 @@ The following topics are covered:</p>
   <ul id="recent_posts">
     
       <li class="post">
-        <a href="/bitcode-demystified/">Bitcode Demystified</a>
+        <a id="recent_post_link" href="/bitcode-demystified/">Bitcode Demystified</a>
       </li>
     
       <li class="post">
-        <a href="/parse-mach-o-files/">Parsing Mach-O files</a>
+        <a id="recent_post_link" href="/parse-mach-o-files/">Parsing Mach-O files</a>
       </li>
     
       <li class="post">
-        <a href="/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
+        <a id="recent_post_link" href="/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
       </li>
     
       <li class="post">
-        <a href="/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
+        <a id="recent_post_link" href="/getting-rid-of-asynchronous-tests/">Getting Rid of Asynchronous Tests</a>
       </li>
     
       <li class="post">
-        <a href="/if-self-sanity/">&#8216;if (self)&#8217; and Sanity</a>
+        <a id="recent_post_link" href="/if-self-sanity/">&#8216;if (self)&#8217; and Sanity</a>
       </li>
     
   </ul>
@@ -532,7 +532,7 @@ mixpanel.init("cd35d7a41ba236cea12743777cdd75ff");
 mixpanel.track(document.title.replace(" - Low Level Bits", ""), {
                 "host" : document.location.host
                 });
-mixpanel.track_links("#recent_posts a", "click_recent_posts", {
+mixpanel.track_links("#recent_post_link", "click_recent_posts", {
   "referrer": document.referrer
 });
 </script>
