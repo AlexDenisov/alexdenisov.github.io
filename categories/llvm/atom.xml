@@ -4,7 +4,7 @@
   <title><![CDATA[Category: llvm | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/llvm/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-09-05T18:00:22+02:00</updated>
+  <updated>2015-09-19T09:28:08+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -73,6 +73,8 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 
 <p>Actually, this is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for <code>arm</code> and <code>arm64</code> CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for <code>i386</code>, <code>x86_64</code>, <code>arm</code> and <code>arm64</code>, so you can use them to test the app on device and/or simulator. (Can you imagine how many copies of Google Analytics for <code>i386</code> you have in your pocket?)</p>
 
+<p><strong>UPD:</strong> I don&rsquo;t know why, but I was sure that final executable contain these slices as well (<code>i386</code>, <code>x86_64</code>, etc.), but it seems they are stripped during the build phase.</p>
+
 <p>Apple didn&rsquo;t give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:</p>
 
 <p><img src="http://lowlevelbits.org/images/bitcode-demystified/app_thinning.png"
@@ -85,6 +87,8 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 <p>When you submit an app (including Bitcode) Apple&rsquo;s &lsquo;BlackBox&rsquo; recompiles it for each supported platform and drops any &lsquo;useless&rsquo; object code, so AppStore has a copy of the app for each CPU. When end user wants to install the app - she installs only version for particular processor, without any unused stuff.</p>
 
 <p><strong>Bitcode might save up to 50% of disk space per program.</strong></p>
+
+<p><strong>UPD:</strong> Of course I do not take in count resources, it&rsquo;s just about binary itself. For instance, app I&rsquo;m working on currently has size ~40 megabytes (including assets, xibs. fonts), size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if  we crop just one of them it will decrease size of the app by ~20%.</p>
 
 <h2>What problems Bitcode introduces?</h2>
 

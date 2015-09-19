@@ -156,8 +156,7 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 
 <p>Actually, this is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for <code>arm</code> and <code>arm64</code> CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for <code>i386</code>, <code>x86_64</code>, <code>arm</code> and <code>arm64</code>, so you can use them to test the app on device and/or simulator. (Can you imagine how many copies of Google Analytics for <code>i386</code> you have in your pocket?)</p>
 
-
-<p><strong>UPD:</strong> I don't know why, but I was sure that final executable contain these slices as well (`i386`, `x86_64`, etc.), but it seems they are stripped during the build phase.</p>
+<p><strong>UPD:</strong> I don&rsquo;t know why, but I was sure that final executable contain these slices as well (<code>i386</code>, <code>x86_64</code>, etc.), but it seems they are stripped during the build phase.</p>
 
 <p>Apple didn&rsquo;t give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:</p>
 
@@ -172,7 +171,7 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 
 <p><strong>Bitcode might save up to 50% of disk space per program.</strong></p>
 
-<p><strong>UPD:</strong> Of course I do not take in count resources, it's just about binary itself. For instance, app I'm working on currently has size ~40 megabytes (including assets, xibs. fonts), size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them it will decrease size of the app by ~20%.</p>
+<p><strong>UPD:</strong> Of course I do not take in count resources, it&rsquo;s just about binary itself. For instance, app I&rsquo;m working on currently has size ~40 megabytes (including assets, xibs. fonts), size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if  we crop just one of them it will decrease size of the app by ~20%.</p>
 
 <h2>What problems Bitcode introduces?</h2>
 
@@ -528,6 +527,16 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
       stickyNav();  
   });  
   });  
+
+(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("cd35d7a41ba236cea12743777cdd75ff");
+mixpanel.track(document.title, {
+                "host" : document.location.host
+                });
+mixpanel.track_links("#recent_posts a", "click_recent_posts", {
+  "referrer": document.referrer
+});
 </script>
 
 
