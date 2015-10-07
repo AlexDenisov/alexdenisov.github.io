@@ -33,25 +33,51 @@
     <lastmod>2014-12-27T23:03:50+01:00</lastmod>
   </url>
   <url>
+    <loc>http://lowlevelbits.org/creation-of-pure-swift-module/</loc>
+    <lastmod>2014-06-26T02:00:00+02:00</lastmod>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/global-variables-in-swift-are-not-variables/</loc>
+    <lastmod>2014-06-11T02:00:00+02:00</lastmod>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/creating-and-using-clang-plugin-with-xcode/</loc>
+    <lastmod>2014-02-28T01:00:00+01:00</lastmod>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic/</loc>
+    <lastmod>2013-10-15T02:00:00+02:00</lastmod>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects/</loc>
+    <lastmod>2013-08-09T02:00:00+02:00</lastmod>
+  </url>
+  <url>
     <loc>http://lowlevelbits.org/archives/</loc>
   </url>
   <url>
     <loc>http://lowlevelbits.org/</loc>
   </url>
   <url>
-    <loc>http://lowlevelbits.org/categories/clang/</loc>
+    <loc>http://lowlevelbits.org/categories/objc/</loc>
   </url>
   <url>
     <loc>http://lowlevelbits.org/categories/iosdev/</loc>
   </url>
   <url>
-    <loc>http://lowlevelbits.org/categories/objc/</loc>
+    <loc>http://lowlevelbits.org/categories/railsware/</loc>
   </url>
   <url>
-    <loc>http://lowlevelbits.org/categories/mach-o/</loc>
+    <loc>http://lowlevelbits.org/categories/di/</loc>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/categories/clang/</loc>
   </url>
   <url>
     <loc>http://lowlevelbits.org/categories/swift/</loc>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/categories/mach-o/</loc>
   </url>
   <url>
     <loc>http://lowlevelbits.org/categories/llvm/</loc>

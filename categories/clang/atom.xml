@@ -4,7 +4,7 @@
   <title><![CDATA[Category: clang | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/clang/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-09-19T10:02:52+02:00</updated>
+  <updated>2015-10-07T12:13:41+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -517,6 +517,15 @@ cmake -G Xcode CMAKE_BUILD_TYPE="Debug" ../llvm
 <p><strong>Stay tuned if you interested how-to write tests for Clang and LLVM.</strong></p>
 
 <p><strong>Happy hacking!</strong></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Creating and using Clang plugin with Xcode]]></title>
+    <link href="http://lowlevelbits.org/creating-and-using-clang-plugin-with-xcode/"/>
+    <updated>2014-02-28T01:00:00+01:00</updated>
+    <id>http://lowlevelbits.org/creating-and-using-clang-plugin-with-xcode</id>
+    <content type="html"><![CDATA[
 ]]></content>
   </entry>
   

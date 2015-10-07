@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-09-19T10:02:52+02:00</updated>
+  <updated>2015-10-07T12:13:41+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -15,7 +15,9 @@
   
   <entry>
     <title type="html"><![CDATA[Bitcode Demystified]]></title>
+    
     <link href="http://lowlevelbits.org/bitcode-demystified/"/>
+    
     <updated>2015-09-05T12:25:00+02:00</updated>
     <id>http://lowlevelbits.org/bitcode-demystified</id>
     <content type="html"><![CDATA[<p>Few months ago Apple announced a &lsquo;new feature&rsquo;, called &lsquo;Bitcode&rsquo;. In this article I’ll try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.</p>
@@ -220,7 +222,9 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
   
   <entry>
     <title type="html"><![CDATA[Parsing Mach-O files]]></title>
+    
     <link href="http://lowlevelbits.org/parse-mach-o-files/"/>
+    
     <updated>2015-08-20T18:30:00+02:00</updated>
     <id>http://lowlevelbits.org/parse-mach-o-files</id>
     <content type="html"><![CDATA[<p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
@@ -827,7 +831,9 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
   
   <entry>
     <title type="html"><![CDATA[NSValue and Boxed Expressions]]></title>
+    
     <link href="http://lowlevelbits.org/nsvalue-and-boxed-expressions/"/>
+    
     <updated>2015-06-26T09:22:57+02:00</updated>
     <id>http://lowlevelbits.org/nsvalue-and-boxed-expressions</id>
     <content type="html"><![CDATA[<p>Few hours ago I finally finished with my patch to Clang.
@@ -957,7 +963,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA[Getting Rid of Asynchronous Tests]]></title>
+    
     <link href="http://lowlevelbits.org/getting-rid-of-asynchronous-tests/"/>
+    
     <updated>2015-06-17T12:31:15+02:00</updated>
     <id>http://lowlevelbits.org/getting-rid-of-asynchronous-tests</id>
     <content type="html"><![CDATA[<h3>Asynchronous tests are not reliable</h3>
@@ -1298,7 +1306,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA['if (self)' and Sanity]]></title>
+    
     <link href="http://lowlevelbits.org/if-self-sanity/"/>
+    
     <updated>2015-05-05T23:08:13+02:00</updated>
     <id>http://lowlevelbits.org/if-self-sanity</id>
     <content type="html"><![CDATA[<p>Imagine that there is a power in the universe that said to Apple: “Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**”.</p>
@@ -1423,7 +1433,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA[Circular Containers in Objective-C]]></title>
+    
     <link href="http://lowlevelbits.org/circular-containers-in-objective-c/"/>
+    
     <updated>2015-04-13T22:44:26+02:00</updated>
     <id>http://lowlevelbits.org/circular-containers-in-objective-c</id>
     <content type="html"><![CDATA[<p>Some time ago I accidentally wrote this code:</p>
@@ -1515,7 +1527,9 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
   
   <entry>
     <title type="html"><![CDATA[YAML-based Configuration for ObjC Projects]]></title>
+    
     <link href="http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/"/>
+    
     <updated>2015-02-06T00:43:11+01:00</updated>
     <id>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects</id>
     <content type="html"><![CDATA[<p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
@@ -1744,7 +1758,9 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
   
   <entry>
     <title type="html"><![CDATA[Getting Started With LLVM/Clang on OS X]]></title>
+    
     <link href="http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/"/>
+    
     <updated>2014-12-27T23:03:50+01:00</updated>
     <id>http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x</id>
     <content type="html"><![CDATA[<p>This article is a guide how to set up development environment for Clang on OS X.
@@ -1942,6 +1958,61 @@ The following topics are covered:</p>
 <p><strong>Stay tuned if you interested how-to write tests for Clang and LLVM.</strong></p>
 
 <p><strong>Happy hacking!</strong></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Creation of pure Swift module]]></title>
+    
+    <link href="http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/"/>
+    
+    <updated>2014-06-26T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/creation-of-pure-swift-module</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Global variables in Swift are not variables]]></title>
+    
+    <link href="http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/"/>
+    
+    <updated>2014-06-11T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/global-variables-in-swift-are-not-variables</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Creating and using Clang plugin with Xcode]]></title>
+    
+    <link href="http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/"/>
+    
+    <updated>2014-02-28T01:00:00+01:00</updated>
+    <id>http://lowlevelbits.org/creating-and-using-clang-plugin-with-xcode</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Dependency Injection in Objective-C with Blood and Magic]]></title>
+    
+    <link href="http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/"/>
+    
+    <updated>2013-10-15T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Using Forward Declaration In Your Objective-C Projects]]></title>
+    
+    <link href="http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/"/>
+    
+    <updated>2013-08-09T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects</id>
+    <content type="html"><![CDATA[
 ]]></content>
   </entry>
   

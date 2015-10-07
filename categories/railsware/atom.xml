@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: railsware | Low Level Bits]]></title>
+  <link href="http://lowlevelbits.org/categories/railsware/atom.xml" rel="self"/>
+  <link href="http://lowlevelbits.org/"/>
+  <updated>2015-10-07T12:13:41+02:00</updated>
+  <id>http://lowlevelbits.org/</id>
+  <author>
+    <name><![CDATA[AlexDenisov]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[Creation of pure Swift module]]></title>
+    <link href="http://lowlevelbits.org/creation-of-pure-swift-module/"/>
+    <updated>2014-06-26T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/creation-of-pure-swift-module</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Global variables in Swift are not variables]]></title>
+    <link href="http://lowlevelbits.org/global-variables-in-swift-are-not-variables/"/>
+    <updated>2014-06-11T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/global-variables-in-swift-are-not-variables</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Creating and using Clang plugin with Xcode]]></title>
+    <link href="http://lowlevelbits.org/creating-and-using-clang-plugin-with-xcode/"/>
+    <updated>2014-02-28T01:00:00+01:00</updated>
+    <id>http://lowlevelbits.org/creating-and-using-clang-plugin-with-xcode</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Dependency Injection in Objective-C with Blood and Magic]]></title>
+    <link href="http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic/"/>
+    <updated>2013-10-15T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Using Forward Declaration In Your Objective-C Projects]]></title>
+    <link href="http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects/"/>
+    <updated>2013-08-09T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects</id>
+    <content type="html"><![CDATA[
+]]></content>
+  </entry>
+  
+</feed>

@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iosdev | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-09-19T10:02:52+02:00</updated>
+  <updated>2015-10-07T12:13:41+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -565,6 +565,15 @@ int main(int argc, const char * argv[]) {
 <p>I&rsquo;d really appreciate any feedback.</p>
 
 <p>P.S. Pull Requests are welcome! :)</p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Global variables in Swift are not variables]]></title>
+    <link href="http://lowlevelbits.org/global-variables-in-swift-are-not-variables/"/>
+    <updated>2014-06-11T02:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/global-variables-in-swift-are-not-variables</id>
+    <content type="html"><![CDATA[
 ]]></content>
   </entry>
   
