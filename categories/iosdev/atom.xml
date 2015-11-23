@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iosdev | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-11-23T17:06:03+01:00</updated>
+  <updated>2015-11-23T17:31:13+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -31,7 +31,7 @@ Also, I try not to give any value judgments on approaches suggested by other too
 
 <h3>Motivation</h3>
 
-<p>I have been working as iOS developer for about 5 years for different companies and on different projects. Sometimes I could start an app from scratch, but usually I had to support existing projects, which were in active development for quite some time. In such projects intervals from previous developer&rsquo;s last commit and my first commit varied from couple of month to couple of years. Usually l such projects use some third-party libraries and the biggest problem besides legacy code and lack of documentation exactly are those dependencies. This problem made me realize that our community is just young and not industrial/enterprise ready, hence the tools are not. I had been thinking about a tool that will work even in a one year without additional modifications and/or fixes and came up with approach FreeBSD uses: <a href="https://en.wikipedia.org/wiki/FreeBSD_Ports">ports</a>.</p>
+<p>I have been working as iOS developer for about 5 years for different companies and on different projects. Sometimes I could start an app from scratch, but usually I had to support existing projects, which were in active development for quite some time. In such projects intervals from previous developer&rsquo;s last commit and my first commit varied from couple of month to couple of years. Usually such projects use some third-party libraries and the biggest problem besides legacy code and lack of documentation exactly are those dependencies. This problem made me realize that our community is just young and not industrial/enterprise ready, hence the tools are not. I had been thinking about a tool that will work even in a one year without additional modifications and/or fixes and came up with approach FreeBSD uses: <a href="https://en.wikipedia.org/wiki/FreeBSD_Ports">ports</a>.</p>
 
 <h3>Idea</h3>
 
