@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-11-23T17:31:13+01:00</updated>
+  <updated>2015-11-24T07:05:50+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -91,7 +91,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p><code>GNU/Make</code> has a feature called &lsquo;dry-run&rsquo; (<code>man make</code> look for &lsquo;&ndash;dry-run&rsquo;), that &ldquo;prints the commands that would be executed, but do not execute them&rdquo;. We have found it extremely useful and added to driver. To see what will happen during installation of <code>AFNetworking</code> you can just run:</p>
+<p><code>GNU/Make</code> has a feature called &lsquo;dry-run&rsquo; (<code>man make</code> look for &lsquo;&ndash;dry-run&rsquo;), that &ldquo;prints the commands that would be executed, but do not execute them&rdquo;. We have found it extremely useful and added to driver. To see what will happen during the installation of AFNetworking, simply run:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -112,19 +112,19 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>It is very useful if you want to debug component installation process, but also it might be very useful if you are concerned about security and do not want to blindly run script downloaded from the internet.</p>
+<p>It is very useful if you want to debug your component’s installation process, but also if you’re concerned about security and do not want to blindly run a script downloaded from the internet.</p>
 
 <h3>Example</h3>
 
-<p>You already might be scared by Makefile, but let me show an example to dispel the fear.</p>
+<p>You might already be turned off the whole idea of components because it entails writing Makefiles, but let me show an example of how straight-forward this can be.</p>
 
-<p>Let&rsquo;s go through a makefile that installs <code>AFNetworking</code>.</p>
+<p>We’ll look at a Makefile that installs AFNetworking.</p>
 
 <p><em>To make it more clear I will include comment above each line with actual paths instead of variables</em></p>
 
 <h4>Header</h4>
 
-<p>Here is a typical header of a component&#8217; makefile:</p>
+<p>Here is a typical header of a component&rsquo;s makefile:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -139,7 +139,7 @@ Any big enough system is built from different components, that are composed toge
 
 <h4>Paths</h4>
 
-<p>Next step is to define paths for all directories that will be involved in the process of installation:</p>
+<p>Next step is to define paths for all directories that will be involved in the process of the installation:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -148,7 +148,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>These are so called &lsquo;global&rsquo; variables provided by the driver script, these variables have default values in case you want to run <code>make install</code> without the driver being involved. Cache directory contains all components installed in the system and their corresponding files (such as zip archives, build artefacts and so on). <code>./Components</code> is a directory where ready for use component will be stored.</p>
+<p>These are so called &lsquo;global&rsquo; variables provided by the driver script. These variables have default values in case you want to run <code>make install</code> without the driver being involved. The cache directory contains all components installed in the system and their corresponding files (such as zip archives, build artefacts and so on). <code>./Components</code> is a directory where ready-for-use component will be stored.</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -180,9 +180,9 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>In case of AFNetworking this URL will be resolved to <code>https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip</code>.</p>
+<p>In case of AFNetworking, this URL will be resolved to <code>https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip</code>.</p>
 
-<p>Usually this section contains only one URL, but there might be more, for instance you may want to fetch some patch from other source and apply it before building a component.</p>
+<p>Usually this section contains only one URL, but there might be more. For instance you may want to fetch some patch from other source and apply it before building a component.</p>
 
 <h4>Targets</h4>
 
@@ -236,7 +236,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The nature of makefile is to check if file or directory with name of target exists, if it doesn&rsquo;t - then it will run commands to create the file or directory. Though, there also might be so called &lsquo;control targets&rsquo; that are do not rely on presence or absence of file or directory. To make them work we need to mark these targets as <code>.PHONY</code>, then even if file or directory with name <code>install</code> exists, makefile still will evaluate provided commands.</p>
+<p>The nature of makefile is to check if a file or directory with the name of target exists. If it doesn’t, it will run the commands necessary to create that file or directory. Sometimes you want to be able to run commands without that dependency on existing files. For that, you would use ‘control targets’, marked as such with <code>.PHONY</code>. So, in this example, even if the file or directory named <code>install</code> exists, the makefile will still evaluate the provided commands.</p>
 
 <h5>install</h5>
 
@@ -247,7 +247,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>Target <code>install</code> doesn&rsquo;t have any commands to evaluate, though it says that it has dependency that needs to be resolved first: <code>$(COMPONENT_INSTALL_PATH)</code>, which resolves to <code>./Components/AFNetworking</code>. This is exactly what we want: after running <code>make install</code> we want to have AFNetworking installed to <code>./Components</code> directory.</p>
+<p>Target <code>install</code> doesn&rsquo;t have any commands to evaluate, though it says that it has a dependency that needs to be resolved first: <code>$(COMPONENT_INSTALL_PATH)</code>, which resolves to <code>./Components/AFNetworking</code>. This is exactly what we want: after running <code>make install</code> we want to have AFNetworking installed to <code>./Components</code> directory.</p>
 
 <h5>uninstall</h5>
 
@@ -269,7 +269,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>That&rsquo;s basically all what update does. It assumes that you have downloaded newer version of component and old one needs to be replaced.</p>
+<p>That’s basically all what update does. It assumes that you have downloaded the newer version of the component and that the old one needs to be replaced.</p>
 
 <h5>clean</h5>
 
@@ -295,7 +295,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>The last phony target we have here. It&rsquo;s just cleans and uninstalls component, nothing special.</p>
+<p>The last phony target we have here. It just cleans and uninstalls the component, nothing special.</p>
 
 <h4>Artefacts</h4>
 
@@ -358,7 +358,7 @@ Any big enough system is built from different components, that are composed toge
 
 <h5>COMPONENT_INSTALL_PATH</h5>
 
-<p>We start with <code>$(COMPONENT_INSTALL_PATH)</code>, since this is what we actually want to get:</p>
+<p>We start off with <code>$(COMPONENT_INSTALL_PATH)</code>, since this is what we actually want to get:</p>
 
 <figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
 <span class='line-number'>2</span>
@@ -379,7 +379,7 @@ Any big enough system is built from different components, that are composed toge
 </span></code></pre></td></tr></table></div></figure>
 
 
-<p>This target has one dependency, we assume that this dependency already resolved and directory <code>$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</code> contains source files of AFNetworking, to install it we just need to create a resulting directory (<code>./Components/AFNetworking</code>) and copy all sources there.</p>
+<p>This target has one dependency. We assume that this dependency already resolved and directory <code>$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</code> contains source files of AFNetworking, to install it we just need to create a resulting directory (<code>./Components/AFNetworking</code>) and copy all sources there.</p>
 
 <p>Next time we run <code>make install</code> these commands will be evaluated only if <code>./Components/AFNetworking</code> doesn&rsquo;t exist.</p>
 
