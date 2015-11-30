@@ -4,7 +4,7 @@
   <title><![CDATA[Category: llvm | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/llvm/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-11-24T07:05:50+01:00</updated>
+  <updated>2015-11-30T11:55:53+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,341 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to use LLVM API with Swift]]></title>
+    <link href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift/"/>
+    <updated>2015-11-30T13:00:00+01:00</updated>
+    <id>http://lowlevelbits.org/how-to-use-llvm-api-with-swift</id>
+    <content type="html"><![CDATA[<p>This article shows how to use LLVM C API with Swift. It doesn’t aim to show how to write proper idiomatic Swift. Besides that I omit some good practices for sake of simplicity.</p>
+
+<p>Our plan for today:</p>
+
+<ul>
+<li>grab latest version of LLVM</li>
+<li>build it using CMake and llvm-config</li>
+<li>create simple Swift program (~50 LoC), build and link it against LLVM</li>
+<li>create simple <code>sum</code> function in memory and execute it using LLVM interpreter</li>
+</ul>
+
+
+<p>So, let’s go to town!</p>
+
+<h3>Preparing LLVM</h3>
+
+<p>Let’s grab fresh version of LLVM. It can be done using central SVN repository, or via official git mirror. I prefer latter option, since it’s, imho, a bit faster.</p>
+
+<p>For this particular example I will put everything into a directory inside of the home directory:</p>
+
+<pre><code class="bash">~ $ mkdir swift_llvm
+~ $ cd swift_llvm
+~/swift_llvm $ git clone http://llvm.org/git/llvm.git
+</code></pre>
+
+<p>LLVM uses CMake as a build system. To make a build let’s create a separate directory near LLVM directory and generate build rules:</p>
+
+<pre><code class="bash">~/swift_llvm $ mkdir build
+~/swift_llvm $ cd build
+~/swift_llvm/build $ cmake  ../llvm
+</code></pre>
+
+<p>CMake could generate various output: makefiles, Xcode projects, VisualStudio solutions and more. If build system is not specified (like in the script above), then CMake takes default one, which is GNU/Make.</p>
+
+<p>Modularity is one of the significant advantages of LLVM. It has dozens of &lsquo;small&rsquo; libraries. We will need to link our program against some of them. If you’re like me and not an LLVM expert, then you probably don’t know which ones you need.</p>
+
+<p>The naive way of solving this problem is to build the program and resolve linker errors manually until they disappear. It will work, indeed, but it’s became boring after resolving 5-6 errors.</p>
+
+<p>Thank god, LLVM developers are thoughtful and provide a great tool <code>llvm-config</code>. Let’s build it and see what it does.</p>
+
+<pre><code class="bash">~/swift_llvm/build $ make llvm-config -j4
+</code></pre>
+
+<p><em>Note: <code>-j4</code> says &lsquo;I have multi core/processor environment, run 4 jobs simultaneously&rsquo;</em></p>
+
+<p><code>llvm-config</code> provides different options/shortcuts, e.g.: where to look for built libraries, where to look for headers, which linker flags to pass to link in JIT module or interpreter, and so on.</p>
+
+<p><em>Note: Run <code>llvm-config</code> without options to learn more.</em></p>
+
+<p>We’re particularly interested in interpreter. Let’s look what we need to build:</p>
+
+<pre><code class="bash">~/swift_llvm/build $ ./bin/llvm-config --libs interpreter
+-lLLVMInterpreter -lLLVMExecutionEngine -lLLVMRuntimeDyld -lLLVMObject -lLLVMMCParser -lLLVMCodeGen -lLLVMTarget -lLLVMScalarOpts -lLLVMInstCombine -lLLVMInstrumentation -lLLVMTransformUtils -lLLVMMC -lLLVMBitWriter -lLLVMBitReader -lLLVMAnalysis -lLLVMCore -lLLVMSupport
+</code></pre>
+
+<p>To make our little program working we need to build all these libraries. Again, there is naive way of doing this, but we will go with shell magic:</p>
+
+<pre><code class="bash">~/swift_llvm/build $ ./bin/llvm-config --libs interpreter | sed "s/-l//g" | xargs make -j4
+</code></pre>
+
+<h3>Hello LLVM</h3>
+
+<p>Since we have done and have everything in place it’s time to create our little Swift program:</p>
+
+<pre><code class="bash">~/swift_llvm/build $ cd ..
+~/swift_llvm $ touch hello_llvm.swift
+~/swift_llvm $ open hello_llvm.swift
+</code></pre>
+
+<p>To check that everything is working as we expect we will first create an empty module and dump it:</p>
+
+<pre><code class="swift">import LLVM_C
+
+let module = LLVMModuleCreateWithName("Hello")
+
+LLVMDumpModule(module)
+
+LLVMDisposeModule(module)
+</code></pre>
+
+<p>Building this small program requires passing numerous flags to compiler. We need to specify SDK, to set which module to link with, specify linker flags, set correct header search paths and probably provide some additional arguments:</p>
+
+<pre><code class="bash">~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
+</code></pre>
+
+<p>So many questions, so much magic.</p>
+
+<p>In fact specifying correct linker flags and libraries path is easy, thanks <code>llvm-config</code>:</p>
+
+<pre><code class="bash">~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C `./build/bin/llvm-config --libs interpreter` -L ./build/lib -I??? ???
+</code></pre>
+
+<p>Situation with headers and additional parameters is a bit more trickier. Normally, if we use clang, we could just rely on <code>llvm-config --cflags</code>, though it does not work with swift compiler. Let’s examine the <code>--cflags</code> and see what we can do here:</p>
+
+<pre><code class="bash">~/swift_llvm $ ./build/bin/llvm-config --cflags
+-I/Users/alexdenisov/swift_llvm/llvm/include -I/Users/alexdenisov/swift_llvm/build/include  -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wmissing-field-initializers -pedantic -Wno-long-long -Wcovered-switch-default -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
+</code></pre>
+
+<p>The output contains a few parameters, we can easily omit all arguments except of headers search paths (<code>-I ...</code>) and macro definitions (<code>-D__...</code>). The problem is that swift compiler does not handle macro definitions the way as clang does, though we could bypass them directly to clang driver using <code>-Xcc</code> option:</p>
+
+<pre><code class="bash">~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C `./build/bin/llvm-config --libs interpreter` -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+</code></pre>
+
+<p>If you were eager enough and run the recent command, then you might see some errors: linker complains because it can’t find symbols from ncurses and STD C++ libraries. No worries, here is the correct command:</p>
+
+<pre><code class="bash">~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C `./build/bin/llvm-config --libs interpreter` -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+</code></pre>
+
+<p>Now we can run the program and see the beautiful LLVM IR:</p>
+
+<pre><code class="bash">~/swift_llvm $ ./hello_llvm
+; ModuleID = 'Hello'
+</code></pre>
+
+<p>Ok, it’s empty and doesn’t look cool. But there are good news&shy;: we are able to use LLVM C API from Swift. Isn’t this impressive?</p>
+
+<p>Let’s go further and create simple <code>sum</code> function that accepts two integers, sums them and returns result. Here is a C equivalent:</p>
+
+<pre><code class="c">int sum(int a, int b) {
+    return a + b;
+}
+</code></pre>
+
+<p>To create a function we need to specify all types involved: return type and types of arguments.</p>
+
+<p>Types of arguments must be passed as an array. Since we interop with C API it’s a bit tricky, but still pretty straightforward:</p>
+
+<pre><code class="swift">import LLVM_C
+
+let module = LLVMModuleCreateWithName("Hello")
+
+let int32 = LLVMInt32Type()
+
+let paramTypes = [int32, int32]
+
+// need to convert paramTypes into UnsafeMutablePointer because of API requirements
+var paramTypesRef = UnsafeMutablePointer&lt;LLVMTypeRef&gt;.alloc(paramTypes.count)
+paramTypesRef.initializeFrom(paramTypes)
+
+let returnType = int32
+let functionType = LLVMFunctionType(returnType, paramTypesRef, UInt32(paramTypes.count), 0)
+
+let sumFunction = LLVMAddFunction(module, “sum”, functionType)
+
+LLVMDumpModule(module)
+
+paramTypesRef.dealloc(paramTypes.count)
+LLVMDisposeModule(module)
+</code></pre>
+
+<p>Build it:</p>
+
+<pre><code class="bash">~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C `./build/bin/llvm-config --libs interpreter` -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+</code></pre>
+
+<p>And run:</p>
+
+<pre><code class="asm">; ModuleID = 'Hello'
+
+declare i32 @sum(i32, i32)
+</code></pre>
+
+<p>Here you go, function prototype is ready - next step is function body.</p>
+
+<p>Atomic particle of code is a <code>basic block</code>. Function or loop body, conditional branch (<code>if/else</code>, <code>switch/case</code>, etc.) these are basic blocks. Our simple function has one as well:</p>
+
+<pre><code class="swift">let entryBlock = LLVMAppendBasicBlock(sumFunction, "entry")
+</code></pre>
+
+<p>This block could be filled in using builder. First we emit instructions to access function arguments. Next one - addition of the arguments with the <code>temp</code> variable holding the result. And the last instruction - return statement.</p>
+
+<pre><code class="swift">let builder = LLVMCreateBuilder()
+LLVMPositionBuilderAtEnd(builder, entryBlock)
+
+let a = LLVMGetParam(sumFunction, 0)
+let b = LLVMGetParam(sumFunction, 1)
+let temp = LLVMBuildAdd(builder, a, b, "temp")
+LLVMBuildRet(builder, tmp)
+</code></pre>
+
+<p><em>Put this code after <code>sumFunction</code> declaration, but before <code>LLVMDumpModule</code>. Or just keep reading, you will see the full code listing at the end of the article.</em></p>
+
+<p>Build and run, you will see the function body:</p>
+
+<pre><code class="asm">; ModuleID = 'Hello'
+
+define i32 @sum(i32, i32) {
+entry:
+  %temp = add i32 %0, %1
+  ret i32 %temp
+}
+</code></pre>
+
+<p>Last and the most interesting part - how to run this code?</p>
+
+<p>LLVM C API provides couple of execution engines: <code>MCJIT</code> and <code>Interpreter</code>, we will go with the latter one.</p>
+
+<p><em>Note: To be honest I don’t really know exact difference between them, the only reason I use interpreter here - I got a few different errors when I tried to use MCJIT.</em></p>
+
+<p>Let’s create an execution engine:</p>
+
+<pre><code class="swift">let engine = UnsafeMutablePointer&lt;LLVMExecutionEngineRef&gt;.alloc(alignof(LLVMExecutionEngineRef))
+var error =  UnsafeMutablePointer&lt;UnsafeMutablePointer&lt;Int8&gt;&gt;.alloc(alignof(UnsafeMutablePointer&lt;Int8&gt;))
+
+LLVMLinkInInterpreter()
+
+if LLVMCreateInterpreterForModule(engine, module, error) != 0 {
+  print("can't initialize engine: \(String.fromCString(error.memory)!)")
+    // TODO: cleanup all allocated memory ;)
+  exit(1)
+}
+</code></pre>
+
+<p>You can build and run it, just to ensure that everything is still working.</p>
+
+<p>Finally, let’s run our function and actually compute the sum. Here we do the same trick as with function type - API requires <code>UnsafeMutablePointer</code>. Keep in mind that you should deallocate this memory manually.</p>
+
+<pre><code class="swift">let x: UInt64 = 10
+let y: UInt64 = 25
+
+let args = [LLVMCreateGenericValueOfInt(int32, x, 0),
+            LLVMCreateGenericValueOfInt(int32, y, 1)]
+
+var argsRef = UnsafeMutablePointer&lt;LLVMTypeRef&gt;.alloc(args.count)
+argsRef.initializeFrom(args)
+
+let result = LLVMRunFunction(engine.memory, sumFunction, UInt32(args.count), argsRef)
+
+print("\(x) + \(y) = \(LLVMGenericValueToInt(result, 0))")
+
+argsRef.dealloc(args.count)
+</code></pre>
+
+<p>If you build and run the program - you will see the result:</p>
+
+<pre><code class="asm">; ModuleID = 'Hello'
+
+define i32 @sum(i32, i32) {
+entry:
+  %temp = add i32 %0, %1
+  ret i32 %temp
+}
+10 + 25 = 35
+</code></pre>
+
+<p>Here is the full code listing:</p>
+
+<pre><code class="swift">import LLVM_C
+
+let module = LLVMModuleCreateWithName("Hello")
+
+let int32 = LLVMInt32Type()
+
+let paramTypes = [int32, int32]
+
+// need to convert paramTypes into UnsafeMutablePointer because of API requirements
+var paramTypesRef = UnsafeMutablePointer&lt;LLVMTypeRef&gt;.alloc(paramTypes.count)
+paramTypesRef.initializeFrom(paramTypes)
+
+let returnType = int32
+let functionType = LLVMFunctionType(returnType, paramTypesRef, UInt32(paramTypes.count), 0)
+
+let sumFunction = LLVMAddFunction(module, "sum", functionType)
+
+let entryBlock = LLVMAppendBasicBlock(sumFunction, "entry")
+
+let builder = LLVMCreateBuilder()
+LLVMPositionBuilderAtEnd(builder, entryBlock)
+
+let a = LLVMGetParam(sumFunction, 0)
+let b = LLVMGetParam(sumFunction, 1)
+let temp = LLVMBuildAdd(builder, a, b, "temp")
+LLVMBuildRet(builder, temp)
+
+LLVMDumpModule(module)
+
+let engine = UnsafeMutablePointer&lt;LLVMExecutionEngineRef&gt;.alloc(alignof(LLVMExecutionEngineRef))
+var error =  UnsafeMutablePointer&lt;UnsafeMutablePointer&lt;Int8&gt;&gt;.alloc(alignof(UnsafeMutablePointer&lt;Int8&gt;))
+
+LLVMLinkInInterpreter()
+
+if LLVMCreateInterpreterForModule(engine, module, error) != 0 {
+  print("can't initialize engine: \(String.fromCString(error.memory)!)")
+    // TODO: cleanup all allocated memory ;)
+  exit(1)
+}
+
+let x: UInt64 = 10
+let y: UInt64 = 25
+
+let args = [LLVMCreateGenericValueOfInt(int32, x, 0), 
+            LLVMCreateGenericValueOfInt(int32, y, 1)]
+
+var argsRef = UnsafeMutablePointer&lt;LLVMTypeRef&gt;.alloc(args.count)
+argsRef.initializeFrom(args)
+
+let result = LLVMRunFunction(engine.memory, sumFunction, UInt32(args.count), argsRef)
+
+print("\(x) + \(y) = \(LLVMGenericValueToInt(result, 0))")
+
+argsRef.dealloc(args.count)
+
+paramTypesRef.dealloc(paramTypes.count)
+LLVMDisposeModule(module)
+</code></pre>
+
+<h3>Summary</h3>
+
+<p>As you may see using LLVM from Swift is a bit tricky, but it’s still doable. It actually gives us great opportunity - you can write a language (probably domain specific) in Swift using all the power of LLVM. C API may look limited, but it’s full enough to start with.</p>
+
+<p>If you curious and want to learn more about the topic, please consider looking at these resources:</p>
+
+<p><a href="https://pauladamsmith.com/blog/2015/01/how-to-get-started-with-llvm-c-api.html">How to get started with the LLVM C API</a> - great how-to on LLVM C API. This article basically based on it.</p>
+
+<p><a href="http://llvm.org/docs/tutorial/index.html">Kaleidoscope Tutorials</a> - tutorial on implementing simple but powerful language. Currently, there are two versions - for C++ and OCaml.</p>
+
+<p><a href="https://github.com/bencochran/Kaleidoscope">Kaleidoscope Implementation</a> - same language as above implemented using Swift. Trove of treasures there.</p>
+
+<p><a href="https://github.com/robrix/Auspicion">Auspicion</a> - LLVM C API bindings for Swift.</p>
+
+<p><a href="https://github.com/bencochran/LLVM.swift">LLVM.swift</a> - another Swift wrapper for LLVM C API.</p>
+
+<p><a href="https://github.com/AlexDenisov/swift_llvm">Source code</a> - source code for this article.</p>
+
+<p>Thank you for your attention.</p>
+
+<p>Happy hacking!</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Bitcode Demystified]]></title>
