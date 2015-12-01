@@ -4,7 +4,7 @@
   <title><![CDATA[Category: swift | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/swift/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-11-30T11:55:53+01:00</updated>
+  <updated>2015-11-30T11:55:57+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -195,7 +195,7 @@ LLVMPositionBuilderAtEnd(builder, entryBlock)
 let a = LLVMGetParam(sumFunction, 0)
 let b = LLVMGetParam(sumFunction, 1)
 let temp = LLVMBuildAdd(builder, a, b, "temp")
-LLVMBuildRet(builder, tmp)
+LLVMBuildRet(builder, temp)
 </code></pre>
 
 <p><em>Put this code after <code>sumFunction</code> declaration, but before <code>LLVMDumpModule</code>. Or just keep reading, you will see the full code listing at the end of the article.</em></p>

@@ -360,7 +360,7 @@
 </span><span class='line'><span class="k">let</span> <span class="n">a</span> <span class="o">=</span> <span class="n">LLVMGetParam</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 </span><span class='line'><span class="k">let</span> <span class="n">b</span> <span class="o">=</span> <span class="n">LLVMGetParam</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 </span><span class='line'><span class="k">let</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">LLVMBuildAdd</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="s">&quot;temp&quot;</span><span class="p">)</span>
-</span><span class='line'><span class="n">LLVMBuildRet</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">tmp</span><span class="p">)</span>
+</span><span class='line'><span class="n">LLVMBuildRet</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
 </span></code></pre></td></tr></table></div></figure>
 
 
