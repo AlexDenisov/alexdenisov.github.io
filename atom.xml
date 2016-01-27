@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2015-11-30T11:55:57+01:00</updated>
+  <updated>2016-01-27T23:46:12+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,292 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[How to use LLVM API with Swift. Addendum]]></title>
+    
+    <link href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum/"/>
+    
+    <updated>2016-01-27T21:33:12+01:00</updated>
+    <id>http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum</id>
+    <content type="html"><![CDATA[<p>In the <a href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift/">previous article</a> I showed how to use LLVM with Swift.</p>
+
+<p>That time I didn&rsquo;t set up JIT engine properly. Few days later I dived a bit deeper and finally managed to run the program using <a href="http://llvm.org/docs/MCJITDesignAndImplementation.html">MCJIT</a> - new LLVM JIT engine, where &lsquo;MC&rsquo; states for &lsquo;machine code&rsquo;. This engine is different from &lsquo;classical&rsquo; JIT, but this is out of scope of this article. For more information please consider looking at documentation.</p>
+
+<h3>MCJIT Execution Engine</h3>
+
+<p>Here is the snippet used to create interpreter:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">engine</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMExecutionEngineRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">LLVMExecutionEngineRef</span><span class="p">))</span>
+</span><span class='line'><span class="k">var</span> <span class="n">error</span> <span class="o">=</span>  <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">LLVMLinkInInterpreter</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="n">LLVMCreateInterpreterForModule</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">print</span><span class="p">(</span><span class="s">&quot;can&#39;t initialize engine: \(String.fromCString(error.memory)!)&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="c1">// TODO: cleanup all allocated memory ;)</span>
+</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>In this snippet the type of execution engine specified explicitly, though it could be more general.</p>
+
+<p>It is possible to use function <code>LLVMCreateExecutionEngineForModule</code>. The exact engine type will be specified by family of function <code>LLVMLinkInEETYPE</code>, where <code>EETYPE</code> is an execution engine type, one of <code>Interpreter</code>, <code>MCJIT</code>, and <code>OrcMCJITReplacement</code>.</p>
+
+<p>Since <code>MCJIT</code> is intended to generate machine code for some specific machine, we should also define which machine to use, e.g.: x86, x64, arm, and so on.</p>
+
+<p>For the sake of simplicity we will generate the code for the host machine. In this case we don&rsquo;t even have to now which CPU family we have. LLVM provides very useful shortcut, we could use <code>Native</code> when refer to a host machine.</p>
+
+<p><code>MCJIT</code> requires only information about a target and code generator for this specific target.</p>
+
+<p>Here is final snippet for the execution engine:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="n">LLVMLinkInMCJIT</span><span class="p">()</span>
+</span><span class='line'><span class="n">LLVMInitializeNativeTarget</span><span class="p">()</span>
+</span><span class='line'><span class="n">LLVMInitializeNativeAsmPrinter</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">let</span> <span class="n">engine</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMExecutionEngineRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">LLVMExecutionEngineRef</span><span class="p">))</span>
+</span><span class='line'><span class="k">var</span> <span class="n">error</span> <span class="o">=</span>  <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">LLVMLinkInInterpreter</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">if</span> <span class="n">LLVMCreateExecutionEngineForModule</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">print</span><span class="p">(</span><span class="s">&quot;can&#39;t initialize engine: \(String.fromCString(error.memory)!)&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="c1">// TODO: cleanup all allocated memory ;)</span>
+</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Function <code>main</code></h3>
+
+<p>There is a small problem with <code>MCJIT</code>. Currently it can only run functions with signatures matching signatures of <code>main</code> C function, i.e. one of those:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">envp</span><span class="p">)</span>
+</span><span class='line'><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span> <span class="o">**</span><span class="n">argv</span><span class="p">)</span>
+</span><span class='line'><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">)</span>
+</span><span class='line'><span class="p">()</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Return type of the function is also limited: only <code>int</code>. <code>double</code>, <code>float</code>, <code>void</code> and a pointer to something.</p>
+
+<p>So how to call function with signature <code>(int a, int b)</code> and return type <code>int</code>?</p>
+
+<p>The solution is simple: we just need to create a new function with return type <code>int</code> and without parameters. Then we could put call to the <code>sum</code> function into the body of our pseudo-main function.</p>
+
+<p>Here is how it may look:</p>
+
+<p><em>Note: I put it into a function just to specify some scope</em></p>
+
+<p><em>Note2: I do not cleanup memory in this snippet just to save some space</em></p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">func</span> <span class="n">runFunction</span><span class="p">(</span><span class="nl">a</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="n">_</span> <span class="nl">b</span><span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Int</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">functionType</span> <span class="o">=</span> <span class="n">LLVMFunctionType</span><span class="p">(</span><span class="n">returnType</span><span class="p">,</span> <span class="nb">nil</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">wrapperFunction</span> <span class="o">=</span> <span class="n">LLVMAddFunction</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">functionType</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">entryBlock</span> <span class="o">=</span> <span class="n">LLVMAppendBasicBlock</span><span class="p">(</span><span class="n">wrapperFunction</span><span class="p">,</span> <span class="s">&quot;entry&quot;</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">builder</span> <span class="o">=</span> <span class="n">LLVMCreateBuilder</span><span class="p">()</span>
+</span><span class='line'>  <span class="n">LLVMPositionBuilderAtEnd</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">entryBlock</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">argumentsCount</span> <span class="o">=</span> <span class="mi">2</span>
+</span><span class='line'>  <span class="k">var</span> <span class="n">argumentValues</span> <span class="o">=</span> <span class="p">[</span><span class="n">LLVMValueRef</span><span class="p">]()</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">argumentValues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">LLVMConstInt</span><span class="p">(</span><span class="n">int32</span><span class="p">,</span> <span class="n">UInt64</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+</span><span class='line'>  <span class="n">argumentValues</span><span class="p">.</span><span class="n">append</span><span class="p">(</span><span class="n">LLVMConstInt</span><span class="p">(</span><span class="n">int32</span><span class="p">,</span> <span class="n">UInt64</span><span class="p">(</span><span class="n">b</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">argumentsPointer</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMValueRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">strideof</span><span class="p">(</span><span class="n">LLVMValueRef</span><span class="p">)</span> <span class="o">*</span> <span class="n">argumentsCount</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">argumentsPointer</span><span class="p">.</span><span class="n">initializeFrom</span><span class="p">(</span><span class="n">argumentValues</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">callTemp</span> <span class="o">=</span> <span class="n">LLVMBuildCall</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span>
+</span><span class='line'>                               <span class="n">sumFunction</span><span class="p">,</span>
+</span><span class='line'>                               <span class="n">argumentsPointer</span><span class="p">,</span>
+</span><span class='line'>                               <span class="kt">UInt32</span><span class="p">(</span><span class="n">argumentsCount</span><span class="p">),</span> <span class="s">&quot;sum_temp&quot;</span><span class="p">)</span>
+</span><span class='line'>  <span class="n">LLVMBuildRet</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">callTemp</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="mi">0</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">runFunction</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Here is an output after executing this code:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+</pre></td><td class='code'><pre><code class='asm'><span class='line'><span class="err">;</span> <span class="nf">ModuleID</span> <span class="err">=</span> <span class="err">&#39;</span><span class="no">Hello</span><span class="err">&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">define</span> <span class="no">i32</span> <span class="err">@</span><span class="no">sum</span><span class="p">(</span><span class="no">i32</span><span class="p">,</span> <span class="no">i32</span><span class="p">)</span> <span class="err">{</span>
+</span><span class='line'><span class="nl">entry:</span>
+</span><span class='line'>  <span class="err">%</span><span class="nf">temp</span> <span class="err">=</span> <span class="no">add</span> <span class="no">i32</span> <span class="err">%</span><span class="mi">0</span><span class="p">,</span> <span class="err">%</span><span class="mi">1</span>
+</span><span class='line'>  <span class="nf">ret</span> <span class="no">i32</span> <span class="nv">%temp</span>
+</span><span class='line'><span class="err">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="nf">define</span> <span class="no">i32</span> <span class="err">@</span><span class="mi">0</span><span class="p">()</span> <span class="err">{</span>
+</span><span class='line'><span class="nl">entry:</span>
+</span><span class='line'>  <span class="err">%</span><span class="nf">sum_temp</span> <span class="err">=</span> <span class="no">call</span> <span class="no">i32</span> <span class="err">@</span><span class="no">sum</span><span class="p">(</span><span class="no">i32</span> <span class="mi">5</span><span class="p">,</span> <span class="no">i32</span> <span class="mi">6</span><span class="p">)</span>
+</span><span class='line'>  <span class="nf">ret</span> <span class="no">i32</span> <span class="nv">%sum_temp</span>
+</span><span class='line'><span class="err">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Our unnamed wrapper function has name <code>@0</code>. Since this function is just a helper we will need to remove it after we have done execution.</p>
+
+<p>The way to run the function is the same as it was using interpreter:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">func</span> <span class="n">runFunction</span><span class="p">(</span><span class="nl">a</span><span class="p">:</span> <span class="n">Int</span><span class="p">,</span> <span class="n">_</span> <span class="nl">b</span><span class="p">:</span> <span class="n">Int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Int</span> <span class="p">{</span>
+</span><span class='line'>  <span class="c1">/// ...</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">executionEngine</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMExecutionEngineRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">strideof</span><span class="p">(</span><span class="n">LLVMExecutionEngineRef</span><span class="p">))</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">error</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">strideof</span><span class="p">(</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;</span><span class="p">))</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">defer</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">error</span><span class="p">.</span><span class="n">dealloc</span><span class="p">(</span><span class="n">strideof</span><span class="p">(</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;</span><span class="p">))</span>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">dealloc</span><span class="p">(</span><span class="n">strideof</span><span class="p">(</span><span class="n">LLVMExecutionEngineRef</span><span class="p">))</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">res</span> <span class="o">=</span> <span class="n">LLVMCreateExecutionEngineForModule</span><span class="p">(</span><span class="n">executionEngine</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">if</span> <span class="n">res</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">msg</span> <span class="o">=</span> <span class="n">String</span><span class="p">.</span><span class="n">fromCString</span><span class="p">(</span><span class="n">error</span><span class="p">.</span><span class="n">memory</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">print</span><span class="p">(</span><span class="s">&quot;\(msg)&quot;</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">let</span> <span class="n">value</span> <span class="o">=</span> <span class="n">LLVMRunFunction</span><span class="p">(</span><span class="n">executionEngine</span><span class="p">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">wrapperFunction</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nb">nil</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">result</span> <span class="o">=</span> <span class="n">LLVMGenericValueToInt</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">LLVMDeleteFunction</span><span class="p">(</span><span class="n">wrapperFunction</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="n">Int</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="n">print</span><span class="p">(</span><span class="s">&quot;\(runFunction(5, 6))&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="n">print</span><span class="p">(</span><span class="s">&quot;\(runFunction(7, 142))&quot;</span><span class="p">)</span>
+</span><span class='line'><span class="n">print</span><span class="p">(</span><span class="s">&quot;\(runFunction(557, 1024))&quot;</span><span class="p">)</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>If we run this code we will actually see the result:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="o">&gt;</span> <span class="p">.</span><span class="o">/</span><span class="n">hello_llvm</span>
+</span><span class='line'><span class="mi">11</span>
+</span><span class='line'><span class="mi">149</span>
+</span><span class='line'><span class="mi">1581</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>That&rsquo;s it</h3>
+
+<p>I have updated the repository so you can look at it to see the whole code for the article:</p>
+
+<p><a href="https://github.com/AlexDenisov/swift_llvm">https://github.com/AlexDenisov/swift_llvm</a></p>
+
+<p>Besides that, if you want to learn more about using LLVM with Swift and to see more practical examples, then I can recommend looking at LLVM&rsquo;s <a href="http://llvm.org/docs/tutorial/index.html">Kaleidoscope</a> implemented in Swift: <a href="https://github.com/AlexDenisov/SwiftKaleidoscope">SwiftKaleidoscope</a></p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[How to use LLVM API with Swift]]></title>
@@ -33,6 +319,8 @@
 
 
 <p>So, let’s go to town!</p>
+
+<p><strong>UPD:</strong> There is a second part of the article. It shows how to actually use JIT engine: <a href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum">http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum</a></p>
 
 <h3>Preparing LLVM</h3>
 
