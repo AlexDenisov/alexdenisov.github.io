@@ -4,7 +4,7 @@
   <title><![CDATA[Category: iosdev | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/iosdev/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2016-03-11T14:37:06+01:00</updated>
+  <updated>2016-03-11T14:38:19+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,236 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[Crash-free code with Fuzzer]]></title>
+    <link href="http://lowlevelbits.org/crash-free-code-with-fuzzer/"/>
+    <updated>2016-03-11T14:34:22+01:00</updated>
+    <id>http://lowlevelbits.org/crash-free-code-with-fuzzer</id>
+    <content type="html"><![CDATA[<p>We all know that the API has a specification.
+We all write tests to cover &ldquo;happy paths&rdquo; and to cover &ldquo;unhappy paths&rdquo; when work with the API.</p>
+
+<p>It may seem that we’re pretty safe if we have tests and follow the specification.
+Well, actually no. Usually it works well in theory, but doesn’t really work in practice.</p>
+
+<p>We can write as many tests as we need to cover all edge cases, but that is both time consuming and error prone.
+The best choice would be is to automate this process.</p>
+
+<!--more-->
+
+
+<h3>Fuzzing</h3>
+
+<p>So we made a small library to make our life easier - <a href="https://github.com/AlexDenisov/Fuzzer">Fuzzer</a>.</p>
+
+<p>The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.</p>
+
+<p>For instance, from this sample</p>
+
+<pre><code class="json">{
+  "firstname" : "John",
+  "lastname" : "Doe"
+}
+</code></pre>
+
+<p>we could get two mutants by using <code>ReplaceNode</code> mutation, such as:</p>
+
+<pre><code class="json">{
+  "firstname" : 42, // &lt;- Mutation
+  "lastname" : "Doe"
+}
+</code></pre>
+
+<p>and</p>
+
+<pre><code class="json">{
+  "firstname" : "John",
+  "lastname" : 42 // &lt;- Mutation
+}
+</code></pre>
+
+<p>There are many decisions our serializer/mapper/whatnot can make when it gets such a result: return an error explaining why it cannot convert the dictionary into a model, or silently ignore &ldquo;number&rdquo; field, or any other action. In general this decision is up to you and your domain model.
+But I’m pretty sure there is no domain model that accepts exceptions like <code>-[__NSCFNumber length]: unrecognised selector sent to instance 0xDEADBEEF</code>.</p>
+
+<h3>Usage</h3>
+
+<p>The use case may vary and depend on a workflow.
+The recommended way is to create another test target and put these verifications there.</p>
+
+<p>Example:</p>
+
+<pre><code class="objectivec">- (void)test {
+  NSDictionary *sample = @{
+    @"name" : @"John Doe",
+    @"age" : @42
+  };
+
+  UserDeserializer *deserializer = [UserDeserializer new];
+  Mutator *mutator = [Mutator mutatorForSample:sample withMutationGenerator:[MutationGenerator builtinMutationGenerator]];
+  Engine *engine = [Engine engineWithMutator:mutator];
+
+  NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant) {
+    User *user = [deserializer deserializeUser:mutant];
+    user.name.length;
+    user.age.integerValue;
+  }];
+
+  XCTAssertEqual(reports.count, 0);
+}
+</code></pre>
+
+<p>It’s not very elegant, but it does the job very well.
+Lines like <code>user.name.length;</code> may look weird, but it’s the easiest way to validate that <code>name</code> is <code>NSString</code>.</p>
+
+<p><em>There might be a category <code>NSNull+length</code> or <code>NSNumber+length</code>, but AFAIK our team members doesn’t have such mutations.</em></p>
+
+<p>Example looks pretty straightforward, but I’d like to highlight couple of things.</p>
+
+<p>The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:</p>
+
+<pre><code class="objectivec">NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant){ … }];
+</code></pre>
+
+<p>The engine records only failures, so it’s enough to assert count of returned reports.
+One can easily examine what caused failure by looking at report, e.g.:</p>
+
+<pre><code class="objectivec">for (Report *report in reports) {
+  NSLog(@"Thrown '%@' on '%@'", report.exception, report.mutant);
+}
+</code></pre>
+
+<h3>Builtins</h3>
+
+<p>The library provides just a couple of built-in mutations.</p>
+
+<h4>Delete Node Mutation</h4>
+
+<p>Returns sample without some node so that</p>
+
+<pre><code class="json">{
+  "firstname" : "John",
+  "lastname" : "Doe"
+}
+</code></pre>
+
+<p>becomes either</p>
+
+<pre><code class="json">{
+  "firstname" : "John"
+}
+</code></pre>
+
+<p>or</p>
+
+<pre><code class="json">{
+  "lastname" : "Doe"
+}
+</code></pre>
+
+<h4>Replace Node Mutation</h4>
+
+<p>This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.</p>
+
+<p>‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using <code>NodeReplacement</code>, e.g.:</p>
+
+<pre><code class="objectivec">NodeReplacement *replacement = [NodeReplacement replacementWithValue:&lt;#whatever may break your code#&gt;];
+id&lt;Mutation&gt; mutation = [ReplaceNodeMutation mutationWithReplacement:replacement];
+</code></pre>
+
+<p>That is, mutator will generate mutant with this replacement for each key/value.</p>
+
+<h3>Extending Fuzzer</h3>
+
+<p>The library provides finite set of built-in mutations and replacements which is, probably, not enough for real life usage.</p>
+
+<p>Fortunately, there is an easy way to extend it.</p>
+
+<p>Previously we were changing only content of sample dictionary, now it’s time to go deeper (actually shallower).</p>
+
+<p>Let’s create a mutation that will return random value (using  <code>NodeReplacement</code>) instead of changing a sample.</p>
+
+<p>Simplest interface ever:</p>
+
+<pre><code class="objectivec">#import &lt;Fuzzer/Fuzzer.h&gt;
+
+@interface ReplaceSampleMutation : NSObject
+    &lt;Mutation&gt;
+
++ (instancetype)mutationWithReplacement:(NodeReplacement *)replacement;
+
+@end
+</code></pre>
+
+<p>Implementation is not sophisticated as well:</p>
+
+<pre><code class="objectivec">@interface ReplaceSampleMutation ()
+
+@property NodeReplacement *replacement;
+
+@end
+
+@implementation ReplaceSampleMutation
+
+///  Our constructor
++ (instancetype)mutationWithReplacement:(NodeReplacement *)replacement {
+    ReplaceSampleMutation *mutation = [self new];
+
+    mutation.replacement = replacement;
+
+    return mutation;
+}
+
+/// ‘Mutation’ Protocol Requirement
+- (NSDictionary *)mutateSample:(NSDictionary *)sample atNode:(NSString *)nodeName {
+    return (NSDictionary *)self.replacement.value;
+}
+
+@end
+</code></pre>
+
+<p>The usage is trivial:</p>
+
+<pre><code class="objectivec">- (void)test {
+  NSDictionary *sample = @{
+    @"name" : @"John Doe",
+    @"age" : @42
+  };
+
+    NSArray *replacements = [NodeReplacement builtinReplacements];
+
+    NSMutableArray *mutations = [NSMutableArray arrayWithCapacity:replacements.count];
+    for (NodeReplacement *replacement in replacements) {
+        id&lt;Mutation&gt; mutation = [ReplaceSampleMutation mutationWithReplacement:replacement];
+        [mutations addObject:mutation];
+    }
+
+  MutationGenerator *customGenerator = [MutationGenerator mutationGeneratorWithMutations:mutations];
+  MutationGenerator *builtinGenerator = [MutationGenerator builtinMutationGenerator];
+
+  MutationGenerator *mutationGenerator = [MutationGenerator combineMutationGenerators:@[ customGenerator, builtinGenerator ]];
+
+  Mutator *mutator = [Mutator mutatorForSample:sample withMutationGenerator:mutationGenerator];
+  Engine *engine = [Engine engineWithMutator:mutator];
+
+  UserDeserializer *deserializer = [UserDeserializer new];
+  NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant) {
+    User *user = [deserializer deserializeUser:mutant];
+    user.name.length;
+    user.age.integerValue;
+  }];
+
+  XCTAssertEqual(reports.count, 0);
+}
+</code></pre>
+
+<h3>That&rsquo;s pretty much it</h3>
+
+<p>Please, don’t crash when your server lies!</p>
+
+<p>P.S. I do consider to include <code>ReplaceSampleMutation</code> into the set of built-in mutations.
+I will be more than happy to review the <a href="https://github.com/AlexDenisov/Fuzzer">Pull Request</a>.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Components: taking a step back from Dependency Management]]></title>
@@ -922,175 +1152,6 @@ self-&gt;_foo = @“Foo”;
 <p>Nowadays we have properties, that allow us to write clean and robust code, so let’s do it and, please, <strong>check the value of <code>self</code> in constructor only if you use ivars.</strong></p>
 
 <p>Happy and sane hacking!</p>
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[YAML-based Configuration for ObjC Projects]]></title>
-    <link href="http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/"/>
-    <updated>2015-02-06T00:43:11+01:00</updated>
-    <id>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects</id>
-    <content type="html"><![CDATA[<p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
-Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
-
-<p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
-
-<pre><code class="yaml">development:
-    user: dev
-    password: dev123
-# ...
-production:
-    user: root
-    password: supersecurepassword
-# ...
-</code></pre>
-
-<p>I wish I can use the same approach in my daily iOS development.</p>
-
-<p>Fortunately, I can!</p>
-
-<!-- more -->
-
-
-<p><strong>TL;DR;</strong></p>
-
-<p>Checkout project <a href="https://github.com/AlexDenisov/xcconf">xcconf</a> and <code>Sample/Sample.xcodeproj</code></p>
-
-<h3>Commonly used mechanisms</h3>
-
-<p>There are at least two common approaches to separate configurations: preprocessor definitions and plist file.
-Both of them have serious disadvantages.</p>
-
-<h4>Preprocessor Definition</h4>
-
-<p>You may saw and probably used this approach. It&rsquo;s pretty easy and simple to use:</p>
-
-<pre><code class="objectivec">#ifdef DEBUG
-NSString *const kServerAddress = @"https://staging.example.com";
-#else
-NSString *const kServerAddress = @"https://example.com";
-#endif
-</code></pre>
-
-<p>But let&rsquo;s say that you add one more environment, e.g. &ldquo;Beta&rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&rsquo;s really easy to make a typo or &ldquo;accidentally&rdquo; drop a definition. Your code will compile, but it&rsquo;d use wrong environment.
-Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.</p>
-
-<h4>Plist file</h4>
-
-<p>This is other commonly used mechanism. This approach described <a href="http://code.tutsplus.com/tutorials/ios-quick-tip-managing-configurations-with-ease--mobile-18324">here</a>.
-It&rsquo;s also has some disadvantages: if you want to add new configuration variable - you have to add it to every subsection, also you need to add a property to class and write (copy-paste?) initialization code.
-Moreover, you will distribute all your keys/endpoints to the end user, or you&rsquo;ll have to cleanup the file right before deploy to the AppStore.
-Still you have to perform way too many actions for such a simple task.</p>
-
-<p>Thanks god there is more easier and robust way.</p>
-
-<h3>XCCONF and YAML</h3>
-
-<p><a href="https://github.com/AlexDenisov/xcconf">xcconf</a> incorporates only best parts from methods described previously:</p>
-
-<ul>
-<li>all settings store in one place</li>
-<li>you don&rsquo;t expose private data</li>
-<li>everything done at compile time</li>
-</ul>
-
-
-<h5>Here is how it looks like:</h5>
-
-<p>Configuration file:</p>
-
-<pre><code class="yaml config.yaml">principalClass: Configuration
-
-Debug:
-    serverAddress: https://staging.example.com
-    APIKey: qwe123!!qwe
-
-Release:
-    serverAddress: https://example.com
-    APIKey: qwe123qwe
-</code></pre>
-
-<p>ObjC code:</p>
-
-<pre><code class="objectivec">@Interface Configuration : NSObject
-- (NSString *)serverAddress;
-- (NSString *)APIKey;
-@end
-
-// ...
-
-Config *config = [Config new];
-NSLog(@"%@", config.serverAddress);
-</code></pre>
-
-<p>No preprocessor, no boilerplate!</p>
-
-<h4>Installation and usage</h4>
-
-<p>To install <code>xcconf</code> you need to clone repo and run one command, it&rsquo;ll build executable and install it into <code>/usr/local/bin</code></p>
-
-<pre><code class="bash">git clone git@github.com:AlexDenisov/xcconf.git &amp;&amp; cd xcconf
-make install
-</code></pre>
-
-<p>Integration into project looks weird, but don&rsquo;t worry, that&rsquo;s ok :)</p>
-
-<p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
-
-<p>{% img /images/yaml-based-configuration/new_file.png %}</p>
-
-<p>Put there initial configuration:</p>
-
-<pre><code class="yaml config.yaml">principalClass: Config
-
-Debug:
-    color: Green
-
-Release:
-    color: Blue
-</code></pre>
-
-<p>Prepare class interface for configuration. <strong>But do not create implementation</strong>. Its name should be equal to <code>principalClass</code> and it might contain getter methods for all available parameters, in this case it&rsquo;s just <code>color</code></p>
-
-<pre><code class="objectivec Config.h">@interface Config : NSObject
-- (NSString *)color;
-@end
-</code></pre>
-
-<p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -> <code>Compile Sources</code> -> <code>+</code> and add <code>config.yaml</code></p>
-
-<p>{% img /images/yaml-based-configuration/compile_yaml.png %}</p>
-
-<p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
-Also, we need to specify output file, otherwise it won&rsquo;t work:
-<code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
-
-<p>{% img /images/yaml-based-configuration/xcconf.png %}</p>
-
-<p>Now we&rsquo;re ready to use it:</p>
-
-<pre><code class="objectivec">#import "Config.h"
-
-int main(int argc, const char * argv[]) {
-    @autoreleasepool {
-        Config *config = [Config new];
-        NSLog(@"%@", config.color);
-    }
-    return 0;
-}
-</code></pre>
-
-<p>Build&amp;Run:</p>
-
-<p>{% img /images/yaml-based-configuration/output.png %}</p>
-
-<h3>Summary</h3>
-
-<p>The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.</p>
-
-<p>I&rsquo;d really appreciate any feedback.</p>
-
-<p>P.S. Pull Requests are welcome! :)</p>
 ]]></content>
   </entry>
   
