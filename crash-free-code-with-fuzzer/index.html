@@ -1,0 +1,690 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>Crash-free code with Fuzzer - Low Level Bits</title>
+  <meta name="author" content="AlexDenisov">
+
+
+  <meta name="description" content="Making crash-free code with Fuzzer. Don't crash when your server lies!" />
+
+
+
+  <meta name="keywords" content="fuzz testing, api, crash-free" />
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://lowlevelbits.org/crash-free-code-with-fuzzer">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Low Level Bits" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href='https://fonts.googleapis.com/css?family=Noto+Serif:400,700' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-58043349-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Low Level Bits</a></h1>
+  
+    <h2>Software Development</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  
+  
+</ul>
+
+
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">Crash-free code with Fuzzer</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2016-03-11T14:34:22+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2016-03-11T14:34:22+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span></time></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://lowlevelbits.org">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>We all know that the API has a specification.
+We all write tests to cover &ldquo;happy paths&rdquo; and to cover &ldquo;unhappy paths&rdquo; when work with the API.</p>
+
+<p>It may seem that we’re pretty safe if we have tests and follow the specification.
+Well, actually no. Usually it works well in theory, but doesn’t really work in practice.</p>
+
+<p>We can write as many tests as we need to cover all edge cases, but that is both time consuming and error prone.
+The best choice would be is to automate this process.</p>
+
+<!--more-->
+
+
+<h3>Fuzzing</h3>
+
+<p>So we made a small library to make our life easier - <a href="https://github.com/AlexDenisov/Fuzzer">Fuzzer</a>.</p>
+
+<p>The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.</p>
+
+<p>For instance, from this sample</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;firstname&quot;</span> <span class="p">:</span> <span class="s2">&quot;John&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;lastname&quot;</span> <span class="p">:</span> <span class="s2">&quot;Doe&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>we could get two mutants by using <code>ReplaceNode</code> mutation, such as:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;firstname&quot;</span> <span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="err">//</span> <span class="err">&lt;-</span> <span class="err">Mutation</span>
+</span><span class='line'>  <span class="nt">&quot;lastname&quot;</span> <span class="p">:</span> <span class="s2">&quot;Doe&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>and</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;firstname&quot;</span> <span class="p">:</span> <span class="s2">&quot;John&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;lastname&quot;</span> <span class="p">:</span> <span class="mi">42</span> <span class="err">//</span> <span class="err">&lt;-</span> <span class="err">Mutation</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>There are many decisions our serializer/mapper/whatnot can make when it gets such a result: return an error explaining why it cannot convert the dictionary into a model, or silently ignore &ldquo;number&rdquo; field, or any other action. In general this decision is up to you and your domain model.
+But I’m pretty sure there is no domain model that accepts exceptions like <code>-[__NSCFNumber length]: unrecognised selector sent to instance 0xDEADBEEF</code>.</p>
+
+<h3>Usage</h3>
+
+<p>The use case may vary and depend on a workflow.
+The recommended way is to create another test target and put these verifications there.</p>
+
+<p>Example:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">test</span> <span class="p">{</span>
+</span><span class='line'>  <span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">sample</span> <span class="o">=</span> <span class="l">@{</span>
+</span><span class='line'>    <span class="s">@&quot;name&quot;</span> <span class="o">:</span> <span class="s">@&quot;John Doe&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s">@&quot;age&quot;</span> <span class="o">:</span> <span class="mi">@42</span>
+</span><span class='line'>  <span class="l">}</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">UserDeserializer</span> <span class="o">*</span><span class="n">deserializer</span> <span class="o">=</span> <span class="p">[</span><span class="n">UserDeserializer</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">Mutator</span> <span class="o">*</span><span class="n">mutator</span> <span class="o">=</span> <span class="p">[</span><span class="n">Mutator</span> <span class="nl">mutatorForSample</span><span class="p">:</span><span class="n">sample</span> <span class="nl">withMutationGenerator</span><span class="p">:[</span><span class="n">MutationGenerator</span> <span class="n">builtinMutationGenerator</span><span class="p">]];</span>
+</span><span class='line'>  <span class="n">Engine</span> <span class="o">*</span><span class="n">engine</span> <span class="o">=</span> <span class="p">[</span><span class="n">Engine</span> <span class="nl">engineWithMutator</span><span class="p">:</span><span class="n">mutator</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="bp">NSArray</span> <span class="o">*</span><span class="n">reports</span> <span class="o">=</span> <span class="p">[</span><span class="n">engine</span> <span class="nl">runEngineOverMutants</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">mutant</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">User</span> <span class="o">*</span><span class="n">user</span> <span class="o">=</span> <span class="p">[</span><span class="n">deserializer</span> <span class="nl">deserializeUser</span><span class="p">:</span><span class="n">mutant</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">user</span><span class="p">.</span><span class="n">name</span><span class="p">.</span><span class="n">length</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">user</span><span class="p">.</span><span class="n">age</span><span class="p">.</span><span class="n">integerValue</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">XCTAssertEqual</span><span class="p">(</span><span class="n">reports</span><span class="p">.</span><span class="n">count</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>It’s not very elegant, but it does the job very well.
+Lines like <code>user.name.length;</code> may look weird, but it’s the easiest way to validate that <code>name</code> is <code>NSString</code>.</p>
+
+<p><em>There might be a category <code>NSNull+length</code> or <code>NSNumber+length</code>, but AFAIK our team members doesn’t have such mutations.</em></p>
+
+<p>Example looks pretty straightforward, but I’d like to highlight couple of things.</p>
+
+<p>The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="bp">NSArray</span> <span class="o">*</span><span class="n">reports</span> <span class="o">=</span> <span class="p">[</span><span class="n">engine</span> <span class="nl">runEngineOverMutants</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">mutant</span><span class="p">){</span> <span class="err">…</span> <span class="p">}];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The engine records only failures, so it’s enough to assert count of returned reports.
+One can easily examine what caused failure by looking at report, e.g.:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="k">for</span> <span class="p">(</span><span class="n">Report</span> <span class="o">*</span><span class="n">report</span> <span class="k">in</span> <span class="n">reports</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;Thrown &#39;%@&#39; on &#39;%@&#39;&quot;</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">exception</span><span class="p">,</span> <span class="n">report</span><span class="p">.</span><span class="n">mutant</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>Builtins</h3>
+
+<p>The library provides just a couple of built-in mutations.</p>
+
+<h4>Delete Node Mutation</h4>
+
+<p>Returns sample without some node so that</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;firstname&quot;</span> <span class="p">:</span> <span class="s2">&quot;John&quot;</span><span class="p">,</span>
+</span><span class='line'>  <span class="nt">&quot;lastname&quot;</span> <span class="p">:</span> <span class="s2">&quot;Doe&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>becomes either</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;firstname&quot;</span> <span class="p">:</span> <span class="s2">&quot;John&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>or</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='json'><span class='line'><span class="p">{</span>
+</span><span class='line'>  <span class="nt">&quot;lastname&quot;</span> <span class="p">:</span> <span class="s2">&quot;Doe&quot;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h4>Replace Node Mutation</h4>
+
+<p>This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.</p>
+
+<p>‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using <code>NodeReplacement</code>, e.g.:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="n">NodeReplacement</span> <span class="o">*</span><span class="n">replacement</span> <span class="o">=</span> <span class="p">[</span><span class="n">NodeReplacement</span> <span class="nl">replacementWithValue</span><span class="p">:</span><span class="o">&lt;</span><span class="err">#</span><span class="n">whatever</span> <span class="n">may</span> <span class="k">break</span> <span class="n">your</span> <span class="n">code</span><span class="err">#</span><span class="o">&gt;</span><span class="p">];</span>
+</span><span class='line'><span class="kt">id</span><span class="o">&lt;</span><span class="n">Mutation</span><span class="o">&gt;</span> <span class="n">mutation</span> <span class="o">=</span> <span class="p">[</span><span class="n">ReplaceNodeMutation</span> <span class="nl">mutationWithReplacement</span><span class="p">:</span><span class="n">replacement</span><span class="p">];</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>That is, mutator will generate mutant with this replacement for each key/value.</p>
+
+<h3>Extending Fuzzer</h3>
+
+<p>The library provides finite set of built-in mutations and replacements which is, probably, not enough for real life usage.</p>
+
+<p>Fortunately, there is an easy way to extend it.</p>
+
+<p>Previously we were changing only content of sample dictionary, now it’s time to go deeper (actually shallower).</p>
+
+<p>Let’s create a mutation that will return random value (using  <code>NodeReplacement</code>) instead of changing a sample.</p>
+
+<p>Simplest interface ever:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="cp">#import &lt;Fuzzer/Fuzzer.h&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@interface</span> <span class="nc">ReplaceSampleMutation</span> : <span class="bp">NSObject</span>
+</span><span class='line'>  <span class="o">&lt;</span><span class="n">Mutation</span><span class="o">&gt;</span>
+</span><span class='line'>
+</span><span class='line'><span class="o">+</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nl">mutationWithReplacement</span><span class="p">:(</span><span class="n">NodeReplacement</span> <span class="o">*</span><span class="p">)</span><span class="n">replacement</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Implementation is not sophisticated as well:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="k">@interface</span> <span class="nc">ReplaceSampleMutation</span> <span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@property</span> <span class="n">NodeReplacement</span> <span class="o">*</span><span class="n">replacement</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@implementation</span> <span class="nc">ReplaceSampleMutation</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">///  Our constructor</span>
+</span><span class='line'><span class="p">+</span> <span class="p">(</span><span class="kt">instancetype</span><span class="p">)</span><span class="nf">mutationWithReplacement:</span><span class="p">(</span><span class="n">NodeReplacement</span> <span class="o">*</span><span class="p">)</span><span class="nv">replacement</span> <span class="p">{</span>
+</span><span class='line'>  <span class="n">ReplaceSampleMutation</span> <span class="o">*</span><span class="n">mutation</span> <span class="o">=</span> <span class="p">[</span><span class="nb">self</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="n">mutation</span><span class="p">.</span><span class="n">replacement</span> <span class="o">=</span> <span class="n">replacement</span><span class="p">;</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="k">return</span> <span class="n">mutation</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="c1">/// ‘Mutation’ Protocol Requirement</span>
+</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nf">mutateSample:</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nv">sample</span> <span class="nf">atNode:</span><span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nv">nodeName</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="p">)</span><span class="nb">self</span><span class="p">.</span><span class="n">replacement</span><span class="p">.</span><span class="n">value</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">@end</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>The usage is trivial:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="p">-</span> <span class="p">(</span><span class="kt">void</span><span class="p">)</span><span class="nf">test</span> <span class="p">{</span>
+</span><span class='line'>  <span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">sample</span> <span class="o">=</span> <span class="l">@{</span>
+</span><span class='line'>    <span class="s">@&quot;name&quot;</span> <span class="o">:</span> <span class="s">@&quot;John Doe&quot;</span><span class="p">,</span>
+</span><span class='line'>    <span class="s">@&quot;age&quot;</span> <span class="o">:</span> <span class="mi">@42</span>
+</span><span class='line'>  <span class="l">}</span><span class="p">;</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="bp">NSArray</span> <span class="o">*</span><span class="n">replacements</span> <span class="o">=</span> <span class="p">[</span><span class="n">NodeReplacement</span> <span class="n">builtinReplacements</span><span class="p">];</span>
+</span><span class='line'>  
+</span><span class='line'>  <span class="bp">NSMutableArray</span> <span class="o">*</span><span class="n">mutations</span> <span class="o">=</span> <span class="p">[</span><span class="bp">NSMutableArray</span> <span class="nl">arrayWithCapacity</span><span class="p">:</span><span class="n">replacements</span><span class="p">.</span><span class="n">count</span><span class="p">];</span>
+</span><span class='line'>  <span class="k">for</span> <span class="p">(</span><span class="n">NodeReplacement</span> <span class="o">*</span><span class="n">replacement</span> <span class="k">in</span> <span class="n">replacements</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>        <span class="kt">id</span><span class="o">&lt;</span><span class="n">Mutation</span><span class="o">&gt;</span> <span class="n">mutation</span> <span class="o">=</span> <span class="p">[</span><span class="n">ReplaceSampleMutation</span> <span class="nl">mutationWithReplacement</span><span class="p">:</span><span class="n">replacement</span><span class="p">];</span>
+</span><span class='line'>        <span class="p">[</span><span class="n">mutations</span> <span class="nl">addObject</span><span class="p">:</span><span class="n">mutation</span><span class="p">];</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">MutationGenerator</span> <span class="o">*</span><span class="n">customGenerator</span> <span class="o">=</span> <span class="p">[</span><span class="n">MutationGenerator</span> <span class="nl">mutationGeneratorWithMutations</span><span class="p">:</span><span class="n">mutations</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">MutationGenerator</span> <span class="o">*</span><span class="n">builtinGenerator</span> <span class="o">=</span> <span class="p">[</span><span class="n">MutationGenerator</span> <span class="n">builtinMutationGenerator</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">MutationGenerator</span> <span class="o">*</span><span class="n">mutationGenerator</span> <span class="o">=</span> <span class="p">[</span><span class="n">MutationGenerator</span> <span class="nl">combineMutationGenerators</span><span class="p">:</span><span class="l">@[</span> <span class="n">customGenerator</span><span class="p">,</span> <span class="n">builtinGenerator</span> <span class="l">]</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">Mutator</span> <span class="o">*</span><span class="n">mutator</span> <span class="o">=</span> <span class="p">[</span><span class="n">Mutator</span> <span class="nl">mutatorForSample</span><span class="p">:</span><span class="n">sample</span> <span class="nl">withMutationGenerator</span><span class="p">:</span><span class="n">mutationGenerator</span><span class="p">];</span>
+</span><span class='line'>  <span class="n">Engine</span> <span class="o">*</span><span class="n">engine</span> <span class="o">=</span> <span class="p">[</span><span class="n">Engine</span> <span class="nl">engineWithMutator</span><span class="p">:</span><span class="n">mutator</span><span class="p">];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">UserDeserializer</span> <span class="o">*</span><span class="n">deserializer</span> <span class="o">=</span> <span class="p">[</span><span class="n">UserDeserializer</span> <span class="n">new</span><span class="p">];</span>
+</span><span class='line'>  <span class="bp">NSArray</span> <span class="o">*</span><span class="n">reports</span> <span class="o">=</span> <span class="p">[</span><span class="n">engine</span> <span class="nl">runEngineOverMutants</span><span class="p">:</span><span class="o">^</span><span class="p">(</span><span class="bp">NSDictionary</span> <span class="o">*</span><span class="n">mutant</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="n">User</span> <span class="o">*</span><span class="n">user</span> <span class="o">=</span> <span class="p">[</span><span class="n">deserializer</span> <span class="nl">deserializeUser</span><span class="p">:</span><span class="n">mutant</span><span class="p">];</span>
+</span><span class='line'>    <span class="n">user</span><span class="p">.</span><span class="n">name</span><span class="p">.</span><span class="n">length</span><span class="p">;</span>
+</span><span class='line'>    <span class="n">user</span><span class="p">.</span><span class="n">age</span><span class="p">.</span><span class="n">integerValue</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}];</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="n">XCTAssertEqual</span><span class="p">(</span><span class="n">reports</span><span class="p">.</span><span class="n">count</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<h3>That&rsquo;s pretty much it</h3>
+
+<p>Please, don’t crash when your server lies!</p>
+
+<p>P.S. I do consider to include <code>ReplaceSampleMutation</code> into the set of built-in mutations.
+I will be more than happy to review the <a href="https://github.com/AlexDenisov/Fuzzer">Pull Request</a>.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2016-03-11T14:34:22+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2016-03-11T14:34:22+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>11</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span></time></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/blacklane/'>blacklane</a>, <a class='category' href='/categories/ios/'>ios</a>, <a class='category' href='/categories/testing/'>testing</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://lowlevelbits.org/crash-free-code-with-fuzzer/" data-via="1101_debian" data-counturl="http://lowlevelbits.org/crash-free-code-with-fuzzer/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/how-to-use-llvm-api-with-swift-addendum/" title="Previous Post: How to use LLVM API with Swift. Addendum">&laquo; How to use LLVM API with Swift. Addendum</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+  <aside class="sidebar">
+   
+  
+    
+
+<style> 
+* {margin: 0; padding: 0;}
+#container {height: 100%; width:100%; font-size:0;}
+#left, #right {display: inline-block; *display: inline; zoom: 1; vertical-align: top; font-size: 15px;}
+#left {width: 45%;}
+#right {width: 55%;}
+#icon {
+  width: 15px;
+  border: none; 
+  box-shadow:none;
+}
+</style>
+
+<section>
+<div id="container">
+    <div id="left">
+		  <img src="http://www.gravatar.com/avatar/6dc2fd642323cb9bab9a050710290353?s=100" alt="Gravatar of AlexDenisov " title="Gravatar of AlexDenisov" />
+    </div>
+    <div id="right">
+      <div>
+        <a href="mailto:1101.debian@gmail.com"><img id="icon" src="/images/email.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;1101.debian</a>
+      </div>
+      <div>
+        <a href="https://github.com/AlexDenisov"><img id="icon" src="/images/github.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;AlexDenisov</a>
+      </div>
+      <div>
+        <a href="https://twitter.com/1101_debian"><img id="icon" src="/images/twitter.png" alt="1101_debian" title="1101_debian" />&nbsp;1101_debian</a>
+      </div>
+      <div>
+        <a href="/atom.xml"><img id="icon" src="/images/rss.png" alt="RSS" title="RSS" />&nbsp;RSS</a>
+      </div>
+      <div>
+        <a href="https://github.com/AlexDenisov/cv/blob/master/alex_denisov.pdf"><img id="icon" src="/images/cv.png" alt="CV" title="CV" />&nbsp;CV</a>
+      </div>
+    </div>
+
+</div>
+</section>
+
+<!-- Begin MailChimp Signup Form -->
+
+<section>
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+      <h3>Don&#8217;t miss updates</h3>
+	<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email" required>
+    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><input type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button subscribe"></div>
+    </div>
+</form>
+</div>
+</section>
+
+<!--End mc_embed_signup-->
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a id="recent_post_link" href="/crash-free-code-with-fuzzer/">Crash-free code with Fuzzer</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/how-to-use-llvm-api-with-swift-addendum/">How to use LLVM API with Swift. Addendum</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/how-to-use-llvm-api-with-swift/">How to use LLVM API with Swift</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/components-management/">Components: taking a step back from Dependency Management</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/bitcode-demystified/">Bitcode Demystified</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - AlexDenisov -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> with <a href="https://github.com/johnkeith/boldandblue">BoldAndBlue</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alex-denisov';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://lowlevelbits.org/crash-free-code-with-fuzzer/';
+        var disqus_url = 'http://lowlevelbits.org/crash-free-code-with-fuzzer/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+<script>
+  $(document).ready(function() {  
+  var stickyNavTop = $('nav').offset().top;  
+    
+  var stickyNav = function(){  
+  var scrollTop = $(window).scrollTop();  
+         
+  if (scrollTop > stickyNavTop) {   
+      $('nav').addClass('sticky');  
+  } else {  
+      $('nav').removeClass('sticky');   
+  }  
+  };  
+    
+  stickyNav();  
+    
+  $(window).scroll(function() {  
+      stickyNav();  
+  });  
+  });  
+
+(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("cd35d7a41ba236cea12743777cdd75ff");
+mixpanel.track(document.title.replace(" - Low Level Bits", ""), {
+                "host" : document.location.host
+                });
+mixpanel.track_links("#recent_post_link", "click_recent_posts", {
+  "referrer": document.referrer
+});
+</script>
+
+
+</body>
+</html>

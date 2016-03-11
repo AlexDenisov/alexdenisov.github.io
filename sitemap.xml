@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://lowlevelbits.org/crash-free-code-with-fuzzer/</loc>
+    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
+  </url>
+  <url>
     <loc>http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum/</loc>
     <lastmod>2016-01-27T21:33:12+01:00</lastmod>
   </url>
@@ -96,6 +100,15 @@
   </url>
   <url>
     <loc>http://lowlevelbits.org/categories/components/</loc>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/categories/ios/</loc>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/categories/testing/</loc>
+  </url>
+  <url>
+    <loc>http://lowlevelbits.org/categories/blacklane/</loc>
   </url>
   <url>
     <loc>http://lowlevelbits.org/posts/2/</loc>
