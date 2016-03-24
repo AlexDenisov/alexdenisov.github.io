@@ -4,7 +4,7 @@
   <title><![CDATA[Category: objc | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/objc/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2016-03-24T23:18:19+01:00</updated>
+  <updated>2016-03-25T00:27:48+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -388,7 +388,7 @@ make install
 
 <p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
 
-<p><img src="/images/yaml-based-configuration/new_file.png"></p>
+<p>{% img /images/yaml-based-configuration/new_file.png %}</p>
 
 <p>Put there initial configuration:</p>
 
@@ -410,13 +410,13 @@ Release:
 
 <p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -> <code>Compile Sources</code> -> <code>+</code> and add <code>config.yaml</code></p>
 
-<p><img src="/images/yaml-based-configuration/compile_yaml.png"></p>
+<p>{% img /images/yaml-based-configuration/compile_yaml.png %}</p>
 
 <p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
 Also, we need to specify output file, otherwise it won&rsquo;t work:
 <code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
 
-<p><img src="/images/yaml-based-configuration/xcconf.png"></p>
+<p>{% img /images/yaml-based-configuration/xcconf.png %}</p>
 
 <p>Now we&rsquo;re ready to use it:</p>
 
@@ -433,7 +433,7 @@ int main(int argc, const char * argv[]) {
 
 <p>Build&amp;Run:</p>
 
-<p><img src="/images/yaml-based-configuration/output.png"></p>
+<p>{% img /images/yaml-based-configuration/output.png %}</p>
 
 <h3>Summary</h3>
 
