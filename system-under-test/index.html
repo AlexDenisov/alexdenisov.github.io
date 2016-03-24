@@ -5,15 +5,15 @@
 <!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
 <head>
   <meta charset="utf-8">
-  <title>Category: mach-o - Low Level Bits</title>
+  <title>System Under Test - Low Level Bits</title>
   <meta name="author" content="AlexDenisov">
 
 
-  <meta name="description" content="Category: mach-o" />
+  <meta name="description" content="Short series of posts, where each article covers testing techniques used in particular open-source project. A goal of the articles is to answer the question “How X is tested?”." />
 
 
 
-  <meta name="keywords" content="AlexDenisov, clang, llvm, compiler construction, ios development, tdd, bdd" />
+  <meta name="keywords" content="tests, testing, llvm, freebsd, postgresql" />
 
 
   <!-- http://t.co/dKP3o1e -->
@@ -22,7 +22,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   
-  <link rel="canonical" href="http://lowlevelbits.org/categories/mach-o">
+  <link rel="canonical" href="http://lowlevelbits.org/system-under-test">
   <link href="/favicon.png" rel="icon">
   <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
   <link href="/atom.xml" rel="alternate" title="Low Level Bits" type="application/atom+xml">
@@ -70,54 +70,117 @@
   <div id="main">
     <div id="content">
       <div>
-<article role="article">
+<article class="hentry" role="article">
   
   <header>
-    <h1 class="entry-title">Category: mach-o</h1>
+    
+      <h1 class="entry-title">System Under Test</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2016-03-24T23:03:35+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2016-03-24T23:03:35+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span></time></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://lowlevelbits.org">Comments</a>
+        
+      </p>
     
   </header>
-  
-  <div id="blog-archives" class="category">
 
 
+<div class="entry-content"><p>Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.</p>
 
-  
-  <h2>2015</h2>
+<p>Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of the articles is to answer the question “How X is tested?”.</p>
 
-<article>
-  
+<p>Here is a list of projects I want to start with:</p>
 
-<h1><a href="/bitcode-demystified/">Bitcode Demystified</a></h1>
-
-<time datetime="2015-09-05T12:25:00+02:00" pubdate><span class='month'>Sep</span> <span class='day'>05</span> <span class='year'>2015</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/categories/clang/'>clang</a>, <a class='category' href='/categories/llvm/'>llvm</a>, <a class='category' href='/categories/mach-o/'>mach-o</a>, <a class='category' href='/categories/swift/'>swift</a></span>
-</footer>
+<ul>
+<li><a href="http://lowlevelbits.org/system-under-test-llvm/">LLVM</a></li>
+<li>FreeBSD: TBD</li>
+<li>PostgreSQL: TBD</li>
+</ul>
 
 
-</article>
+<p>If you want to see a post about particular project which is not on the list: please <a href="mailto:1101.debian@gmail.com">send me an email</a> or leave a comment here with a name of the project.</p>
 
+<p>If you don&rsquo;t want to miss the next article - feel free to subscribe using the form in the sidebar or follow me on Twitter.</p>
 
-
-<article>
-  
-
-<h1><a href="/parse-mach-o-files/">Parsing Mach-O files</a></h1>
-
-<time datetime="2015-08-20T18:30:00+02:00" pubdate><span class='month'>Aug</span> <span class='day'>20</span> <span class='year'>2015</span></time>
-
-<footer>
-  <span class="categories">posted in <a class='category' href='/categories/mach-o/'>mach-o</a></span>
-</footer>
-
-
-</article>
-
+<p>Enjoy reading!</p>
 </div>
 
+
+  <footer>
+    <p class="meta">
+      
   
+
+<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2016-03-24T23:03:35+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2016-03-24T23:03:35+01:00'><span class='date'><span class='date-month'>Mar</span> <span class='date-day'>24</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span></time></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/system-under-test/'>system under test</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://lowlevelbits.org/system-under-test/" data-via="1101_debian" data-counturl="http://lowlevelbits.org/system-under-test/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/crash-free-code-with-fuzzer/" title="Previous Post: Crash-free code with Fuzzer">&laquo; Crash-free code with Fuzzer</a>
+      
+      
+        <a class="basic-alignment right" href="/system-under-test-llvm/" title="Next Post: System Under Test: LLVM">System Under Test: LLVM &raquo;</a>
+      
+    </p>
+  </footer>
 </article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
 
 </div>
 
@@ -228,7 +291,10 @@
       var disqus_shortname = 'alex-denisov';
       
         
-        var disqus_script = 'count.js';
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://lowlevelbits.org/system-under-test/';
+        var disqus_url = 'http://lowlevelbits.org/system-under-test/';
+        var disqus_script = 'embed.js';
       
     (function () {
       var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;

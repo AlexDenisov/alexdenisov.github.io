@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: system under test | Low Level Bits]]></title>
+  <link href="http://lowlevelbits.org/categories/system-under-test/atom.xml" rel="self"/>
+  <link href="http://lowlevelbits.org/"/>
+  <updated>2016-03-24T23:18:19+01:00</updated>
+  <id>http://lowlevelbits.org/</id>
+  <author>
+    <name><![CDATA[AlexDenisov]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[System Under Test: LLVM]]></title>
+    <link href="http://lowlevelbits.org/system-under-test-llvm/"/>
+    <updated>2016-03-24T23:18:29+01:00</updated>
+    <id>http://lowlevelbits.org/system-under-test-llvm</id>
+    <content type="html"><![CDATA[<p>This article is part of series <a href="http://lowlevelbits.org/system-under-test">&ldquo;System Under Test&rdquo;</a>. It provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level.</p>
+
+<p>&lt;!—more—></p>
+
+<h3>What is LLVM about?</h3>
+
+<p><a href="http://llvm.org">http://llvm.org</a> says that</p>
+
+<blockquote><p>The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.</p></blockquote>
+
+<p>It is not that much I can add here besides one link:</p>
+
+<p><a href="http://aosabook.org/en/llvm.html">The Architecture of Open Source Applications: LVVM</a> by Chris Lattner.</p>
+
+<p>which sheds light on compilers in general and LLVM particularly.</p>
+
+<p>LLVM is rather an umbrella project than a single project. It consists of compiler, debugger, linker, assemblers for several CPUs and of the most important - its Core: back-end and middle-end.</p>
+
+<p>In this article I refer to LLVM as a back-end + middle-end, rather than the whole umbrella (that would be too much for one post).</p>
+
+<h3>Tests</h3>
+
+<p>LLVM is a huge project. Therefore it has quite a few groups of tests: unit tests, regression tests, performance tracking and fuzzing tests.
+Since the project is not trivial the tools used for testing are mostly written from scratch and are part of LLVM project.
+Though, I wish I could use some of them without having LLVM as their dependency.</p>
+
+<h4>Unit Tests</h4>
+
+<p>Amount of unit tests is pretty small comparing to regression tests.
+One reason behind that decision is that LLVM internals constantly change all the time. Supporting tests under such conditions is very time consuming.
+However there are still parts that do not change very often, that is they are good target for unit testing.
+These tests are located in &lsquo;unittests&rsquo; directory.</p>
+
+<p>They can be run using <code>make</code>:</p>
+
+<pre><code class="sh">make check-llvm-unit
+</code></pre>
+
+<p>Showing this beautiful output:</p>
+
+<p><img src="/images/sut_llvm/unit_tests.png"></p>
+
+<p>As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.</p>
+
+<p>Unit Tests are written using <a href="https://github.com/google/googletest">Google Test</a> framework.
+Here is an example of a simple test:</p>
+
+<pre><code class="cpp">// unittests/Support/YAMLParserTest.cpp
+TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
+  SourceMgr SM;
+  yaml::Stream Stream("[\"1\", \"2\"]", SM);
+
+  yaml::SequenceNode *Node = dyn_cast&lt;yaml::SequenceNode&gt;(
+                                              Stream.begin()-&gt;getRoot());
+
+  auto Begin = Node-&gt;begin();
+  auto End = Node-&gt;end();
+
+  EXPECT_TRUE(Begin != End);
+  EXPECT_FALSE(Begin != Begin);
+  EXPECT_FALSE(End != End);
+}
+</code></pre>
+
+<p>Pretty trivial.
+Let&rsquo;s move forward and look at another, more interesting group of tests.</p>
+
+<h4>Regression Tests</h4>
+
+<p>The aim of this test suite is to verify the output of different tools, hence the internals can change separately from tests, making support less time-consuming.
+This test suite located in <code>test</code> directory.
+It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
+It takes about 4 minutes to run on my machine using 4 threads.</p>
+
+<pre><code class="sh">make check-llvm
+</code></pre>
+
+<p>The output is pretty similar to one above:</p>
+
+<p><img src="/images/sut_llvm/regression_tests.png"></p>
+
+<p>Regression Tests (unlike Unit Tests) are using custom tools such as <a href="http://llvm.org/docs/CommandGuide/lit.html">lit (LLVM Integrated Tester)</a> and <a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a>.
+Let&rsquo;s look at simple test to illustrate how it works:</p>
+
+<pre><code class="llvm">; RUN: %lli %s | FileCheck %s
+
+@flt = internal global float 12.0e+0
+@str = internal constant [18 x i8] c"Double value: %f\0A\00"
+
+declare i32 @printf(i8* nocapture, ...) nounwind
+declare i32 @fflush(i8*) nounwind
+
+define i32 @main() {
+  %flt = load float, float* @flt
+  %float2 = frem float %flt, 5.0
+  %double1 = fpext float %float2 to double
+  call i32 (i8*, ...) @printf(i8* getelementptr ([18 x i8], [18 x i8]* @str, i32 0, i64 0), double %double1)
+  call i32 @fflush(i8* null)
+  ret i32 0
+}
+
+; CHECK: Double value: 2.0
+</code></pre>
+
+<p>This test can be split into three parts:</p>
+
+<p>Run command (the top line):</p>
+
+<pre><code class="llvm">; RUN: %lli %s | FileCheck %s
+</code></pre>
+
+<p>Expectations (the bottom line):</p>
+
+<pre><code class="llvm">; CHECK: Double value: 2.0
+</code></pre>
+
+<p>The rest (LLVM IR in the middle) is the body.</p>
+
+<p>All tests in this suite have one or more &lsquo;run&rsquo; command.
+<code>lit</code> uses set of rules to substitute the string into real runnable command. Substitutions are either built-in (such as <code>%s</code>) or configurable (such as <code>%lli</code>).
+<code>lit</code> replaces <code>%s</code> with the full path to a file under test, e.g.:</p>
+
+<pre><code>~/llvm/test/ExecutionEngine/frem.ll
+</code></pre>
+
+<p>Configurable substitutions however are taken from <code>lit.cfg</code> file, which is basically a Python script.</p>
+
+<p>For example, this config says that <code>%lli</code> is to be replaced with <code>/usr/local/bin/lli</code></p>
+
+<pre><code class="python">lli = '/usr/local/bin/lli'
+config.substitutions.append( ('%lli', lli ) )
+</code></pre>
+
+<p>Having these parameters in place <code>lit</code> will run the test using this command:</p>
+
+<pre><code class="sh">/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
+</code></pre>
+
+<p>Which will interpret <code>frem.ll</code> using LLVM Interpreter (<code>lli</code>) and pass the output to the <code>FileCheck</code>. <code>FileCheck</code> in turn takes two arguments: filename with expectations and input that needs to be examined.</p>
+
+<p>Summary of this example:</p>
+
+<p>The test interprets the body (LLVM IR) from <code>~/llvm/test/ExecutionEngine/frem.ll</code> using LLVM Interpreter (<code>%lli</code> aka <code>/usr/local/bin/lli</code>) and checks if the output of interpretation contains string <code>Double value: 2.0</code>.</p>
+
+<p>Both <code>lit</code> and <code>FileCheck</code> have lots of useful options. Consider looking at documentation to learn more.</p>
+
+<h4>Performance tracking</h4>
+
+<p>Performance is one of the most important goals of any software. LLVM is not an exception.</p>
+
+<p>Here LLVM also uses custom tool - <a href="http://llvm.org/docs/lnt/intro.html">LNT</a>. This tool was initially written to be used inside LLVM, but its design allows it to be usable for performance testing of any other software.</p>
+
+<p><a href="http://llvm.org/docs/TestingGuide.html#test-suite-overview">Performance tests suite</a> is not a part of LLVM source tree. It has to be fetched separately. It is a set of programs that are compiled and executed to track performance changes.</p>
+
+<p>Besides <code>LNT</code> the test suite can be used within CMake as described in <a href="http://llvm.org/docs/TestSuiteMakefileGuide.html">LLVM <code>test-suite</code> Guide</a></p>
+
+<p>At the moment of writing this article external test suite contains 485 test cases. It takes ~5 minutes to run them using <code>lit</code>.</p>
+
+<h4>Fuzz Testing</h4>
+
+<p>Another powerful technique used to increase quality of LLVM is <a href="https://en.wikipedia.org/wiki/Fuzz_testing">Fuzz Testing</a>.</p>
+
+<p>Here as well LLVM has its own tool called <a href="http://llvm.org/docs/LibFuzzer.html">LibFuzzer</a>.
+The tool is so great that it is also used by <a href="http://llvm.org/docs/LibFuzzer.html#trophies">other software</a> such as Python, PCRE, OpenSSL, SQLite, and other.</p>
+
+<p>Here is an example of a fuzz test:</p>
+
+<pre><code class="c">// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size) {
+
+  // Allocate space for locals before setjmp so that memory can be collected
+  // if parse exits prematurely (via longjmp).
+  StringRef Input((const char *)Data, Size);
+  // Note: We need to create a buffer to add a null terminator to the
+  // end of the input string. The parser assumes that the string
+  // parsed is always null terminated.
+  std::unique_ptr&lt;MemoryBuffer&gt; MemBuf = MemoryBuffer::getMemBufferCopy(Input);
+  SMDiagnostic Err;
+  LLVMContext &amp;Context = getGlobalContext();
+  std::unique_ptr&lt;Module&gt; M;
+
+  if (setjmp(JmpBuf))
+    // If reached, we have returned with non-zero status, so exit.
+    return 0;
+
+  // TODO(kschimpf) Write a main to do this initialization.
+  if (!InstalledHandler) {
+    llvm::install_fatal_error_handler(::MyFatalErrorHandler, nullptr);
+    InstalledHandler = true;
+  }
+
+  M = parseAssembly(MemBuf-&gt;getMemBufferRef(), Err, Context);
+
+  if (!M.get())
+    return 0;
+
+  verifyModule(*M.get());
+  return 0;
+}
+</code></pre>
+
+<p><code>LibFuzzer</code> generates huge amount of different inputs using <a href="https://en.wikipedia.org/wiki/Genetic_programming">Genetic programming</a> and calls <code>LLVMFuzzerTestOneInput</code> within each input.
+This test then tries to parse the input as an assembly. The parser should not crash.</p>
+
+<p>At the moment there are two targets for fuzz testing within LLVM source tree: <code>llvm-as-fuzzer</code> and <code>llvm-mc-fuzzer</code>. They are located in <code>tools</code> directory.</p>
+
+<h3>Summary</h3>
+
+<p>LLVM uses a few test suites for different needs.
+There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run both tests in Debug mode on 2 y/o MacBook Pro using 4 threads.</p>
+
+<p>LLVM uses Fuzzing Tests to prevent system from abnormal exit when erroneous input received.</p>
+
+<p>LLVM has out-of-source-tree test-suite for performance tracking.</p>
+
+<p>LLVM mostly uses custom tools for testing.</p>
+
+<h3>Further Reading / Additional Material</h3>
+
+<p><a href="http://llvm.org/docs/TestingGuide.html">LLVM Testing Infrastructure Guide</a></p>
+
+<p><a href="http://llvm.org/docs/CommandGuide/lit.html">LLVM Integrated Tester</a></p>
+
+<p><a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a></p>
+
+<p><a href="http://llvm.org/docs/LibFuzzer.html">LibFuzzer</a></p>
+
+<p><a href="http://llvm.org/docs/TestSuiteMakefileGuide.html">LLVM test-suite Guide</a></p>
+
+<p><a href="http://llvm.org/docs/lnt/quickstart.html">LNT Quickstart Guide</a></p>
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[System Under Test]]></title>
+    <link href="http://lowlevelbits.org/system-under-test/"/>
+    <updated>2016-03-24T23:03:35+01:00</updated>
+    <id>http://lowlevelbits.org/system-under-test</id>
+    <content type="html"><![CDATA[<p>Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.</p>
+
+<p>Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of the articles is to answer the question “How X is tested?”.</p>
+
+<p>Here is a list of projects I want to start with:</p>
+
+<ul>
+<li><a href="http://lowlevelbits.org/system-under-test-llvm/">LLVM</a></li>
+<li>FreeBSD: TBD</li>
+<li>PostgreSQL: TBD</li>
+</ul>
+
+
+<p>If you want to see a post about particular project which is not on the list: please <a href="mailto:1101.debian@gmail.com">send me an email</a> or leave a comment here with a name of the project.</p>
+
+<p>If you don&rsquo;t want to miss the next article - feel free to subscribe using the form in the sidebar or follow me on Twitter.</p>
+
+<p>Enjoy reading!</p>
+]]></content>
+  </entry>
+  
+</feed>
