@@ -4,7 +4,7 @@
   <title><![CDATA[Category: llvm | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/llvm/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2016-03-25T00:27:48+01:00</updated>
+  <updated>2016-03-25T13:59:33+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -56,7 +56,7 @@ These tests are located in &lsquo;unittests&rsquo; directory.</p>
 
 <p>Showing this beautiful output:</p>
 
-<p>{% img /images/sut_llvm/unit_tests.png %}</p>
+<p><img src="/images/sut_llvm/unit_tests.png"></p>
 
 <p>As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.</p>
 
@@ -95,7 +95,7 @@ It takes about 4 minutes to run on my machine using 4 threads.</p>
 
 <p>The output is pretty similar to one above:</p>
 
-<p>{% img /images/sut_llvm/regression_tests.png %}</p>
+<p><img src="/images/sut_llvm/regression_tests.png"></p>
 
 <p>Regression Tests (unlike Unit Tests) are using custom tools such as <a href="http://llvm.org/docs/CommandGuide/lit.html">lit (LLVM Integrated Tester)</a> and <a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a>.
 Let&rsquo;s look at simple test to illustrate how it works:</p>

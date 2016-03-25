@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2016-03-25T00:27:36+01:00</updated>
+  <updated>2016-03-25T13:59:33+01:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -343,7 +343,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
     <id>http://lowlevelbits.org/system-under-test</id>
     <content type="html"><![CDATA[<p>Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.</p>
 
-<p>Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of these articles is to answer the question “How X is tested?”.</p>
+<p>Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of these articles is to answer the question “How is X tested?”.</p>
 
 <p>Here is a list of projects I want to start with:</p>
 
