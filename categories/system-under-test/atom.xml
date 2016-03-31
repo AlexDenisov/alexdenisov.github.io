@@ -4,7 +4,7 @@
   <title><![CDATA[Category: system under test | Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/categories/system-under-test/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2016-03-25T13:59:40+01:00</updated>
+  <updated>2016-03-31T18:09:15+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,156 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[System Under Test: FreeBSD]]></title>
+    <link href="http://lowlevelbits.org/system-under-test-freebsd/"/>
+    <updated>2016-03-31T17:22:59+02:00</updated>
+    <id>http://lowlevelbits.org/system-under-test-freebsd</id>
+    <content type="html"><![CDATA[<p>This article is part of series <a href="http://lowlevelbits.org/system-under-test">&ldquo;System Under Test&rdquo;</a>. It provides an overview of the FreeBSD test suite and tools FreeBSD developers use to write and run tests.</p>
+
+<h3>What is the project about?</h3>
+
+<p>FreeBSD is a well known Unix-based operating system.</p>
+
+<h3>Tests</h3>
+
+<p>FreeBSD has one test suite. It contains ~3.6k tests and takes ~7.5 minutes to run on a virtual machine with 2Gb of RAM.</p>
+
+<h4>Getting Tests</h4>
+
+<p>The tests can be found in <code>/usr/tests</code> directory. Though, you may not have them there because of one of the following reasons:</p>
+
+<ol>
+<li>Test suite is not a part of any distribution prior to FreeBSD 10.0.</li>
+<li>Test suite is available out of the box only on FreeBSD 11.0 and newer.</li>
+</ol>
+
+
+<p>If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
+Fortunately, it is very easy:</p>
+
+<pre><code class="bash">echo "WITH_TESTS=YES" &gt;&gt; /etc/src.conf
+cd /usr/src
+make buildworld
+make installworld
+</code></pre>
+
+<h4>Running tests</h4>
+
+<p>FreeBSD adopted approach used by NetBSD project. Within the approach they included the toolchain: <a href="https://github.com/jmmv/kyua">Kyua</a> and <a href="https://github.com/jmmv/atf/">ATF</a>.</p>
+
+<p>Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.</p>
+
+<p>To run tests you need to point <code>kyua</code> to a <code>Kyuafile</code>.</p>
+
+<pre><code class="bash">cd /usr/tests
+kyua test -k ./Kyuafile
+</code></pre>
+
+<p>when it’s done you may request report:</p>
+
+<pre><code class="bash">kyua report
+</code></pre>
+
+<p>which shows brief information for all non-succeeded test and a summary, such as this one:</p>
+
+<p><img src="/images/sut_freebsd/test_report.png"></p>
+
+<h4>Toolchain</h4>
+
+<p><code>Kyuafile</code> specifies which tests to run. It also can include other <code>Kyuafile</code>s. Here is an example:</p>
+
+<pre><code>include('lib/Kyuafile')
+atf_test_program{name=’some_atf_test'}
+plain_test_program{name='some_plain_test'}
+tap_test_program{name='some_tap_test’}
+</code></pre>
+
+<p>When run <code>kyua</code> will execute all tests specified in <code>lib/Kyuafile</code> (and in <code>Kyuafile</code>s included from <code>lib/Kyuafile</code>), and then will execute three tests: ATF test <code>some_atf_test</code>, plain test <code>some_plain_test</code>, and <a href="https://en.wikipedia.org/wiki/Test_Anything_Protocol">TAP</a> test <code>some_tap_test</code>.</p>
+
+<p>Plain test is basically a simple program that returns non-zero if test failed and zero otherwise.</p>
+
+<p>TAP tests are any possible tests, the only important thing there  is an output. If test prints &ldquo;ok whatever&rdquo; then it succeeded, if it prints &ldquo;not ok whatnot&rdquo; - it has failed.</p>
+
+<p>ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.</p>
+
+<p>Here is a part of an ATF test written in shell:</p>
+
+<pre><code class="bash">username="test5678901234567"
+
+atf_test_case longname cleanup
+
+longname_head() {
+  atf_set "require.user" "root"
+  atf_set "descr" "Test that usernames longer than 16 " \
+    "characters are allowed (PR bin/39546)"
+}
+
+longname_body() {
+  atf_check -s exit:0 -o ignore -e ignore -x "pw useradd $username"
+}
+
+longname_cleanup() {
+  atf_check -s ignore -o ignore -e ignore -x "pw userdel $username"
+}
+
+atf_init_test_cases() {
+  atf_add_test_case longname
+}
+</code></pre>
+
+<p>If you try to find there a test written let’s say in C, then you will not succeed. All tests under <code>/usr/tests</code> are executables.
+The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the <code>/usr/tests</code>.
+For example, if you want to see tests for libc’ stdio, then you need to look at <code>/usr/src/lib/libc/tests/stdio</code>.
+At the moment there is one test, here is part of it:</p>
+
+<pre><code class="c">ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+ATF_TC_BODY(test_append_binary_pos, tc)
+{
+  /*
+  * For compatibility with other implementations (glibc), we set the
+  * position to 0 when opening an automatically allocated binary stream
+  * for appending.
+  */
+
+  FILE *fp;
+
+  fp = fmemopen(NULL, 16, "ab+");
+  ATF_REQUIRE(ftell(fp) == 0L);
+  fclose(fp);
+
+  /*
+  * Make sure that a pre-allocated buffer behaves correctly.
+  */
+  char buf[] = "Hello";
+  fp = fmemopen(buf, sizeof(buf), "ab+");
+  ATF_REQUIRE(ftell(fp) == strlen(buf));
+  fclose(fp);
+}
+</code></pre>
+
+<h3>Conclusion</h3>
+
+<p>FreeBSD has ~3.6k tests. The amount of tests is suspiciously small for such a big project. Since I was (and still am) afraid that I missed some important part I did ask on mailing list <a href="https://lists.freebsd.org/pipermail/freebsd-testing/2016-March/001306.html">question about available tests</a>, but didn’t
+get any answer so far.</p>
+
+<p>FreeBSD has lots of various tools and libraries, but not all of them tested.</p>
+
+<p>Maybe it’s a good starting point for a contribution?</p>
+
+<h3>Further reading</h3>
+
+<ul>
+<li>man 7 tests</li>
+<li><a href="https://wiki.freebsd.org/TestSuite">FreeBSD Test Suite</a></li>
+<li><a href="https://wiki.netbsd.org/kyua/">Kyua: An introduction for NetBSD users</a></li>
+<li><a href="https://github.com/jmmv/kyua/wiki/About">Kyua: project wiki</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Test_Anything_Protocol">Test Anything Protocol</a></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[System Under Test: LLVM]]></title>
@@ -262,7 +412,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
 
 <ul>
 <li><a href="http://lowlevelbits.org/system-under-test-llvm/">LLVM</a></li>
-<li>FreeBSD: TBD</li>
+<li><a href="http://lowlevelbits.org/system-under-test-freebsd/">FreeBSD</a></li>
 <li>PostgreSQL: TBD</li>
 </ul>
 
