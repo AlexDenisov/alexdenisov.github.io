@@ -4,7 +4,7 @@
   <title><![CDATA[Low Level Bits]]></title>
   <link href="http://lowlevelbits.org/atom.xml" rel="self"/>
   <link href="http://lowlevelbits.org/"/>
-  <updated>2016-03-31T18:09:15+02:00</updated>
+  <updated>2016-04-14T10:46:48+02:00</updated>
   <id>http://lowlevelbits.org/</id>
   <author>
     <name><![CDATA[AlexDenisov]]></name>
@@ -12,6 +12,439 @@
   </author>
   <generator uri="http://octopress.org/">Octopress</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[LLVM-based Mutation Testing System. Request For Comments]]></title>
+    
+    <link href="http://lowlevelbits.org/llvm-based-mutation-testing-system/"/>
+    
+    <updated>2016-04-14T10:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/llvm-based-mutation-testing-system</id>
+    <content type="html"><![CDATA[<p>Several years ago I discovered very powerful technique - <a href="https://en.wikipedia.org/wiki/Mutation_testing">Mutation Testing</a>.
+Since then I was (and still am) dreaming to have a tool which will do the job for languages like C, ObjC, and C++.</p>
+
+<p>Now I have feeling that it can be implemented using LLVM.</p>
+
+<p>Outline of this article:</p>
+
+<ul>
+<li>overview of mutation testing</li>
+<li>mutation testing system - proof of concept</li>
+<li>thoughts on potential implementation of MT system using LLVM</li>
+</ul>
+
+
+<h4>Acknowledgements</h4>
+
+<p>I want to say &lsquo;thanks&rsquo; explicitly to <a href="https://github.com/mbj">Markus Schirp</a> and <a href="https://github.com/hcoles">Henry Coles</a> for their work on <a href="https://github.com/mbj/mutant">Mutant</a> and <a href="https://github.com/hcoles/pitest">Pitest</a> and hints they gave me several years ago.</p>
+
+<p>Also, I want to say &lsquo;thanks&rsquo; to all the people involved into development of LLVM.</p>
+
+<h3>Mutation Testing in a nutshell</h3>
+
+<p>There is a strong belief that code coverage is a meaningful metric. This is incorrect.</p>
+
+<p>Obviously, if code coverage is 0%, then you have some problems. On the other hand having 100% code coverage means literally nothing.</p>
+
+<p>Consider such situation: you have a test case which covers implementation of a function <code>sum</code>. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.</p>
+
+<p>Here is the test:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">test_result</span> <span class="nf">test_sum</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">sum</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">success</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="n">fail</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Implementation of the <code>sum</code> function is rather simple. But, since you missed your morning coffee you write a wrong operator there:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You run the tests - everything is working.</p>
+
+<p>You check code coverage - oh wow, 100%.</p>
+
+<p>You didn&rsquo;t spot the problem because you trust your tests. And because you rely on code coverage. Neither of these is acceptable.</p>
+
+<p>This situation raises very valid question - <strong>who tests the tests?</strong></p>
+
+<p>One of the answers is Mutation Testing.</p>
+
+<p>The idea is that MT system generates lots of variations of a program under test (in this case function <code>sum</code>) which are slightly different from original program. Then the system evaluates test against each mutant and check the result. If test failed, then mutant is killed, otherwise - it is survived.</p>
+
+<p>Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.</p>
+
+<p>Here is one potential mutation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='diff'><span class='line'> int sum(int a, int b) {
+</span><span class='line'><span class="gd">-  return a * b;</span>
+</span><span class='line'><span class="gi">+  return a + b;</span>
+</span><span class='line'> }
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition <code>sum(9, 5) &gt; 0</code> still holds.</p>
+
+<p>This survived mutant should give a hint to developer that something is wrong.</p>
+
+<h3>Proof of Concept</h3>
+
+<p><strong>I do claim that such a system can be build on top of LLVM using LLVM IR/bitcode, JIT, and <a href="https://lh6.googleusercontent.com/hY5_U3eO3lPP2fhwcZgCFHC9IpOomMR1YIXz4kDML1hpliTNmaZ5DLrTzyKq9RMAMIYwPocbSkzGiRSUrVzwpyHeSBxVDbR3MHK41bHiE7feidNeUOXqPrwfv1ZNb2tEWPR4msan">ponies</a>.</strong></p>
+
+<p>So far I have managed to create a proof of concept which is obviously lacks tons of features and skips lots of real problems.</p>
+
+<p>Code is available <a href="https://github.com/AlexDenisov/mutation-testing-poc">here</a>.</p>
+
+<p><em>It is not intended to be runnable on your machine, since it uses &lsquo;slightly forked&rsquo; LLVM with couple of functions that were &lsquo;missing&rsquo;.</em></p>
+
+<p>So far it does very little:</p>
+
+<ul>
+<li>loads LLVM IR from bitcode files into memory</li>
+<li>finds first test function</li>
+<li>finds a function (testee) used from test function</li>
+<li>replaces first occurrence of &lsquo;+&rsquo; with &lsquo;-&rsquo;</li>
+<li>prints diff (using libgit2) between original and mutated function</li>
+<li>runs test against original function and mutated function</li>
+<li>compares test results, assuming mutant is killed when results are different</li>
+</ul>
+
+
+<p>I guess it doesn&rsquo;t look impressive and mind-blowing.
+However, this proof of concept inspires me to start working on a real system, despite that it will take enormous amount of time since (almost) all this work I do using my spare time.</p>
+
+<h3>Next Steps</h3>
+
+<p>The next step actually is to start implementing the system that can be used in production.</p>
+
+<p>Below you can see a highlevel overview of an algorithm I have in my head.
+It is a swift-like pseudocode. Please, follow the comments!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="cm">/*</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    Classes used within the algorithm</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Basic instruction, e.g. a + b */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">Instruction</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Represents set of istructions in a single scope, e.g. if/else branch */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">BasicBlock</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">instructions</span> <span class="p">:</span> <span class="p">[</span><span class="n">Instruction</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Function is a function, that&#39;s it */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">Function</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">basicBlocks</span> <span class="p">:</span> <span class="p">[</span><span class="n">BasicBlock</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Representation of a source file */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">Module</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">functions</span> <span class="p">:</span> <span class="p">[</span><span class="n">Function</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Shows instruction that needs to be mutated */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">MutationPoint</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">instruction</span> <span class="p">:</span> <span class="n">Instruction</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">basicBlock</span> <span class="p">:</span> <span class="n">BasicBlock</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">function</span> <span class="p">:</span> <span class="n">Function</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">module</span> <span class="p">:</span> <span class="n">Module</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    Algorithm</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Load all files into memory */</span>
+</span><span class='line'><span class="k">let</span> <span class="n">modules</span> <span class="o">=</span> <span class="n">loadProgramModules</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    Find all functions that represent test</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    &#39;testFinder&#39; is an abstraction intended to hide language/framework specific logic.</span>
+</span><span class='line'><span class="cm">    Example classes are &#39;CPP_GTest_TestFinder&#39;, &#39;ObjC_XCTest_TestFinder&#39;, </span>
+</span><span class='line'><span class="cm">    &#39;ObjC_Cedar_TestFinder&#39; and so on.</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'><span class="k">let</span> <span class="n">tests</span> <span class="o">=</span> <span class="n">testFinder</span><span class="p">.</span><span class="n">findAllTests</span><span class="p">(</span><span class="n">modules</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="n">test</span> <span class="k">in</span> <span class="n">tests</span> <span class="p">{</span>
+</span><span class='line'>  <span class="cm">/*</span>
+</span><span class='line'><span class="cm">      For each test we need to find a set of functions that can be mutated in some way</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">testeeFunctions</span> <span class="o">=</span> <span class="n">mutationFinder</span><span class="p">.</span><span class="n">findAllTesteeFunctions</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">for</span> <span class="n">testee</span> <span class="k">in</span> <span class="n">testeeFunctions</span> <span class="p">{</span>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        For each testee we do the following:</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        Testee belongs to a module, we need to make two copies of this module:</span>
+</span><span class='line'><span class="cm">        one copy will contain only testee (moduleWithOriginal) </span>
+</span><span class='line'><span class="cm">        another one will contain all functions but testee (moduleWithoutTesteeFunction)</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        Having this split we can mutate function inside of &#39;moduleWithOriginal&#39; </span>
+</span><span class='line'><span class="cm">        without affecting and recompiling potentially big module</span>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">moduleWithOriginal</span> <span class="o">=</span> <span class="n">copyOfModuleWithOnlyFunction</span><span class="p">(</span><span class="n">testee</span><span class="p">.</span><span class="n">module</span><span class="p">,</span> <span class="n">testee</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">moduleWithoutTesteeFunction</span> <span class="o">=</span> <span class="n">copyOfModuleWithoutFunction</span><span class="p">(</span><span class="n">testee</span><span class="p">.</span><span class="n">module</span><span class="p">,</span> <span class="n">testee</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    </span>
+</span><span class='line'><span class="cm">        Now we can create JIT engine using all modules, excluding the module of testee.</span>
+</span><span class='line'><span class="cm">        In fact the latter one if replaced by &#39;moduleWithoutTesteeFunction&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">modulesWithoutTesteeModule</span> <span class="o">=</span> <span class="n">modules</span><span class="p">.</span><span class="n">without</span><span class="p">(</span><span class="n">testee</span><span class="p">.</span><span class="n">module</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">var</span> <span class="n">executionEngine</span> <span class="o">=</span> <span class="n">executionEngineWithModules</span><span class="p">(</span><span class="n">modulesWithoutTesteeModule</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">addModule</span><span class="p">(</span><span class="n">moduleWithoutTesteeFunction</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    </span>
+</span><span class='line'><span class="cm">        Having JIT engine in place we can run the test against original implementation of testee</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">addModule</span><span class="p">(</span><span class="n">moduleWithOriginal</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">originalResult</span> <span class="o">=</span> <span class="n">executionEngine</span><span class="p">.</span><span class="n">runTest</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">removeModule</span><span class="p">(</span><span class="n">moduleWithOriginal</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    </span>
+</span><span class='line'><span class="cm">        Now we need to find all places where we can apply mutation</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">mutationPoints</span> <span class="o">=</span> <span class="n">mutationFinder</span><span class="p">.</span><span class="n">findAllMutationPoints</span><span class="p">(</span><span class="n">functino</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">point</span> <span class="k">in</span> <span class="n">mutationPoints</span> <span class="p">{</span>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">            And for each such place we are getting copy of &#39;moduleWithOriginal&#39; </span>
+</span><span class='line'><span class="cm">            within applied mutation</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">let</span> <span class="n">moduleWithMutation</span> <span class="o">=</span> <span class="n">applyMutationOnModule</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">moduleWithOriginal</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">            Now we run the test against the mutant</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">executionEngine</span><span class="p">.</span><span class="n">addModule</span><span class="p">(</span><span class="n">moduleWithMutation</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">let</span> <span class="n">mutationResult</span> <span class="o">=</span> <span class="n">executionEngine</span><span class="p">.</span><span class="n">runTest</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">executionEngine</span><span class="p">.</span><span class="n">removeModule</span><span class="p">(</span><span class="n">moduleWithMutation</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">            And finally compare results</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">analyzeResults</span><span class="p">(</span><span class="n">originalResult</span><span class="p">,</span> <span class="n">mutationResult</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see the starting point here is a bitcode, which means the system is language agnostic.</p>
+
+<p>However this approach has it&rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.</p>
+
+<p>Being able to re-run test just by replacing a module with mutated function gives an ability to increase performance drastically. However, execution may interrupt because of signal (segfault, bad access, etc.) or it may go into an infiinte loop. To fix those problems there might be a need to run each mutant as a separate process.</p>
+
+<p>Besides that there are quite a few opened questions such as:</p>
+
+<ul>
+<li>how to get bitcode for each translation unit (source file) automatically</li>
+<li>how to compare test results of original and mutated program for different testing frameworks</li>
+<li>how to deal with tests that are touching OS resources such as file system, I/O, etc</li>
+</ul>
+
+
+<p>Obviously, there are many more questions and problems that I&rsquo;m not aware of yet.</p>
+
+<h3>Conclusion</h3>
+
+<p>LLVM gives us an ability to build a powerful, language and framework agnostic system for Mutation Testing.</p>
+
+<p>I want to use this ability to build this tool and to get as much fun as possible.</p>
+
+<p>Besides motivating myself by making this public commitment this blog post has two other goals:</p>
+
+<ul>
+<li>get comments from people who is heaviliy involved into LLVM and/or mutation testing systems development</li>
+<li>to attract people who may be wanted to join the project when I have something to show</li>
+</ul>
+
+
+<p>If you have something to add or want to share your knowledge or concerns - please do it.</p>
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[System Under Test: FreeBSD]]></title>
@@ -4497,17 +4930,6 @@ The following topics are covered:</p>
     
     <updated>2013-10-15T02:00:00+02:00</updated>
     <id>http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic</id>
-    <content type="html"><![CDATA[
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Using Forward Declaration In Your Objective-C Projects]]></title>
-    
-    <link href="http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/"/>
-    
-    <updated>2013-08-09T02:00:00+02:00</updated>
-    <id>http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects</id>
     <content type="html"><![CDATA[
 ]]></content>
   </entry>

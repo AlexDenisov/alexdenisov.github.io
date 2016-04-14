@@ -1,0 +1,770 @@
+
+<!DOCTYPE html>
+<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
+<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
+<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <title>LLVM-based Mutation Testing System. Request For Comments - Low Level Bits</title>
+  <meta name="author" content="AlexDenisov">
+
+
+  <meta name="description" content="Semi-random thoughts on implementation of LLVM-based system for mutation testing" />
+
+
+
+  <meta name="keywords" content="testing, mutation testing, llvm" />
+
+
+  <!-- http://t.co/dKP3o1e -->
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  
+  <link rel="canonical" href="http://lowlevelbits.org/llvm-based-mutation-testing-system">
+  <link href="/favicon.png" rel="icon">
+  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <link href="/atom.xml" rel="alternate" title="Low Level Bits" type="application/atom+xml">
+  <script src="/javascripts/modernizr-2.0.js"></script>
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
+  <script src="/javascripts/octopress.js" type="text/javascript"></script>
+  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
+<link href='https://fonts.googleapis.com/css?family=Noto+Serif:400,700' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+
+  
+  <script type="text/javascript">
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-58043349-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+
+
+</head>
+
+<body   >
+  <header role="banner"><hgroup>
+  <h1><a href="/">Low Level Bits</a></h1>
+  
+    <h2>Software Development</h2>
+  
+</hgroup>
+
+</header>
+  <nav role="navigation"><ul class="subscription" data-subscription="rss">
+  
+  
+</ul>
+
+
+
+</nav>
+  <div id="main">
+    <div id="content">
+      <div>
+<article class="hentry" role="article">
+  
+  <header>
+    
+      <h1 class="entry-title">LLVM-based Mutation Testing System. Request For Comments</h1>
+    
+    
+      <p class="meta">
+        
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2016-04-14T10:00:00+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2016-04-14T10:00:00+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span></time></time>
+        
+           | <a href="#disqus_thread"
+             data-disqus-identifier="http://lowlevelbits.org">Comments</a>
+        
+      </p>
+    
+  </header>
+
+
+<div class="entry-content"><p>Several years ago I discovered very powerful technique - <a href="https://en.wikipedia.org/wiki/Mutation_testing">Mutation Testing</a>.
+Since then I was (and still am) dreaming to have a tool which will do the job for languages like C, ObjC, and C++.</p>
+
+<p>Now I have feeling that it can be implemented using LLVM.</p>
+
+<p>Outline of this article:</p>
+
+<ul>
+<li>overview of mutation testing</li>
+<li>mutation testing system - proof of concept</li>
+<li>thoughts on potential implementation of MT system using LLVM</li>
+</ul>
+
+
+<h4>Acknowledgements</h4>
+
+<p>I want to say &lsquo;thanks&rsquo; explicitly to <a href="https://github.com/mbj">Markus Schirp</a> and <a href="https://github.com/hcoles">Henry Coles</a> for their work on <a href="https://github.com/mbj/mutant">Mutant</a> and <a href="https://github.com/hcoles/pitest">Pitest</a> and hints they gave me several years ago.</p>
+
+<p>Also, I want to say &lsquo;thanks&rsquo; to all the people involved into development of LLVM.</p>
+
+<h3>Mutation Testing in a nutshell</h3>
+
+<p>There is a strong belief that code coverage is a meaningful metric. This is incorrect.</p>
+
+<p>Obviously, if code coverage is 0%, then you have some problems. On the other hand having 100% code coverage means literally nothing.</p>
+
+<p>Consider such situation: you have a test case which covers implementation of a function <code>sum</code>. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.</p>
+
+<p>Here is the test:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="n">test_result</span> <span class="nf">test_sum</span><span class="p">()</span> <span class="p">{</span>
+</span><span class='line'>  <span class="kt">int</span> <span class="n">result</span> <span class="o">=</span> <span class="n">sum</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span> <span class="mi">5</span><span class="p">);</span>
+</span><span class='line'>  <span class="k">if</span> <span class="p">(</span><span class="n">result</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>    <span class="k">return</span> <span class="n">success</span><span class="p">;</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'>  <span class="k">return</span> <span class="n">fail</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Implementation of the <code>sum</code> function is rather simple. But, since you missed your morning coffee you write a wrong operator there:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span><span class="p">;</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>You run the tests - everything is working.</p>
+
+<p>You check code coverage - oh wow, 100%.</p>
+
+<p>You didn&rsquo;t spot the problem because you trust your tests. And because you rely on code coverage. Neither of these is acceptable.</p>
+
+<p>This situation raises very valid question - <strong>who tests the tests?</strong></p>
+
+<p>One of the answers is Mutation Testing.</p>
+
+<p>The idea is that MT system generates lots of variations of a program under test (in this case function <code>sum</code>) which are slightly different from original program. Then the system evaluates test against each mutant and check the result. If test failed, then mutant is killed, otherwise - it is survived.</p>
+
+<p>Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.</p>
+
+<p>Here is one potential mutation:</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+</pre></td><td class='code'><pre><code class='diff'><span class='line'> int sum(int a, int b) {
+</span><span class='line'><span class="gd">-  return a * b;</span>
+</span><span class='line'><span class="gi">+  return a + b;</span>
+</span><span class='line'> }
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition <code>sum(9, 5) &gt; 0</code> still holds.</p>
+
+<p>This survived mutant should give a hint to developer that something is wrong.</p>
+
+<h3>Proof of Concept</h3>
+
+<p><strong>I do claim that such a system can be build on top of LLVM using LLVM IR/bitcode, JIT, and <a href="https://lh6.googleusercontent.com/hY5_U3eO3lPP2fhwcZgCFHC9IpOomMR1YIXz4kDML1hpliTNmaZ5DLrTzyKq9RMAMIYwPocbSkzGiRSUrVzwpyHeSBxVDbR3MHK41bHiE7feidNeUOXqPrwfv1ZNb2tEWPR4msan">ponies</a>.</strong></p>
+
+<p>So far I have managed to create a proof of concept which is obviously lacks tons of features and skips lots of real problems.</p>
+
+<p>Code is available <a href="https://github.com/AlexDenisov/mutation-testing-poc">here</a>.</p>
+
+<p><em>It is not intended to be runnable on your machine, since it uses &lsquo;slightly forked&rsquo; LLVM with couple of functions that were &lsquo;missing&rsquo;.</em></p>
+
+<p>So far it does very little:</p>
+
+<ul>
+<li>loads LLVM IR from bitcode files into memory</li>
+<li>finds first test function</li>
+<li>finds a function (testee) used from test function</li>
+<li>replaces first occurrence of &lsquo;+&rsquo; with &lsquo;-&rsquo;</li>
+<li>prints diff (using libgit2) between original and mutated function</li>
+<li>runs test against original function and mutated function</li>
+<li>compares test results, assuming mutant is killed when results are different</li>
+</ul>
+
+
+<p>I guess it doesn&rsquo;t look impressive and mind-blowing.
+However, this proof of concept inspires me to start working on a real system, despite that it will take enormous amount of time since (almost) all this work I do using my spare time.</p>
+
+<h3>Next Steps</h3>
+
+<p>The next step actually is to start implementing the system that can be used in production.</p>
+
+<p>Below you can see a highlevel overview of an algorithm I have in my head.
+It is a swift-like pseudocode. Please, follow the comments!</p>
+
+<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
+<span class='line-number'>2</span>
+<span class='line-number'>3</span>
+<span class='line-number'>4</span>
+<span class='line-number'>5</span>
+<span class='line-number'>6</span>
+<span class='line-number'>7</span>
+<span class='line-number'>8</span>
+<span class='line-number'>9</span>
+<span class='line-number'>10</span>
+<span class='line-number'>11</span>
+<span class='line-number'>12</span>
+<span class='line-number'>13</span>
+<span class='line-number'>14</span>
+<span class='line-number'>15</span>
+<span class='line-number'>16</span>
+<span class='line-number'>17</span>
+<span class='line-number'>18</span>
+<span class='line-number'>19</span>
+<span class='line-number'>20</span>
+<span class='line-number'>21</span>
+<span class='line-number'>22</span>
+<span class='line-number'>23</span>
+<span class='line-number'>24</span>
+<span class='line-number'>25</span>
+<span class='line-number'>26</span>
+<span class='line-number'>27</span>
+<span class='line-number'>28</span>
+<span class='line-number'>29</span>
+<span class='line-number'>30</span>
+<span class='line-number'>31</span>
+<span class='line-number'>32</span>
+<span class='line-number'>33</span>
+<span class='line-number'>34</span>
+<span class='line-number'>35</span>
+<span class='line-number'>36</span>
+<span class='line-number'>37</span>
+<span class='line-number'>38</span>
+<span class='line-number'>39</span>
+<span class='line-number'>40</span>
+<span class='line-number'>41</span>
+<span class='line-number'>42</span>
+<span class='line-number'>43</span>
+<span class='line-number'>44</span>
+<span class='line-number'>45</span>
+<span class='line-number'>46</span>
+<span class='line-number'>47</span>
+<span class='line-number'>48</span>
+<span class='line-number'>49</span>
+<span class='line-number'>50</span>
+<span class='line-number'>51</span>
+<span class='line-number'>52</span>
+<span class='line-number'>53</span>
+<span class='line-number'>54</span>
+<span class='line-number'>55</span>
+<span class='line-number'>56</span>
+<span class='line-number'>57</span>
+<span class='line-number'>58</span>
+<span class='line-number'>59</span>
+<span class='line-number'>60</span>
+<span class='line-number'>61</span>
+<span class='line-number'>62</span>
+<span class='line-number'>63</span>
+<span class='line-number'>64</span>
+<span class='line-number'>65</span>
+<span class='line-number'>66</span>
+<span class='line-number'>67</span>
+<span class='line-number'>68</span>
+<span class='line-number'>69</span>
+<span class='line-number'>70</span>
+<span class='line-number'>71</span>
+<span class='line-number'>72</span>
+<span class='line-number'>73</span>
+<span class='line-number'>74</span>
+<span class='line-number'>75</span>
+<span class='line-number'>76</span>
+<span class='line-number'>77</span>
+<span class='line-number'>78</span>
+<span class='line-number'>79</span>
+<span class='line-number'>80</span>
+<span class='line-number'>81</span>
+<span class='line-number'>82</span>
+<span class='line-number'>83</span>
+<span class='line-number'>84</span>
+<span class='line-number'>85</span>
+<span class='line-number'>86</span>
+<span class='line-number'>87</span>
+<span class='line-number'>88</span>
+<span class='line-number'>89</span>
+<span class='line-number'>90</span>
+<span class='line-number'>91</span>
+<span class='line-number'>92</span>
+<span class='line-number'>93</span>
+<span class='line-number'>94</span>
+<span class='line-number'>95</span>
+<span class='line-number'>96</span>
+<span class='line-number'>97</span>
+<span class='line-number'>98</span>
+<span class='line-number'>99</span>
+<span class='line-number'>100</span>
+<span class='line-number'>101</span>
+<span class='line-number'>102</span>
+<span class='line-number'>103</span>
+<span class='line-number'>104</span>
+<span class='line-number'>105</span>
+<span class='line-number'>106</span>
+<span class='line-number'>107</span>
+<span class='line-number'>108</span>
+<span class='line-number'>109</span>
+<span class='line-number'>110</span>
+<span class='line-number'>111</span>
+<span class='line-number'>112</span>
+<span class='line-number'>113</span>
+<span class='line-number'>114</span>
+<span class='line-number'>115</span>
+<span class='line-number'>116</span>
+<span class='line-number'>117</span>
+<span class='line-number'>118</span>
+<span class='line-number'>119</span>
+<span class='line-number'>120</span>
+<span class='line-number'>121</span>
+<span class='line-number'>122</span>
+<span class='line-number'>123</span>
+<span class='line-number'>124</span>
+<span class='line-number'>125</span>
+<span class='line-number'>126</span>
+<span class='line-number'>127</span>
+<span class='line-number'>128</span>
+<span class='line-number'>129</span>
+<span class='line-number'>130</span>
+<span class='line-number'>131</span>
+<span class='line-number'>132</span>
+</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="cm">/*</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    Classes used within the algorithm</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Basic instruction, e.g. a + b */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">Instruction</span> <span class="p">{</span>
+</span><span class='line'>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Represents set of istructions in a single scope, e.g. if/else branch */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">BasicBlock</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">instructions</span> <span class="p">:</span> <span class="p">[</span><span class="n">Instruction</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Function is a function, that&#39;s it */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">Function</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">basicBlocks</span> <span class="p">:</span> <span class="p">[</span><span class="n">BasicBlock</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Representation of a source file */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">Module</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">functions</span> <span class="p">:</span> <span class="p">[</span><span class="n">Function</span><span class="p">]</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Shows instruction that needs to be mutated */</span>
+</span><span class='line'><span class="k">class</span> <span class="n">MutationPoint</span> <span class="p">{</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">instruction</span> <span class="p">:</span> <span class="n">Instruction</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">basicBlock</span> <span class="p">:</span> <span class="n">BasicBlock</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">function</span> <span class="p">:</span> <span class="n">Function</span>
+</span><span class='line'>  <span class="k">let</span> <span class="nl">module</span> <span class="p">:</span> <span class="n">Module</span>
+</span><span class='line'><span class="p">}</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    Algorithm</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/* Load all files into memory */</span>
+</span><span class='line'><span class="k">let</span> <span class="n">modules</span> <span class="o">=</span> <span class="n">loadProgramModules</span><span class="p">()</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">/*</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    Find all functions that represent test</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    &#39;testFinder&#39; is an abstraction intended to hide language/framework specific logic.</span>
+</span><span class='line'><span class="cm">    Example classes are &#39;CPP_GTest_TestFinder&#39;, &#39;ObjC_XCTest_TestFinder&#39;, </span>
+</span><span class='line'><span class="cm">    &#39;ObjC_Cedar_TestFinder&#39; and so on.</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">*/</span>
+</span><span class='line'><span class="k">let</span> <span class="n">tests</span> <span class="o">=</span> <span class="n">testFinder</span><span class="p">.</span><span class="n">findAllTests</span><span class="p">(</span><span class="n">modules</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'><span class="k">for</span> <span class="n">test</span> <span class="k">in</span> <span class="n">tests</span> <span class="p">{</span>
+</span><span class='line'>  <span class="cm">/*</span>
+</span><span class='line'><span class="cm">      For each test we need to find a set of functions that can be mutated in some way</span>
+</span><span class='line'><span class="cm">  */</span>
+</span><span class='line'>  <span class="k">let</span> <span class="n">testeeFunctions</span> <span class="o">=</span> <span class="n">mutationFinder</span><span class="p">.</span><span class="n">findAllTesteeFunctions</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</span><span class='line'>  <span class="k">for</span> <span class="n">testee</span> <span class="k">in</span> <span class="n">testeeFunctions</span> <span class="p">{</span>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        For each testee we do the following:</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        Testee belongs to a module, we need to make two copies of this module:</span>
+</span><span class='line'><span class="cm">        one copy will contain only testee (moduleWithOriginal) </span>
+</span><span class='line'><span class="cm">        another one will contain all functions but testee (moduleWithoutTesteeFunction)</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        Having this split we can mutate function inside of &#39;moduleWithOriginal&#39; </span>
+</span><span class='line'><span class="cm">        without affecting and recompiling potentially big module</span>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">moduleWithOriginal</span> <span class="o">=</span> <span class="n">copyOfModuleWithOnlyFunction</span><span class="p">(</span><span class="n">testee</span><span class="p">.</span><span class="n">module</span><span class="p">,</span> <span class="n">testee</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">moduleWithoutTesteeFunction</span> <span class="o">=</span> <span class="n">copyOfModuleWithoutFunction</span><span class="p">(</span><span class="n">testee</span><span class="p">.</span><span class="n">module</span><span class="p">,</span> <span class="n">testee</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    </span>
+</span><span class='line'><span class="cm">        Now we can create JIT engine using all modules, excluding the module of testee.</span>
+</span><span class='line'><span class="cm">        In fact the latter one if replaced by &#39;moduleWithoutTesteeFunction&#39;</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">modulesWithoutTesteeModule</span> <span class="o">=</span> <span class="n">modules</span><span class="p">.</span><span class="n">without</span><span class="p">(</span><span class="n">testee</span><span class="p">.</span><span class="n">module</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">var</span> <span class="n">executionEngine</span> <span class="o">=</span> <span class="n">executionEngineWithModules</span><span class="p">(</span><span class="n">modulesWithoutTesteeModule</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">addModule</span><span class="p">(</span><span class="n">moduleWithoutTesteeFunction</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    </span>
+</span><span class='line'><span class="cm">        Having JIT engine in place we can run the test against original implementation of testee</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">addModule</span><span class="p">(</span><span class="n">moduleWithOriginal</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">let</span> <span class="n">originalResult</span> <span class="o">=</span> <span class="n">executionEngine</span><span class="p">.</span><span class="n">runTest</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</span><span class='line'>    <span class="n">executionEngine</span><span class="p">.</span><span class="n">removeModule</span><span class="p">(</span><span class="n">moduleWithOriginal</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="cm">/*</span>
+</span><span class='line'><span class="cm">    </span>
+</span><span class='line'><span class="cm">        Now we need to find all places where we can apply mutation</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">    */</span>
+</span><span class='line'>
+</span><span class='line'>    <span class="k">let</span> <span class="n">mutationPoints</span> <span class="o">=</span> <span class="n">mutationFinder</span><span class="p">.</span><span class="n">findAllMutationPoints</span><span class="p">(</span><span class="n">functino</span><span class="p">)</span>
+</span><span class='line'>    <span class="k">for</span> <span class="n">point</span> <span class="k">in</span> <span class="n">mutationPoints</span> <span class="p">{</span>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">            And for each such place we are getting copy of &#39;moduleWithOriginal&#39; </span>
+</span><span class='line'><span class="cm">            within applied mutation</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="k">let</span> <span class="n">moduleWithMutation</span> <span class="o">=</span> <span class="n">applyMutationOnModule</span><span class="p">(</span><span class="n">point</span><span class="p">,</span> <span class="n">moduleWithOriginal</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">            Now we run the test against the mutant</span>
+</span><span class='line'>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">executionEngine</span><span class="p">.</span><span class="n">addModule</span><span class="p">(</span><span class="n">moduleWithMutation</span><span class="p">)</span>
+</span><span class='line'>        <span class="k">let</span> <span class="n">mutationResult</span> <span class="o">=</span> <span class="n">executionEngine</span><span class="p">.</span><span class="n">runTest</span><span class="p">(</span><span class="n">test</span><span class="p">)</span>
+</span><span class='line'>        <span class="n">executionEngine</span><span class="p">.</span><span class="n">removeModule</span><span class="p">(</span><span class="n">moduleWithMutation</span><span class="p">)</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="cm">/*</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">            And finally compare results</span>
+</span><span class='line'><span class="cm">        </span>
+</span><span class='line'><span class="cm">        */</span>
+</span><span class='line'>
+</span><span class='line'>        <span class="n">analyzeResults</span><span class="p">(</span><span class="n">originalResult</span><span class="p">,</span> <span class="n">mutationResult</span><span class="p">)</span>
+</span><span class='line'>    <span class="p">}</span>
+</span><span class='line'>  <span class="p">}</span>
+</span><span class='line'><span class="p">}</span>
+</span></code></pre></td></tr></table></div></figure>
+
+
+<p>As you can see the starting point here is a bitcode, which means the system is language agnostic.</p>
+
+<p>However this approach has it&rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.</p>
+
+<p>Being able to re-run test just by replacing a module with mutated function gives an ability to increase performance drastically. However, execution may interrupt because of signal (segfault, bad access, etc.) or it may go into an infiinte loop. To fix those problems there might be a need to run each mutant as a separate process.</p>
+
+<p>Besides that there are quite a few opened questions such as:</p>
+
+<ul>
+<li>how to get bitcode for each translation unit (source file) automatically</li>
+<li>how to compare test results of original and mutated program for different testing frameworks</li>
+<li>how to deal with tests that are touching OS resources such as file system, I/O, etc</li>
+</ul>
+
+
+<p>Obviously, there are many more questions and problems that I&rsquo;m not aware of yet.</p>
+
+<h3>Conclusion</h3>
+
+<p>LLVM gives us an ability to build a powerful, language and framework agnostic system for Mutation Testing.</p>
+
+<p>I want to use this ability to build this tool and to get as much fun as possible.</p>
+
+<p>Besides motivating myself by making this public commitment this blog post has two other goals:</p>
+
+<ul>
+<li>get comments from people who is heaviliy involved into LLVM and/or mutation testing systems development</li>
+<li>to attract people who may be wanted to join the project when I have something to show</li>
+</ul>
+
+
+<p>If you have something to add or want to share your knowledge or concerns - please do it.</p>
+</div>
+
+
+  <footer>
+    <p class="meta">
+      
+  
+
+<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
+
+      
+
+
+
+
+
+
+
+
+  
+
+
+
+<time datetime="2016-04-14T10:00:00+02:00" pubdate data-updated="true"><time class='entry-date' datetime='2016-04-14T10:00:00+02:00'><span class='date'><span class='date-month'>Apr</span> <span class='date-day'>14</span><span class='date-suffix'>th</span>, <span class='date-year'>2016</span></span></time></time>
+      
+
+<span class="categories">
+  
+    <a class='category' href='/categories/llvm/'>llvm</a>, <a class='category' href='/categories/mutation-testing/'>mutation testing</a>
+  
+</span>
+
+
+    </p>
+    
+      <div class="sharing">
+  
+  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://lowlevelbits.org/llvm-based-mutation-testing-system/" data-via="1101_debian" data-counturl="http://lowlevelbits.org/llvm-based-mutation-testing-system/" >Tweet</a>
+  
+  
+  
+    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
+  
+</div>
+
+    
+    <p class="meta">
+      
+        <a class="basic-alignment left" href="/system-under-test-freebsd/" title="Previous Post: System Under Test: FreeBSD">&laquo; System Under Test: FreeBSD</a>
+      
+      
+    </p>
+  </footer>
+</article>
+
+  <section>
+    <h1>Comments</h1>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+  </section>
+
+</div>
+
+  <aside class="sidebar">
+   
+  
+    
+
+<style> 
+* {margin: 0; padding: 0;}
+#container {height: 100%; width:100%; font-size:0;}
+#left, #right {display: inline-block; *display: inline; zoom: 1; vertical-align: top; font-size: 15px;}
+#left {width: 45%;}
+#right {width: 55%;}
+#icon {
+  width: 15px;
+  border: none; 
+  box-shadow:none;
+}
+</style>
+
+<section>
+<div id="container">
+    <div id="left">
+		  <img src="http://www.gravatar.com/avatar/6dc2fd642323cb9bab9a050710290353?s=100" alt="Gravatar of AlexDenisov " title="Gravatar of AlexDenisov" />
+    </div>
+    <div id="right">
+      <div>
+        <a href="mailto:1101.debian@gmail.com"><img id="icon" src="/images/email.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;1101.debian</a>
+      </div>
+      <div>
+        <a href="https://github.com/AlexDenisov"><img id="icon" src="/images/github.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;AlexDenisov</a>
+      </div>
+      <div>
+        <a href="https://twitter.com/1101_debian"><img id="icon" src="/images/twitter.png" alt="1101_debian" title="1101_debian" />&nbsp;1101_debian</a>
+      </div>
+      <div>
+        <a href="/atom.xml"><img id="icon" src="/images/rss.png" alt="RSS" title="RSS" />&nbsp;RSS</a>
+      </div>
+      <div>
+        <a href="https://github.com/AlexDenisov/cv/blob/master/alex_denisov.pdf"><img id="icon" src="/images/cv.png" alt="CV" title="CV" />&nbsp;CV</a>
+      </div>
+    </div>
+
+</div>
+</section>
+
+<!-- Begin MailChimp Signup Form -->
+
+<section>
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+      <h3>No bullshit, I promise</h3>
+	<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email" required>
+    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><input type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button subscribe"></div>
+    </div>
+</form>
+</div>
+</section>
+
+<!--End mc_embed_signup-->
+<section>
+  <h1>Recent Posts</h1>
+  <ul id="recent_posts">
+    
+      <li class="post">
+        <a id="recent_post_link" href="/llvm-based-mutation-testing-system/">LLVM-based Mutation Testing System. Request For Comments</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/system-under-test-freebsd/">System Under Test: FreeBSD</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/system-under-test-llvm/">System Under Test: LLVM</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/system-under-test/">System Under Test</a>
+      </li>
+    
+      <li class="post">
+        <a id="recent_post_link" href="/crash-free-code-with-fuzzer/">Crash-free code with Fuzzer</a>
+      </li>
+    
+  </ul>
+</section>
+
+  
+</aside>
+
+
+
+    </div>
+  </div>
+  <footer role="contentinfo"><p>
+  Copyright &copy; 2016 - AlexDenisov -
+  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> with <a href="https://github.com/johnkeith/boldandblue">BoldAndBlue</a></span>
+</p>
+
+</footer>
+  
+
+<script type="text/javascript">
+      var disqus_shortname = 'alex-denisov';
+      
+        
+        // var disqus_developer = 1;
+        var disqus_identifier = 'http://lowlevelbits.org/llvm-based-mutation-testing-system/';
+        var disqus_url = 'http://lowlevelbits.org/llvm-based-mutation-testing-system/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) {return;}
+  js = d.createElement(s); js.id = id; js.async = true;
+  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+
+
+  <script type="text/javascript">
+    (function(){
+      var twitterWidgets = document.createElement('script');
+      twitterWidgets.type = 'text/javascript';
+      twitterWidgets.async = true;
+      twitterWidgets.src = '//platform.twitter.com/widgets.js';
+      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
+    })();
+  </script>
+
+
+
+<script>
+  $(document).ready(function() {  
+  var stickyNavTop = $('nav').offset().top;  
+    
+  var stickyNav = function(){  
+  var scrollTop = $(window).scrollTop();  
+         
+  if (scrollTop > stickyNavTop) {   
+      $('nav').addClass('sticky');  
+  } else {  
+      $('nav').removeClass('sticky');   
+  }  
+  };  
+    
+  stickyNav();  
+    
+  $(window).scroll(function() {  
+      stickyNav();  
+  });  
+  });  
+
+(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("cd35d7a41ba236cea12743777cdd75ff");
+mixpanel.track(document.title.replace(" - Low Level Bits", ""), {
+                "host" : document.location.host
+                });
+mixpanel.track_links("#recent_post_link", "click_recent_posts", {
+  "referrer": document.referrer
+});
+</script>
+
+
+</body>
+</html>

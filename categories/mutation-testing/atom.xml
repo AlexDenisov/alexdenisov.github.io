@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+
+  <title><![CDATA[Category: mutation testing | Low Level Bits]]></title>
+  <link href="http://lowlevelbits.org/categories/mutation-testing/atom.xml" rel="self"/>
+  <link href="http://lowlevelbits.org/"/>
+  <updated>2016-04-14T10:46:48+02:00</updated>
+  <id>http://lowlevelbits.org/</id>
+  <author>
+    <name><![CDATA[AlexDenisov]]></name>
+    
+  </author>
+  <generator uri="http://octopress.org/">Octopress</generator>
+
+  
+  <entry>
+    <title type="html"><![CDATA[LLVM-based Mutation Testing System. Request For Comments]]></title>
+    <link href="http://lowlevelbits.org/llvm-based-mutation-testing-system/"/>
+    <updated>2016-04-14T10:00:00+02:00</updated>
+    <id>http://lowlevelbits.org/llvm-based-mutation-testing-system</id>
+    <content type="html"><![CDATA[<p>Several years ago I discovered very powerful technique - <a href="https://en.wikipedia.org/wiki/Mutation_testing">Mutation Testing</a>.
+Since then I was (and still am) dreaming to have a tool which will do the job for languages like C, ObjC, and C++.</p>
+
+<p>Now I have feeling that it can be implemented using LLVM.</p>
+
+<p>Outline of this article:</p>
+
+<ul>
+<li>overview of mutation testing</li>
+<li>mutation testing system - proof of concept</li>
+<li>thoughts on potential implementation of MT system using LLVM</li>
+</ul>
+
+
+<h4>Acknowledgements</h4>
+
+<p>I want to say &lsquo;thanks&rsquo; explicitly to <a href="https://github.com/mbj">Markus Schirp</a> and <a href="https://github.com/hcoles">Henry Coles</a> for their work on <a href="https://github.com/mbj/mutant">Mutant</a> and <a href="https://github.com/hcoles/pitest">Pitest</a> and hints they gave me several years ago.</p>
+
+<p>Also, I want to say &lsquo;thanks&rsquo; to all the people involved into development of LLVM.</p>
+
+<h3>Mutation Testing in a nutshell</h3>
+
+<p>There is a strong belief that code coverage is a meaningful metric. This is incorrect.</p>
+
+<p>Obviously, if code coverage is 0%, then you have some problems. On the other hand having 100% code coverage means literally nothing.</p>
+
+<p>Consider such situation: you have a test case which covers implementation of a function <code>sum</code>. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.</p>
+
+<p>Here is the test:</p>
+
+<pre><code class="c">test_result test_sum() {
+  int result = sum(9, 5);
+  if (result &gt; 0) {
+    return success;
+  }
+
+  return fail;
+}
+</code></pre>
+
+<p>Implementation of the <code>sum</code> function is rather simple. But, since you missed your morning coffee you write a wrong operator there:</p>
+
+<pre><code class="c">int sum(int a, int b) {
+    return a * b;
+}
+</code></pre>
+
+<p>You run the tests - everything is working.</p>
+
+<p>You check code coverage - oh wow, 100%.</p>
+
+<p>You didn&rsquo;t spot the problem because you trust your tests. And because you rely on code coverage. Neither of these is acceptable.</p>
+
+<p>This situation raises very valid question - <strong>who tests the tests?</strong></p>
+
+<p>One of the answers is Mutation Testing.</p>
+
+<p>The idea is that MT system generates lots of variations of a program under test (in this case function <code>sum</code>) which are slightly different from original program. Then the system evaluates test against each mutant and check the result. If test failed, then mutant is killed, otherwise - it is survived.</p>
+
+<p>Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.</p>
+
+<p>Here is one potential mutation:</p>
+
+<pre><code class="diff"> int sum(int a, int b) {
+-  return a * b;
++  return a + b;
+ }
+</code></pre>
+
+<p>Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition <code>sum(9, 5) &gt; 0</code> still holds.</p>
+
+<p>This survived mutant should give a hint to developer that something is wrong.</p>
+
+<h3>Proof of Concept</h3>
+
+<p><strong>I do claim that such a system can be build on top of LLVM using LLVM IR/bitcode, JIT, and <a href="https://lh6.googleusercontent.com/hY5_U3eO3lPP2fhwcZgCFHC9IpOomMR1YIXz4kDML1hpliTNmaZ5DLrTzyKq9RMAMIYwPocbSkzGiRSUrVzwpyHeSBxVDbR3MHK41bHiE7feidNeUOXqPrwfv1ZNb2tEWPR4msan">ponies</a>.</strong></p>
+
+<p>So far I have managed to create a proof of concept which is obviously lacks tons of features and skips lots of real problems.</p>
+
+<p>Code is available <a href="https://github.com/AlexDenisov/mutation-testing-poc">here</a>.</p>
+
+<p><em>It is not intended to be runnable on your machine, since it uses &lsquo;slightly forked&rsquo; LLVM with couple of functions that were &lsquo;missing&rsquo;.</em></p>
+
+<p>So far it does very little:</p>
+
+<ul>
+<li>loads LLVM IR from bitcode files into memory</li>
+<li>finds first test function</li>
+<li>finds a function (testee) used from test function</li>
+<li>replaces first occurrence of &lsquo;+&rsquo; with &lsquo;-&rsquo;</li>
+<li>prints diff (using libgit2) between original and mutated function</li>
+<li>runs test against original function and mutated function</li>
+<li>compares test results, assuming mutant is killed when results are different</li>
+</ul>
+
+
+<p>I guess it doesn&rsquo;t look impressive and mind-blowing.
+However, this proof of concept inspires me to start working on a real system, despite that it will take enormous amount of time since (almost) all this work I do using my spare time.</p>
+
+<h3>Next Steps</h3>
+
+<p>The next step actually is to start implementing the system that can be used in production.</p>
+
+<p>Below you can see a highlevel overview of an algorithm I have in my head.
+It is a swift-like pseudocode. Please, follow the comments!</p>
+
+<pre><code class="swift">/*
+
+    Classes used within the algorithm
+
+*/
+
+/* Basic instruction, e.g. a + b */
+class Instruction {
+
+}
+
+/* Represents set of istructions in a single scope, e.g. if/else branch */
+class BasicBlock {
+  let instructions : [Instruction]
+}
+
+/* Function is a function, that's it */
+class Function {
+  let basicBlocks : [BasicBlock]
+}
+
+/* Representation of a source file */
+class Module {
+  let functions : [Function]
+}
+
+/* Shows instruction that needs to be mutated */
+class MutationPoint {
+  let instruction : Instruction
+  let basicBlock : BasicBlock
+  let function : Function
+  let module : Module
+}
+
+/*
+
+    Algorithm
+
+*/
+
+/* Load all files into memory */
+let modules = loadProgramModules()
+
+/*
+
+    Find all functions that represent test
+
+    'testFinder' is an abstraction intended to hide language/framework specific logic.
+    Example classes are 'CPP_GTest_TestFinder', 'ObjC_XCTest_TestFinder', 
+    'ObjC_Cedar_TestFinder' and so on.
+
+*/
+let tests = testFinder.findAllTests(modules)
+
+for test in tests {
+  /*
+      For each test we need to find a set of functions that can be mutated in some way
+  */
+    let testeeFunctions = mutationFinder.findAllTesteeFunctions(test)
+  for testee in testeeFunctions {
+    /*
+        For each testee we do the following:
+
+        Testee belongs to a module, we need to make two copies of this module:
+        one copy will contain only testee (moduleWithOriginal) 
+        another one will contain all functions but testee (moduleWithoutTesteeFunction)
+
+        Having this split we can mutate function inside of 'moduleWithOriginal' 
+        without affecting and recompiling potentially big module
+    */
+
+    let moduleWithOriginal = copyOfModuleWithOnlyFunction(testee.module, testee)
+    let moduleWithoutTesteeFunction = copyOfModuleWithoutFunction(testee.module, testee)
+
+    /*
+
+        Now we can create JIT engine using all modules, excluding the module of testee.
+        In fact the latter one if replaced by 'moduleWithoutTesteeFunction'
+
+    */
+
+    let modulesWithoutTesteeModule = modules.without(testee.module)
+    var executionEngine = executionEngineWithModules(modulesWithoutTesteeModule)
+    executionEngine.addModule(moduleWithoutTesteeFunction)
+
+    /*
+
+        Having JIT engine in place we can run the test against original implementation of testee
+
+    */
+
+    executionEngine.addModule(moduleWithOriginal)
+    let originalResult = executionEngine.runTest(test)
+    executionEngine.removeModule(moduleWithOriginal)
+
+    /*
+
+        Now we need to find all places where we can apply mutation
+
+    */
+
+    let mutationPoints = mutationFinder.findAllMutationPoints(functino)
+    for point in mutationPoints {
+        /*
+
+            And for each such place we are getting copy of 'moduleWithOriginal' 
+            within applied mutation
+
+        */
+
+        let moduleWithMutation = applyMutationOnModule(point, moduleWithOriginal)
+
+        /*
+
+            Now we run the test against the mutant
+
+        */
+
+        executionEngine.addModule(moduleWithMutation)
+        let mutationResult = executionEngine.runTest(test)
+        executionEngine.removeModule(moduleWithMutation)
+
+        /*
+
+            And finally compare results
+
+        */
+
+        analyzeResults(originalResult, mutationResult)
+    }
+  }
+}
+</code></pre>
+
+<p>As you can see the starting point here is a bitcode, which means the system is language agnostic.</p>
+
+<p>However this approach has it&rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.</p>
+
+<p>Being able to re-run test just by replacing a module with mutated function gives an ability to increase performance drastically. However, execution may interrupt because of signal (segfault, bad access, etc.) or it may go into an infiinte loop. To fix those problems there might be a need to run each mutant as a separate process.</p>
+
+<p>Besides that there are quite a few opened questions such as:</p>
+
+<ul>
+<li>how to get bitcode for each translation unit (source file) automatically</li>
+<li>how to compare test results of original and mutated program for different testing frameworks</li>
+<li>how to deal with tests that are touching OS resources such as file system, I/O, etc</li>
+</ul>
+
+
+<p>Obviously, there are many more questions and problems that I&rsquo;m not aware of yet.</p>
+
+<h3>Conclusion</h3>
+
+<p>LLVM gives us an ability to build a powerful, language and framework agnostic system for Mutation Testing.</p>
+
+<p>I want to use this ability to build this tool and to get as much fun as possible.</p>
+
+<p>Besides motivating myself by making this public commitment this blog post has two other goals:</p>
+
+<ul>
+<li>get comments from people who is heaviliy involved into LLVM and/or mutation testing systems development</li>
+<li>to attract people who may be wanted to join the project when I have something to show</li>
+</ul>
+
+
+<p>If you have something to add or want to share your knowledge or concerns - please do it.</p>
+]]></content>
+  </entry>
+  
+</feed>
