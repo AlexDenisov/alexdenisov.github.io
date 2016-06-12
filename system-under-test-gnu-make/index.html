@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+	<meta charset="UTF-8">
+
+  
+    <title>System Under Test: GNU Make - Low Level Bits</title>
+  
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+    <meta name="keywords" content="make,makefile,testing" />
+  
+
+  
+    <meta name="description" content="Overview of GNU Make testing infrastructure" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+	
+	<link href='http://fonts.googleapis.com/css?family=Poiret+One|PT+Serif|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+	
+  <link href="http://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/glyphicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/halflings.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+	
+  <script src="http://lowlevelbits.org/js/modernizr.js"></script>
+
+	
+    
+</head>
+
+
+<script type="text/javascript">
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://alex-denisov.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<body>
+
+<div class="container">
+
+  	<div class="masthead clearfix">
+
+    
+
+    <a href="/"><img id="logo" src="http://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+	    
+	    
+	    
+			
+			
+			
+			
+			
+			
+			
+	      
+
+		  
+			
+			
+			
+			
+			
+			
+	      
+        
+	    
+	</div>
+
+
+
+	<hr>
+
+	<div class="row main-content">
+		<div class="offset3 span7 zone-content">
+			<article>
+        <h1>System Under Test: GNU Make</h1>
+
+				<div>
+          
+
+<p><em>Note: This is a guest post written by good friend and colleague of mine <a href="https://twitter.com/sbpankevich">Stanislav Pankevich</a></em></p>
+
+<h3 id="introduction">Introduction</h3>
+
+<p>This article is part of series <a href="http://lowlevelbits.org/system-under-test/">System Under Test</a>. It provides an overview of how GNU Make is tested.</p>
+
+<p><strong>Disclaimer:</strong> the author of this post is not involved into a development of GNU Make project. All of the following is merely a high-level report about what a curious developer can see from looking at the GNU Make&rsquo;s sources. The author didn&rsquo;t go very deep into the topic, could overlook something etc. Having that said, we always appreciate feedback from our colleagues who have advanced experience with the projects we write about, especially from the developers and maintainers.</p>
+
+<h3 id="getting-gnu-make-s-sources">Getting GNU Make&rsquo;s sources</h3>
+
+<p>GNU Make&rsquo;s source code is available from Github repository and can be found 2 links away from the Make&rsquo;s main home page: <a href="https://www.gnu.org/software/make/">GNU Make</a>:</p>
+
+<blockquote>
+<p>Development</p>
+
+<p>For development sources, issue trackers, and other information, please see the Make project page at savannah.gnu.org.</p>
+</blockquote>
+
+<p>On <a href="http://savannah.gnu.org/projects/make">Make&rsquo;s Savannah&rsquo;s page</a>:</p>
+
+<blockquote>
+<p><a href="http://savannah.gnu.org/git/?group=make">Git Source Code Manager: Git Repository</a></p>
+</blockquote>
+
+<p>To get Make&rsquo;s sources:</p>
+
+<pre>
+git clone git://git.savannah.gnu.org/make.git GNUMake
+cd make
+</pre>
+
+<h3 id="good-news-make-has-tests">Good news: Make has tests</h3>
+
+<pre>
+$ ls -l tests/
+total 376
+-rw-r--r--   1 Stanislaw  staff  35147 May 27 20:54 COPYING
+-rw-r--r--   1 Stanislaw  staff  48828 May 27 20:54 ChangeLog.1
+-rw-r--r--   1 Stanislaw  staff   6765 May 27 20:54 NEWS
+-rw-r--r--   1 Stanislaw  staff   4677 May 27 20:54 README
+-rw-r--r--   1 Stanislaw  staff    470 May 27 20:54 config-flags.pm.in
+-rwxr-xr-x   1 Stanislaw  staff   1705 May 27 20:54 config_flags_pm.com
+-rw-r--r--   1 Stanislaw  staff    359 May 27 20:54 guile.supp
+-rwxr-xr-x   1 Stanislaw  staff   1424 May 27 20:54 mkshadow
+-rwxr-xr-x   1 Stanislaw  staff     36 May 27 20:54 run_make_tests
+-rwxr-xr-x   1 Stanislaw  staff   8330 May 27 20:54 run_make_tests.com
+-rw-r--r--   1 Stanislaw  staff  14179 May 27 20:54 run_make_tests.pl
+drwxr-xr-x  10 Stanislaw  staff    340 May 27 20:54 scripts
+-rw-r--r--   1 Stanislaw  staff  40197 May 27 20:54 test_driver.pl
+</pre>
+
+<p>The actual tests are located in <code>tests/scripts</code> directory:</p>
+
+<pre>
+$ ls -l tests/scripts
+total 8
+drwxr-xr-x  40 Stanislaw  staff  1360 Jun  2 21:47 features
+drwxr-xr-x  31 Stanislaw  staff  1054 May 27 20:54 functions
+drwxr-xr-x  10 Stanislaw  staff   340 May 27 20:54 misc
+drwxr-xr-x  18 Stanislaw  staff   612 May 29 10:22 options
+drwxr-xr-x  12 Stanislaw  staff   408 Jun 10 20:42 targets
+-rw-r--r--   1 Stanislaw  staff  1015 May 27 20:54 test_template
+drwxr-xr-x  22 Stanislaw  staff   748 May 27 20:54 variables
+drwxr-xr-x   3 Stanislaw  staff   102 May 27 20:54 vms
+</pre>
+
+<p>The following are interesting notes I found before running the tests.</p>
+
+<h4 id="the-oldest-update-in-news-file-dates-back-to-1992">The oldest update in NEWS file dates back to 1992</h4>
+
+<pre>
+Changes from 0.1 to 0.2 (5-4-92):
+
+README corrected to require perl 4.019, not 4.010.
+
+-make_path replaces -old.
+
+errors_in_commands test updated for change in format introduced in
+make 3.62.6.
+
+test_driver_core now uses a better way of figuring what OS it is
+running on (thanks to meyering@cs.utexas.edu (Jim Meyering) for
+suggesting this, as well as discovering the hard way that the old
+way (testing for /mnt) fails on his machine).
+
+Some new tests were added.
+</pre>
+
+<p>This means that <strong>tests in Make were introduced as early as of 1992!</strong> which is a very good sign given some other tools are likely to not have a good coverage even in present days as described in another article of this series: <a href="http://lowlevelbits.org/system-under-test-freebsd">System Under Test: FreeBSD</a> (see Conclusion there).</p>
+
+<h4 id="the-test-suite-requires-perl-and-can-be-run-on-unix-windows-and-dos-systems">The test suite requires Perl and can be run on UNIX, Windows and DOS systems</h4>
+
+<pre>
+To run the test suite on a UNIX system, use "perl ./run_make_tests"
+(or just "./run_make_tests" if you have a perl on your PATH).
+
+To run the test suite on Windows NT or DOS systems, use
+"perl.exe ./run_make-tests.pl".
+</pre>
+
+<h4 id="the-test-suite-is-run-against-make-executable">The test suite is run against Make executable</h4>
+
+<pre>
+By default, the test engine picks up the first executable called "make"
+that it finds in your path.  You may use the -make_path option (i.e.,
+"perl run_make_tests -make_path /usr/local/src/make-3.78/make") if
+you want to run a particular copy.  This now works correctly with
+relative paths and when make is called something other than "make" (like
+"gmake").
+</pre>
+
+<p>This observation leads us to conclusion that these <strong>GNU Make&rsquo;s tests are actually integration tests</strong> - it is the final <code>make</code> executable that is tested, not its parts like they would be with unit testing (depending on terminology this kind of testing of a final product can also be called functional or acceptance testing).</p>
+
+<h4 id="build-artefacts">Build artefacts</h4>
+
+<pre>
+A directory named "work" will be created when the tests are run which
+will contain any makefiles and "diff" files of tests that fail so that
+you may look at them afterward to see the output of make and the
+expected result.
+</pre>
+
+<h3 id="running-tests-against-default-osx-make">Running tests against default OSX Make</h3>
+
+<p>Having read both documents: <code>tests/NEWS</code> and <code>tests/README</code> let&rsquo;s try to run the tests. As we learned earlier, by default the test suite will pick up first <code>make</code> from path so it will default to default make of OSX system which is on my machine:</p>
+
+<pre>
+make -v
+GNU Make 3.81
+Copyright (C) 2006  Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+This program built for i386-apple-darwin11.3.0
+</pre>
+
+<p>If you ever wondered why default <code>make</code> on OS X is so old, you are in good company - see <a href="https://www.quora.com/What-is-the-reason-for-some-of-the-Linux-tools-on-OS-X-being-so-old-Is-this-related-to-GPL-licensing">What is the reason for some of the Linux tools on OS X being so old? Is this related to GPL licensing?</a>.</p>
+
+<p>To run tests:</p>
+
+<pre>
+$ cd tests/
+$ # The following has to be done otherwise script will complain with:
+$ # "Can't locate config-flags.pm in @INC..."
+$ cp config-flags.pm.in config-flags.pm
+$ ./run_make_tests
+...
+output with lots of errors and finally:
+212 Tests in 66 Categories Failed (See .diff* files in work dir for details) :-(
+</pre>
+
+<p>We see here that oldness of default Make on OS X does cost 212 failing tests. To understand how that is different for latest Make let&rsquo;s build it from source and run tests against it.</p>
+
+<h3 id="running-tests-against-latest-make-built-from-source">Running tests against latest Make built from source</h3>
+
+<p>Let&rsquo;s get back from <code>tests</code> directory one level up to the root directory of source tree. Inspired by the instructions in INSTALL and after some additional googling we need to run <code>autoreconf</code> so that it creates proper <code>configure</code> script for us:</p>
+
+<pre>
+$ pwd # /Users/Stanislaw/Projects/GNUMake
+$ brew install automake
+$ # gettext is needed by autoreconf to locate gettext,
+$ # be careful with force linking it on your system.
+$ brew install gettext
+$ brew link gettext --force
+$ autoreconf # creates 'configure' script
+</pre>
+
+<p>Then we want to run this newly created script with <code>--prefix</code> parameter so that it will not install make to the <code>/usr/local/bin</code> directory but rather to <code>./Build</code> directory (to not conflict with OSX&rsquo;s Make which we don&rsquo;t want within the scope of this post).</p>
+
+<pre><code>$ ./configure --prefix=$(pwd)/Build
+</code></pre>
+
+<p>At this point if you run <code>make</code> the very first time you will likely see errors about some localization files missing:</p>
+
+<pre>
+Making all in doc
+Updating ./version.texi
+make[2]: *** No rule to make target `fdl.texi', needed by `make.info'.  Stop.
+make[1]: *** [all-recursive] Error 1
+make: *** [all] Error 2
+</pre>
+
+<p>To fix that you have to first run (solution found at <a href="http://gnu-make.2324884.n4.nabble.com/NLS-related-failure-when-building-make-from-CVS-tp2157p2158.html">GNU Make forums</a>):</p>
+
+<pre><code>make update
+</code></pre>
+
+<p>Everything should work fine since then, finally we run:</p>
+
+<pre>
+$ make && make install
+...
+  /usr/bin/install -c make '/Users/Stanislaw/Projects/Make/GNUMake/Build/bin'
+...
+$ ./Build/bin/make --version
+GNU Make 4.2
+Built for x86_64-apple-darwin15.3.0
+Copyright (C) 1988-2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+</pre>
+
+<p>Which is 2006&rsquo;s Make 3.81 that has just been used to build 2016&rsquo;s Make 4.2!</p>
+
+<p>Let&rsquo;s run the tests!</p>
+
+<pre>
+$ cd tests
+$ ./run_make_tests -make ../Build/bin/make
+</pre>
+
+<p>The results are quite pleasant to look at - <strong>GNU Make built from latest source code on Mac OS X machine, passes all of its tests</strong>:</p>
+
+<pre><code>581 Tests in 118 Categories Complete ... No Failures :-)
+</code></pre>
+
+<h3 id="test-case-template">Test case template</h3>
+
+<p>The file <code>tests/scripts/test_template</code> is a generic template, most of the tests are based on it:</p>
+
+<pre><code>#                                                                    -*-perl-*-
+
+$description = &quot;&lt;FILL IN SHORT DESCRIPTION HERE&gt;&quot;;
+$details = &quot;&lt;FILL IN DETAILS OF HOW YOU TEST WHAT YOU SAY YOU ARE TESTING&gt;&quot;;
+
+# Run a make test.  See the documentation of run_make_test() in
+# run_make_tests.pl, but briefly the first argument is a string with the
+# contents of a makefile to be tested, the second is a string containing the
+# arguments to be passed to the make invocation, the third is a string
+# containing the expected output.  The fourth is the expected exit code for
+# make.  If not specified, it's assumed that the make program should succeed
+# (exit with 0).
+
+run_make_test('Your test makefile goes here',
+              'Arguments to pass to make go here',
+              'Expected output from the invocation goes here');
+
+# There are various special tokens, options, etc.  See the full documentation
+# in run_make_tests.pl.
+
+
+# This tells the test driver that the perl test script executed properly.
+1;
+</code></pre>
+
+<p>Other tests follow a bit different approach: they use <code>run_make_with_options</code>/<code>compare_output</code> pair of functions to verify the expected output that Make produces. My assumption is that this alternative way is the old way of writing tests - we can clearly see that it is the easier and cleaner way to write tests using the test template from above. Below I have collected 3 examples which use both approaches based on either:</p>
+
+<ul>
+<li><code>run_make_test</code></li>
+</ul>
+
+<p>or</p>
+
+<ul>
+<li><code>run_make_with_options</code>/<code>compare_output</code></li>
+</ul>
+
+<p>These functions are located in the file: <code>tests/run_make_tests.pl</code> which is a test driver file for the whole test suite (the file is too long so it is not discussed in this post).</p>
+
+<h4 id="test-case-example-1-simple-functionality-of-make">Test case example #1: Simple functionality of make</h4>
+
+<p>The following test is located at <code>tests/scripts/misc/general1</code>.</p>
+
+<pre><code>#                                                                    -*-perl-*-
+
+$description = &quot;The following test creates a makefile to test the
+simple functionality of make.  It mimics the
+rebuilding of a product with dependencies.
+It also tests the simple definition of VPATH.&quot;;
+
+open(MAKEFILE,&quot;&gt; $makefile&quot;);
+
+print MAKEFILE &lt;&lt;EOF;
+VPATH = $workdir
+edit:  main.o kbd.o commands.o display.o \\
+       insert.o
+\t\@echo cc -o edit main.o kbd.o commands.o display.o \\
+                  insert.o
+main.o : main.c defs.h
+\t\@echo cc -c main.c
+kbd.o : kbd.c defs.h command.h
+\t\@echo cc -c kbd.c
+commands.o : command.c defs.h command.h
+\t\@echo cc -c commands.c
+display.o : display.c defs.h buffer.h
+\t\@echo cc -c display.c
+insert.o : insert.c defs.h buffer.h
+\t\@echo cc -c insert.c
+EOF
+
+close(MAKEFILE);
+
+
+@files_to_touch = (&quot;$workdir${pathsep}main.c&quot;,&quot;$workdir${pathsep}defs.h&quot;,
+               &quot;$workdir${pathsep}kbd.c&quot;,&quot;$workdir${pathsep}command.h&quot;,
+               &quot;$workdir${pathsep}commands.c&quot;,&quot;$workdir${pathsep}display.c&quot;,
+               &quot;$workdir${pathsep}buffer.h&quot;,&quot;$workdir${pathsep}insert.c&quot;,
+           &quot;$workdir${pathsep}command.c&quot;);
+
+&amp;touch(@files_to_touch);
+
+&amp;run_make_with_options($makefile,&quot;&quot;,&amp;get_logfile);
+
+# Create the answer to what should be produced by this Makefile
+$answer = &quot;cc -c main.c\ncc -c kbd.c\ncc -c commands.c\ncc -c display.c
+cc -c insert.c\ncc -o edit main.o kbd.o commands.o display.o insert.o\n&quot;;
+
+# COMPARE RESULTS
+
+if (&amp;compare_output($answer,&amp;get_logfile(1))) {
+  unlink @files_to_touch;
+}
+
+1;
+</code></pre>
+
+<h4 id="test-case-example-2-phony-targets">Test case example #2: PHONY targets</h4>
+
+<p>The following test is located at <code>tests/scripts/targets/PHONY</code>.</p>
+
+<pre>
+#                                                                    -*-perl-*-
+
+$description = "The following tests the use of a PHONY target.  It makes\n"
+              ."sure that the rules under a target get executed even if\n"
+              ."a filename of the same name of the target exists in the\n"
+              ."directory.\n";
+
+$details = "This makefile in this test declares the target clean to be a \n"
+          ."PHONY target.  We then create a file named \"clean\" in the \n"
+          ."directory.  Although this file exists, the rule under the target\n"
+          ."clean should still execute because of it's phony status.";
+
+$example = "EXAMPLE_FILE";
+
+open(MAKEFILE,"> $makefile");
+
+# The Contents of the MAKEFILE ...
+
+print MAKEFILE ".PHONY : clean \n";
+print MAKEFILE "all: \n";
+print MAKEFILE "\t\@echo This makefile did not clean the dir ... good\n";
+print MAKEFILE "clean: \n";
+print MAKEFILE "\t$delete_command $example clean\n";
+
+# END of Contents of MAKEFILE
+
+close(MAKEFILE);
+
+&touch($example);
+
+# Create a file named "clean".  This is the same name as the target clean
+# and tricks the target into thinking that it is up to date.  (Unless you
+# use the .PHONY target.
+&touch("clean");
+
+$answer = "$delete_command $example clean\n";
+&run_make_with_options($makefile,"clean",&get_logfile);
+
+if (-f $example) {
+  $test_passed = 0;
+}
+
+&compare_output($answer,&get_logfile(1));
+
+1;
+</pre>
+
+<h4 id="test-case-example-3-warn-undefined-variables-option">Test case example #3: &ndash;warn-undefined-variables option</h4>
+
+<p>The following test is located at <code>tests/scripts/options/warn-undefined-variables</code>.</p>
+
+<pre><code>#                                                                    -*-perl-*-
+
+$description = &quot;Test the --warn-undefined-variables option.&quot;;
+
+$details = &quot;Verify that warnings are printed for referencing undefined variables.&quot;;
+
+# Without --warn-undefined-variables, nothing should happen
+run_make_test('
+EMPTY =
+EREF = $(EMPTY)
+UREF = $(UNDEFINED)
+
+SEREF := $(EREF)
+SUREF := $(UREF)
+
+all: ; @echo ref $(EREF) $(UREF)',
+              '', 'ref');
+
+# With --warn-undefined-variables, it should warn me
+run_make_test(undef, '--warn-undefined-variables',
+              &quot;#MAKEFILE#:7: warning: undefined variable 'UNDEFINED'
+#MAKEFILE#:9: warning: undefined variable 'UNDEFINED'
+ref&quot;);
+
+1;
+</code></pre>
+
+<h3 id="open-issues">Open issues</h3>
+
+<p>The file <code>tests/README</code> contains interesting section that one may read as high-level TODO list for the project (bold below is mine). It seems that there is some interesting stuff waiting for someone to contribute ;)</p>
+
+<blockquote>
+<h2 id="open-issues-1">Open Issues</h2>
+
+<p>The test suite has a number of problems which should be addressed. <strong>One
+VERY serious one is that there is no real documentation</strong>.  You just have
+to see the existing tests. Use the newer tests: many of the tests
+haven&rsquo;t been updated to use the latest/greatest test methods.  See the
+ChangeLog in the tests directory for pointers.</p>
+
+<p><strong>The second serious problem is that it&rsquo;s not parallelizable</strong>: it scribbles
+all over its installation directory and so can only test one make at a
+time. <strong>The third serious problem is that it&rsquo;s not relocatable</strong>: the only
+way it works when you build out of the source tree is to create
+symlinks, which doesn&rsquo;t work on every system and is bogus to boot. <strong>The
+fourth serious problem is that it doesn&rsquo;t create its own sandbox when
+running tests</strong>, so that if a test forgets to clean up after itself that
+can impact future tests.</p>
+</blockquote>
+
+<h3 id="conclusion">Conclusion</h3>
+
+<ol>
+<li>GNU Make has 581 tests: solid test suite introduced as early as of 1992.</li>
+<li>All of these tests are integration tests: the final executable <code>make</code> is tested, not the parts of C code.</li>
+<li>Default GNU Make 3.81 on OSX machine is 10 years old, it fails 212 tests compared to the latest GNU Make 4.2 build from source which passes all of its tests green.</li>
+<li>There is always space for contribution: more documentation is needed, tests should have better sandboxing to achieve parallelism and removability.</li>
+</ol>
+
+<p>So far we have Rust and Javascript programming languages, NeoVim editor and XTerm terminal emulator in our plans. Let us know what projects or tools you would like to see covered in this series: <a href="http://lowlevelbits.org/system-under-test/">System Under Test</a>.</p>
+
+				</div>
+			</article>
+
+      <span class="post-list-category tags">
+
+
+
+
+  
+  <a href="http://lowlevelbits.org/categories/make/">make</a>,
+
+  
+  <a href="http://lowlevelbits.org/categories/testing/">testing</a>,
+
+  
+  <a href="http://lowlevelbits.org/categories/system-under-test/">system under test</a>
+
+</span>
+
+
+
+      <h3>Comments</h3>
+      <div id="disqus_thread" aria-live="polite"></div>
+
+		</div>
+
+	</div>
+
+  <hr>
+
+	<div class="row triple-row">
+
+		<div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
+      
+
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/system%20under%20test/" >system under test (4)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/testing/" >testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mutation%20testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+      </ul>
+</article>
+</div>
+
+
+		</div>
+
+		<div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-gnu-make/"> System Under Test: GNU Make</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-freebsd/"> System Under Test: FreeBSD</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-llvm/"> System Under Test: LLVM</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test/"> System Under Test</a>
+        </li>
+      
+      </ul>
+
+</article>
+</div>
+
+
+
+		</div>
+
+		<div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="http://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+    <div>
+	  <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscibe</button></div>
+    </div>
+</form>
+</div>
+
+
+
+
+</article>
+</div>
+
+
+		</div>
+	</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2016 - Alex Denisov</div>
+</div>
+
+
+
+</div>  
+
+
+
+
+
+<script src="http://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="http://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="http://lowlevelbits.org/js/tinynav.js"></script>
+<script src="http://lowlevelbits.org/js/template.js"></script>
+
+
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+
+
+</body>
+</html>
+
