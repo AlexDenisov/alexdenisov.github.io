@@ -1,129 +1,114 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+
+
+
+ <html class="no-js" lang="en"> 
 <head>
-  <meta charset="utf-8">
-  <title>YAML-based Configuration for ObjC Projects - Low Level Bits</title>
-  <meta name="author" content="AlexDenisov">
-
-
-  <meta name="description" content="The most robust way of configuration management for Objective-C projects" />
-
-
-
-  <meta name="keywords" content="xcconf, yaml, objc, objective-c, Cocoa, CocoaTouch, configuration, environment" />
-
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
 
   
-  <link rel="canonical" href="http://lowlevelbits.org/yaml-based-configuration-for-objc-projects">
-  <link href="/favicon.png" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Low Level Bits" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href='https://fonts.googleapis.com/css?family=Noto+Serif:400,700' rel='stylesheet' type='text/css'>
-<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <title>YAML-based Configuration for ObjC Projects - Low Level Bits</title>
+  
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-58043349-1']);
-    _gaq.push(['_trackPageview']);
+    <meta name="keywords" content="clang,llvm,compilers,ios development,developer tools" />
+  
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+  
+    <meta name="description" content="The most robust way of configuration management for Objective-C projects" />
+  
 
+  <link rel="shortcut icon" href="favicon.svg" type="image/x-icon" />
 
+	
+	<link href='http://fonts.googleapis.com/css?family=Poiret+One|PT+Serif|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+	
+  <link href="http://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/glyphicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/halflings.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+	
+  <script src="http://lowlevelbits.org/js/modernizr.js"></script>
+
+	
+    
 </head>
 
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Low Level Bits</a></h1>
-  
-    <h2>Software Development</h2>
-  
-</hgroup>
 
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  
-  
-</ul>
+<script type="text/javascript">
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://alex-denisov.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
+<body>
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
+<div class="container">
+
+  	<div class="masthead clearfix">
+
     
-      <h1 class="entry-title">YAML-based Configuration for ObjC Projects</h1>
-    
-    
-      <p class="meta">
+
+    <a href="/"><img id="logo" src="http://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+	    
+	    
+	    
+			
+			
+			
+			
+			
+			
+			
+	      
+
+		  
+			
+			
+			
+			
+			
+			
+	      
         
+	    
+	</div>
 
 
 
+	<hr>
 
+	<div class="row main-content">
+		<div class="offset3 span6 zone-content">
+			<article>
+        <h1>YAML-based Configuration for ObjC Projects</h1>
+				<div>
+          
 
-
-
-
-  
-
-
-
-<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-           | <a href="#disqus_thread"
-             data-disqus-identifier="http://lowlevelbits.org">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-<div class="entry-content"><p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
+<p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com&quot;">https://staging.example.com&quot;</a> and &ldquo;<a href="https://example.com&quot;">https://example.com&quot;</a>.
 Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
 
 <p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">development</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">dev123</span>
-</span><span class='line'><span class="c1"># ...</span>
-</span><span class='line'><span class="l-Scalar-Plain">production</span><span class="p-Indicator">:</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">user</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">root</span>
-</span><span class='line'><span class="err">    </span><span class="l-Scalar-Plain">password</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">supersecurepassword</span>
-</span><span class='line'><span class="c1"># ...</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>development:
+  user: dev
+  password: dev123
+<span style="color: #408080; font-style: italic"># ...</span>
+production:
+  user: root
+  password: supersecurepassword
+<span style="color: #408080; font-style: italic"># ...</span>
+</pre></div>
 
 <p>I wish I can use the same approach in my daily iOS development.</p>
 
@@ -131,37 +116,29 @@ Our toolchain does not provide good solution for this problem, so we have to imp
 
 <!-- more -->
 
-
 <p><strong>TL;DR;</strong></p>
 
 <p>Checkout project <a href="https://github.com/AlexDenisov/xcconf">xcconf</a> and <code>Sample/Sample.xcodeproj</code></p>
 
-<h3>Commonly used mechanisms</h3>
+<h3 id="commonly-used-mechanisms">Commonly used mechanisms</h3>
 
 <p>There are at least two common approaches to separate configurations: preprocessor definitions and plist file.
 Both of them have serious disadvantages.</p>
 
-<h4>Preprocessor Definition</h4>
+<h4 id="preprocessor-definition">Preprocessor Definition</h4>
 
 <p>You may saw and probably used this approach. It&rsquo;s pretty easy and simple to use:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="cp">#ifdef DEBUG</span>
-</span><span class='line'><span class="bp">NSString</span> <span class="o">*</span><span class="k">const</span> <span class="n">kServerAddress</span> <span class="o">=</span> <span class="s">@&quot;https://staging.example.com&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="cp">#else</span>
-</span><span class='line'><span class="bp">NSString</span> <span class="o">*</span><span class="k">const</span> <span class="n">kServerAddress</span> <span class="o">=</span> <span class="s">@&quot;https://example.com&quot;</span><span class="p">;</span>
-</span><span class='line'><span class="cp">#endif</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#ifdef DEBUG</span>
+<span style="color: #008000">NSString</span> <span style="color: #666666">*</span><span style="color: #008000; font-weight: bold">const</span> kServerAddress <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;https://staging.example.com&quot;</span>;
+<span style="color: #BC7A00">#else</span>
+<span style="color: #008000">NSString</span> <span style="color: #666666">*</span><span style="color: #008000; font-weight: bold">const</span> kServerAddress <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;https://example.com&quot;</span>;
+<span style="color: #BC7A00">#endif</span>
+</pre></div>
 
 <p>But let&rsquo;s say that you add one more environment, e.g. &ldquo;Beta&rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&rsquo;s really easy to make a typo or &ldquo;accidentally&rdquo; drop a definition. Your code will compile, but it&rsquo;d use wrong environment.
 Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.</p>
 
-<h4>Plist file</h4>
+<h4 id="plist-file">Plist file</h4>
 
 <p>This is other commonly used mechanism. This approach described <a href="http://code.tutsplus.com/tutorials/ios-quick-tip-managing-configurations-with-ease--mobile-18324">here</a>.
 It&rsquo;s also has some disadvantages: if you want to add new configuration variable - you have to add it to every subsection, also you need to add a property to class and write (copy-paste?) initialization code.
@@ -170,7 +147,7 @@ Still you have to perform way too many actions for such a simple task.</p>
 
 <p>Thanks god there is more easier and robust way.</p>
 
-<h3>XCCONF and YAML</h3>
+<h3 id="xcconf-and-yaml">XCCONF and YAML</h3>
 
 <p><a href="https://github.com/AlexDenisov/xcconf">xcconf</a> incorporates only best parts from methods described previously:</p>
 
@@ -180,391 +157,698 @@ Still you have to perform way too many actions for such a simple task.</p>
 <li>everything done at compile time</li>
 </ul>
 
-
-<h5>Here is how it looks like:</h5>
+<h5 id="here-is-how-it-looks-like">Here is how it looks like:</h5>
 
 <p>Configuration file:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>principalClass: Configuration
 
-<figure class='code'><figcaption><span>config.yaml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">principalClass</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Configuration</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">Debug</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">serverAddress</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https://staging.example.com</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">APIKey</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">qwe123!!qwe</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">Release</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">serverAddress</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">https://example.com</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">APIKey</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">qwe123qwe</span>
-</span></code></pre></td></tr></table></div></figure>
+Debug:
+  serverAddress: https://staging.example.com
+  APIKey: qwe123!!qwe
 
+Release:
+  serverAddress: https://example.com
+  APIKey: qwe123qwe
+</pre></div>
 
 <p>ObjC code:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>@Interface <span style="color: #A0A000">Configuration</span> : <span style="color: #008000">NSObject</span>
+<span style="color: #666666">-</span> (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)serverAddress;
+- (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">APIKey</span>;
+<span style="color: #008000; font-weight: bold">@end</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="p">@</span><span class="n">Interface</span> <span class="nl">Configuration</span> <span class="p">:</span> <span class="bp">NSObject</span>
-</span><span class='line'><span class="o">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="n">serverAddress</span><span class="p">;</span>
-</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">APIKey</span><span class="p">;</span>
-</span><span class='line'><span class="k">@end</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// ...</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">Config</span> <span class="o">*</span><span class="n">config</span> <span class="o">=</span> <span class="p">[</span><span class="n">Config</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'><span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">.</span><span class="n">serverAddress</span><span class="p">);</span>
-</span></code></pre></td></tr></table></div></figure>
+<span style="color: #408080; font-style: italic">// ...</span>
 
+Config <span style="color: #666666">*</span>config <span style="color: #666666">=</span> [Config new];
+NSLog(<span style="color: #BA2121">@&quot;%@&quot;</span>, config.serverAddress);
+</pre></div>
 
 <p>No preprocessor, no boilerplate!</p>
 
-<h4>Installation and usage</h4>
+<h4 id="installation-and-usage">Installation and usage</h4>
 
 <p>To install <code>xcconf</code> you need to clone repo and run one command, it&rsquo;ll build executable and install it into <code>/usr/local/bin</code></p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>git clone git@github.com:AlexDenisov/xcconf.git <span class="o">&amp;&amp;</span> <span class="nb">cd </span>xcconf
-</span><span class='line'>make install
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>git clone git@github.com:AlexDenisov/xcconf.git <span style="color: #666666">&amp;&amp;</span> <span style="color: #008000">cd</span> xcconf
+make install
+</pre></div>
 
 <p>Integration into project looks weird, but don&rsquo;t worry, that&rsquo;s ok :)</p>
 
 <p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
 
-<p><img src="/images/yaml-based-configuration/new_file.png"></p>
+<p><img src="/img/yaml-based-configuration/new_file.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;"
+  alt="New file" /></p>
 
 <p>Put there initial configuration:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>principalClass: Config
 
-<figure class='code'><figcaption><span>config.yaml</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='yaml'><span class='line'><span class="l-Scalar-Plain">principalClass</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Config</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">Debug</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">color</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Green</span>
-</span><span class='line'>
-</span><span class='line'><span class="l-Scalar-Plain">Release</span><span class="p-Indicator">:</span>
-</span><span class='line'>    <span class="l-Scalar-Plain">color</span><span class="p-Indicator">:</span> <span class="l-Scalar-Plain">Blue</span>
-</span></code></pre></td></tr></table></div></figure>
+Debug:
+  color: Green
 
+Release:
+  color: Blue
+</pre></div>
 
 <p>Prepare class interface for configuration. <strong>But do not create implementation</strong>. Its name should be equal to <code>principalClass</code> and it might contain getter methods for all available parameters, in this case it&rsquo;s just <code>color</code></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Config</span> : <span style="color: #008000">NSObject</span>
+- (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">color</span>;
+<span style="color: #008000; font-weight: bold">@end</span>
+</pre></div>
 
-<figure class='code'><figcaption><span>Config.h</span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="k">@interface</span> <span class="nc">Config</span> : <span class="bp">NSObject</span>
-</span><span class='line'><span class="p">-</span> <span class="p">(</span><span class="bp">NSString</span> <span class="o">*</span><span class="p">)</span><span class="nf">color</span><span class="p">;</span>
-</span><span class='line'><span class="k">@end</span>
-</span></code></pre></td></tr></table></div></figure>
+<p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -&gt; <code>Compile Sources</code> -&gt; <code>+</code> and add <code>config.yaml</code></p>
 
-
-<p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -> <code>Compile Sources</code> -> <code>+</code> and add <code>config.yaml</code></p>
-
-<p><img src="/images/yaml-based-configuration/compile_yaml.png"></p>
+<p><img src="/img/yaml-based-configuration/compile_yaml.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;"
+  alt="Compile YAML" /></p>
 
 <p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
 Also, we need to specify output file, otherwise it won&rsquo;t work:
 <code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
 
-<p><img src="/images/yaml-based-configuration/xcconf.png"></p>
+<p><img src="/img/yaml-based-configuration/xcconf.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;"
+  alt="xcconf" /></p>
 
 <p>Now we&rsquo;re ready to use it:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#import &quot;Config.h&quot;</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-</pre></td><td class='code'><pre><code class='objectivec'><span class='line'><span class="cp">#import &quot;Config.h&quot;</span>
-</span><span class='line'>
-</span><span class='line'><span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span> <span class="n">argv</span><span class="p">[])</span> <span class="p">{</span>
-</span><span class='line'>    <span class="k">@autoreleasepool</span> <span class="p">{</span>
-</span><span class='line'>        <span class="n">Config</span> <span class="o">*</span><span class="n">config</span> <span class="o">=</span> <span class="p">[</span><span class="n">Config</span> <span class="n">new</span><span class="p">];</span>
-</span><span class='line'>        <span class="n">NSLog</span><span class="p">(</span><span class="s">@&quot;%@&quot;</span><span class="p">,</span> <span class="n">config</span><span class="p">.</span><span class="n">color</span><span class="p">);</span>
-</span><span class='line'>    <span class="p">}</span>
-</span><span class='line'>    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<span style="color: #B00040">int</span> <span style="color: #0000FF">main</span>(<span style="color: #B00040">int</span> argc, <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span> argv[]) {
+    <span style="color: #008000; font-weight: bold">@autoreleasepool</span> {
+        Config <span style="color: #666666">*</span>config <span style="color: #666666">=</span> [Config new];
+        NSLog(<span style="color: #BA2121">@&quot;%@&quot;</span>, config.color);
+    }
+    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
+}
+</pre></div>
 
 <p>Build&amp;Run:</p>
 
-<p><img src="/images/yaml-based-configuration/output.png"></p>
+<p><img src="/img/yaml-based-configuration/output.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;"
+  alt="output" /></p>
 
-<h3>Summary</h3>
+<h3 id="summary">Summary</h3>
 
 <p>The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.</p>
 
 <p>I&rsquo;d really appreciate any feedback.</p>
 
 <p>P.S. Pull Requests are welcome! :)</p>
-</div>
 
+				</div>
+			</article>
 
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
-
-      
-
-
-
-
+      <span class="post-list-category tags">
 
 
 
 
   
+  <a href="http://lowlevelbits.orgcategories/iosdev/">iosdev</a>,
 
-
-
-<time datetime="2015-02-06T00:43:11+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-02-06T00:43:11+01:00'><span class='date'><span class='date-month'>Feb</span> <span class='date-day'>6</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-      
-
-<span class="categories">
   
-    <a class='category' href='/categories/iosdev/'>iosdev</a>, <a class='category' href='/categories/objc/'>objc</a>
-  
+  <a href="http://lowlevelbits.orgcategories/objc/">objc</a>
+
 </span>
 
 
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/" data-via="1101_debian" data-counturl="http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/" >Tweet</a>
-  
-  
-  
-    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
-  
-</div>
 
-    
-    <p class="meta">
+      <h3>Comments</h3>
+      <div id="disqus_thread" aria-live="polite"></div>
+
+		</div>
+
+	</div>
+
+  <hr>
+
+	<div class="row triple-row">
+
+		<div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
       
-        <a class="basic-alignment left" href="/getting-started-with-llvm-slash-clang-on-os-x/" title="Previous Post: Getting Started With LLVM/Clang on OS X">&laquo; Getting Started With LLVM/Clang on OS X</a>
+
       
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
       
-        <a class="basic-alignment right" href="/circular-containers-in-objective-c/" title="Next Post: Circular Containers in Objective-C">Circular Containers in Objective-C &raquo;</a>
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
       
-    </p>
-  </footer>
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/system%20under%20test/" >system under test (3)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mutation%20testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/testing/" >testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+      </ul>
 </article>
-
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-  </section>
-
 </div>
 
-  <aside class="sidebar">
-   
-  
-    
 
-<style> 
-* {margin: 0; padding: 0;}
-#container {height: 100%; width:100%; font-size:0;}
-#left, #right {display: inline-block; *display: inline; zoom: 1; vertical-align: top; font-size: 15px;}
-#left {width: 45%;}
-#right {width: 55%;}
-#icon {
-  width: 15px;
-  border: none; 
-  box-shadow:none;
-}
-</style>
+		</div>
 
-<section>
-<div id="container">
-    <div id="left">
-		  <img src="http://www.gravatar.com/avatar/6dc2fd642323cb9bab9a050710290353?s=100" alt="Gravatar of AlexDenisov " title="Gravatar of AlexDenisov" />
-    </div>
-    <div id="right">
-      <div>
-        <a href="mailto:1101.debian@gmail.com"><img id="icon" src="/images/email.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;1101.debian</a>
-      </div>
-      <div>
-        <a href="https://github.com/AlexDenisov"><img id="icon" src="/images/github.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;AlexDenisov</a>
-      </div>
-      <div>
-        <a href="https://twitter.com/1101_debian"><img id="icon" src="/images/twitter.png" alt="1101_debian" title="1101_debian" />&nbsp;1101_debian</a>
-      </div>
-      <div>
-        <a href="/atom.xml"><img id="icon" src="/images/rss.png" alt="RSS" title="RSS" />&nbsp;RSS</a>
-      </div>
-      <div>
-        <a href="https://github.com/AlexDenisov/cv/blob/master/alex_denisov.pdf"><img id="icon" src="/images/cv.png" alt="CV" title="CV" />&nbsp;CV</a>
-      </div>
-    </div>
+		<div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
 
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-freebsd/"> System Under Test: FreeBSD</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-llvm/"> System Under Test: LLVM</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test/"> System Under Test</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/crash-free-code-with-fuzzer/"> Crash-free code with Fuzzer</a>
+        </li>
+      
+      </ul>
+
+</article>
 </div>
-</section>
 
-<!-- Begin MailChimp Signup Form -->
 
-<section>
+
+		</div>
+
+		<div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="http://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
 <div id="mc_embed_signup">
 <form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
     <div id="mc_embed_signup_scroll">
-      <h3>No bullshit, I promise</h3>
-	<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email" required>
-    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div>
+	  <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
     <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
-    <div class="clear"><input type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button subscribe"></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscibe</button></div>
     </div>
 </form>
 </div>
-</section>
-
-<!--End mc_embed_signup-->
-<section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a id="recent_post_link" href="/llvm-based-mutation-testing-system/">LLVM-based Mutation Testing System. Request For Comments</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/system-under-test-freebsd/">System Under Test: FreeBSD</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/system-under-test-llvm/">System Under Test: LLVM</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/system-under-test/">System Under Test</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/crash-free-code-with-fuzzer/">Crash-free code with Fuzzer</a>
-      </li>
-    
-  </ul>
-</section>
-
-  
-</aside>
 
 
 
-    </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - AlexDenisov -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> with <a href="https://github.com/johnkeith/boldandblue">BoldAndBlue</a></span>
-</p>
 
-</footer>
-  
+</article>
+</div>
 
-<script type="text/javascript">
-      var disqus_shortname = 'alex-denisov';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/';
-        var disqus_url = 'http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+
+		</div>
+	</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2016 - Alex Denisov</div>
+</div>
 
 
 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+</div>  
 
 
 
 
 
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
+<script src="http://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="http://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="http://lowlevelbits.org/js/tinynav.js"></script>
+<script src="http://lowlevelbits.org/js/template.js"></script>
 
 
 <script>
-  $(document).ready(function() {  
-  var stickyNavTop = $('nav').offset().top;  
-    
-  var stickyNav = function(){  
-  var scrollTop = $(window).scrollTop();  
-         
-  if (scrollTop > stickyNavTop) {   
-      $('nav').addClass('sticky');  
-  } else {  
-      $('nav').removeClass('sticky');   
-  }  
-  };  
-    
-  stickyNav();  
-    
-  $(window).scroll(function() {  
-      stickyNav();  
-  });  
-  });  
-
-(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
-for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
-mixpanel.init("cd35d7a41ba236cea12743777cdd75ff");
-mixpanel.track(document.title.replace(" - Low Level Bits", ""), {
-                "host" : document.location.host
-                });
-mixpanel.track_links("#recent_post_link", "click_recent_posts", {
-  "referrer": document.referrer
-});
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
 </script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
 
 
 </body>
 </html>
+

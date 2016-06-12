@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+	<meta charset="UTF-8">
+
+  
+    <title>Parsing Mach-O files - Low Level Bits</title>
+  
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+    <meta name="keywords" content="clang,llvm,compilers,ios development,developer tools" />
+  
+
+  
+    <meta name="description" content="The article covers basics of Mach-O parsing. If you&#39;re looking for a &#39;how to start&#39;, then you are at the right place." />
+  
+
+  <link rel="shortcut icon" href="favicon.svg" type="image/x-icon" />
+
+	
+	<link href='http://fonts.googleapis.com/css?family=Poiret+One|PT+Serif|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+	
+  <link href="http://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/glyphicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/halflings.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+	
+  <script src="http://lowlevelbits.org/js/modernizr.js"></script>
+
+	
+    
+</head>
+
+
+<script type="text/javascript">
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://alex-denisov.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<body>
+
+<div class="container">
+
+  	<div class="masthead clearfix">
+
+    
+
+    <a href="/"><img id="logo" src="http://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+	    
+	    
+	    
+			
+			
+			
+			
+			
+			
+			
+	      
+
+		  
+			
+			
+			
+			
+			
+			
+	      
+        
+	    
+	</div>
+
+
+
+	<hr>
+
+	<div class="row main-content">
+		<div class="offset3 span6 zone-content">
+			<article>
+        <h1>Parsing Mach-O files</h1>
+				<div>
+          
+
+<p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
+For more information consider reading official documentation and header files provided by operating system.</p>
+
+<!-- more -->
+
+<h2 id="what-is-mach-o-file">What is Mach-O file</h2>
+
+<p>Brief description taken from <a href="https://en.wikipedia.org/wiki/Mach-O">Wikipedia</a>:</p>
+
+<blockquote>
+<p>Mach-O, short for Mach object file format, is a file format for executables, object code, shared libraries, dynamically-loaded code, and core dumps. A replacement for the a.out format, Mach-O offers more extensibility and faster access to information in the symbol table.</p>
+
+<p>Mach-O is used by most systems based on the Mach kernel. NeXTSTEP, OS X, and iOS are examples of systems that have used this format for native executables, libraries and object code.</p>
+</blockquote>
+
+<h2 id="mach-o-format">Mach-O format</h2>
+
+<p>Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.</p>
+
+<p>Typical Mach-O file (corresponding to the <a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">official documentation</a>) consists of a three regions:</p>
+
+<ol>
+<li>Header - contains general information about the binary: byte order (magic number), cpu type, amount of load commands etc.</li>
+<li>Load Commands - it’s kind of a table of contents, that describes position of segments, symbol table, dynamic symbol table etc. Each load command includes a meta-information, such as type of command, its name, position in a binary and so on.</li>
+<li>Data - usually the biggest part of object file. It contains code and data, such as symbol tables, dynamic symbol tables and so on.</li>
+</ol>
+
+<p>Here is a simplified graphical representation:</p>
+
+<p><img src="/img/parse-mach-o-files/macho_header.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 60%;
+          height: auto;" /></p>
+
+<p>There are two types of object files on OS X: Mach-O files and Universal Binaries, also so-called Fat files. The difference between them: Mach-O file contains object code for one architecture (i386, x86_64, arm64, etc.) while Fat binaries might contain several object files, hence contain object code for different architectures (i386 and x86_64, arm and arm64, etc.)</p>
+
+<p>The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:</p>
+
+<p><img src="/img/parse-mach-o-files/fat_header.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<h2 id="parse-mach-o-file">Parse Mach-O file</h2>
+
+<p>OS X doesn’t provide us with any <code>libmacho</code> or something similar, the only thing we have here - a set of C structures defined under <code>/usr/include/mach-o/*</code>, hence we need to implement parsing on our own. It might be tricky, but it’s not that hard.</p>
+
+<h3 id="memory-representation">Memory Representation</h3>
+
+<p>Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.</p>
+
+<p><img src="/img/parse-mach-o-files/sample_macho.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 40%;
+          height: auto;" /></p>
+
+<p>The only structures we need to represent the file:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">struct</span> mach_header {
+  <span style="color: #B00040">uint32_t</span>      magic;
+  cpu_type_t    cputype;
+  cpu_subtype_t cpusubtype;
+  <span style="color: #B00040">uint32_t</span>      filetype;
+  <span style="color: #B00040">uint32_t</span>      ncmds;
+  <span style="color: #B00040">uint32_t</span>      sizeofcmds;
+  <span style="color: #B00040">uint32_t</span>      flags;
+};
+
+<span style="color: #008000; font-weight: bold">struct</span> segment_command {
+  <span style="color: #B00040">uint32_t</span>  cmd;
+  <span style="color: #B00040">uint32_t</span>  cmdsize;
+  <span style="color: #B00040">char</span>      segname[<span style="color: #666666">16</span>];
+  <span style="color: #B00040">uint32_t</span>  vmaddr;
+  <span style="color: #B00040">uint32_t</span>  vmsize;
+  <span style="color: #B00040">uint32_t</span>  fileoff;
+  <span style="color: #B00040">uint32_t</span>  filesize;
+  vm_prot_t maxprot;
+  vm_prot_t initprot;
+  <span style="color: #B00040">uint32_t</span>  nsects;
+  <span style="color: #B00040">uint32_t</span>  flags;
+};
+</pre></div>
+
+<p>Here is how memory mapping looks like:</p>
+
+<p><img src="/img/parse-mach-o-files/macho_memory_layout.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;" /></p>
+
+<p>If you want to read particular info from a file, you just need a correct data structure and an offset.</p>
+
+<h3 id="parsing">Parsing</h3>
+
+<p>Let&rsquo;s write a program that&rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.</p>
+
+<p>At the end we might have something similar:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ ./segname_dumper some_binary
+i386
+segname __PAGEZERO
+segname __TEXT
+segname __LINKEDIT
+</pre></div>
+
+<h4 id="driver">Driver</h4>
+
+<p>Let&rsquo;s start with a simple &lsquo;driver&rsquo;.</p>
+
+<p>There are at least two possible ways to parse such files: load content into memory and work with buffer directly or open a file and jump back and forth through it. Both approaches have their own pros and cons, but I&rsquo;ll stick to a second one. Also, I assume that no one going to use the program in a wrong way, hence no error handling whatsoever.</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#include</span> <span style="color: #408080; font-style: italic">&lt;stdio.h&gt;</span><span style="color: #BC7A00"></span>
+<span style="color: #BC7A00">#include</span> <span style="color: #408080; font-style: italic">&lt;stdlib.h&gt;</span><span style="color: #BC7A00"></span>
+<span style="color: #BC7A00">#include</span> <span style="color: #408080; font-style: italic">&lt;mach-o/loader.h&gt;</span><span style="color: #BC7A00"></span>
+<span style="color: #BC7A00">#include</span> <span style="color: #408080; font-style: italic">&lt;mach-o/swap.h&gt;</span><span style="color: #BC7A00"></span>
+
+<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file);
+
+<span style="color: #B00040">int</span> <span style="color: #0000FF">main</span>(<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">*</span>argv[]) {
+  <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span>filename <span style="color: #666666">=</span> argv[<span style="color: #666666">1</span>];
+  <span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file <span style="color: #666666">=</span> fopen(filename, <span style="color: #BA2121">&quot;rb&quot;</span>);
+  dump_segments(obj_file);
+  fclose(obj_file);
+
+  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
+}
+
+<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
+  <span style="color: #408080; font-style: italic">// Driver</span>
+}
+</pre></div>
+
+<h4 id="magic-numbers-cpu-and-endianness">Magic numbers, CPU and Endianness</h4>
+
+<p>To read at least the object file header we need to get all the information we need: CPU arch (32 bit or 64 bit) and the Byte Order. But first we need to retrieve a magic number:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">uint32_t</span> <span style="color: #0000FF">read_magic</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset) {
+  <span style="color: #B00040">uint32_t</span> magic;
+  fseek(obj_file, offset, SEEK_SET);
+  fread(<span style="color: #666666">&amp;</span>magic, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #B00040">uint32_t</span>), <span style="color: #666666">1</span>, obj_file);
+  <span style="color: #008000; font-weight: bold">return</span> magic;
+}
+
+<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
+  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
+}
+</pre></div>
+
+<p>The function <code>read_magic</code> is pretty straitforward, though one thing there might look weird: <code>fseek</code>. The problem is that whenever somebody read from a file, the internal <code>_offset</code> of the file changes. It&rsquo;s better to specify the offset explicitly, to ensure that we read what we actually want to read. Also, this small trick will be useful later on.</p>
+
+<p>Structures that represent object file with 32 and 64 bits are different (e.g.: <code>mach_header</code> and <code>mach_header_64</code>), to choose which to use we need to check file&rsquo;s architecture:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">is_magic_64</span>(<span style="color: #B00040">uint32_t</span> magic) {
+  <span style="color: #008000; font-weight: bold">return</span> magic <span style="color: #666666">==</span> MH_MAGIC_64 <span style="color: #666666">||</span> magic <span style="color: #666666">==</span> MH_CIGAM_64;
+}
+
+<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
+  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
+  <span style="color: #B00040">int</span> is_64 <span style="color: #666666">=</span> is_magic_64(magic);
+}
+</pre></div>
+
+<p><code>MH_MAGIC_64</code> and <code>MH_CIGAM_64</code> are &lsquo;magic&rsquo; numbers provided by the system. Second one looks even more magicly than first one. Explanation is following.</p>
+
+<p>Due to historical reasons different computers might use different <a href="https://en.wikipedia.org/wiki/Endianness">byte order</a>: Big Endian (left to right) and Little Endian (right to left). Magic numbers store this information as well: <code>MH_CIGAM</code> and <code>MH_CIGAM_64</code> says that byte order differs from host OS, hence all the bytes should be swapped:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">should_swap_bytes</span>(<span style="color: #B00040">uint32_t</span> magic) {
+  <span style="color: #008000; font-weight: bold">return</span> magic <span style="color: #666666">==</span> MH_CIGAM <span style="color: #666666">||</span> magic <span style="color: #666666">==</span> MH_CIGAM_64;
+}
+
+<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
+  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
+  <span style="color: #B00040">int</span> is_64 <span style="color: #666666">=</span> is_magic_64(magic);
+  <span style="color: #B00040">int</span> is_swap <span style="color: #666666">=</span> should_swap_bytes(magic);
+}
+</pre></div>
+
+<h4 id="mach-o-header">Mach-O Header</h4>
+
+<p>Finally we can read <code>mach_header</code>. Let&rsquo;s first introduce generic function for reading data from a file.</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">void</span> <span style="color: #666666">*</span><span style="color: #0000FF">load_bytes</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> size) {
+  <span style="color: #B00040">void</span> <span style="color: #666666">*</span>buf <span style="color: #666666">=</span> calloc(<span style="color: #666666">1</span>, size);
+  fseek(obj_file, offset, SEEK_SET);
+  fread(buf, size, <span style="color: #666666">1</span>, obj_file);
+  <span style="color: #008000; font-weight: bold">return</span> buf;
+}
+</pre></div>
+
+<p><strong>Note: The data should be freed after usage!</strong></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">void</span> <span style="color: #0000FF">dump_mach_header</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> is_64, <span style="color: #B00040">int</span> is_swap) {
+  <span style="color: #008000; font-weight: bold">if</span> (is_64) {
+    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header_64);
+    <span style="color: #008000; font-weight: bold">struct</span> mach_header_64 <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
+    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+      swap_mach_header_64(header, <span style="color: #666666">0</span>);
+    }
+
+    free(header);
+  } <span style="color: #008000; font-weight: bold">else</span> {
+    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header);
+    <span style="color: #008000; font-weight: bold">struct</span> mach_header <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
+    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+      swap_mach_header(header, <span style="color: #666666">0</span>);
+    }
+
+    free(header);
+  }
+  free(buffer);
+}
+
+<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
+  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
+  <span style="color: #B00040">int</span> is_64 <span style="color: #666666">=</span> is_magic_64(magic);
+  <span style="color: #B00040">int</span> is_swap <span style="color: #666666">=</span> should_swap_bytes(magic);
+  dump_mach_header(obj_file, <span style="color: #666666">0</span>, is_64, is_swap);
+}
+</pre></div>
+
+<p>Here we introduced another function <code>dump_mach_header</code> to not mess up &lsquo;driver&rsquo; function.
+The next step is to read all segment commands and print their names.
+The problem is that mach-o files usually contain other commands as well. If you recall the first field of <code>segment_command</code> structure is a <code>uint32_t cmd;</code>, this field represents type of a command.
+Here is another structure provided by the system that we&rsquo;ll use:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">struct</span> load_command {
+  <span style="color: #B00040">uint32_t</span> cmd;
+  <span style="color: #B00040">uint32_t</span> cmdsize;
+};
+</pre></div>
+
+<p>Besides all the information <code>mach_header</code> has number of load commands, so we can just iterate over and skip commands we&rsquo;re not interested in. Also, we need to calculate offset where the header ends. Here is the final version of <code>dump_mach_header</code>:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">void</span> <span style="color: #0000FF">dump_mach_header</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> is_64, <span style="color: #B00040">int</span> is_swap) {
+  <span style="color: #B00040">uint32_t</span> ncmds;
+  <span style="color: #B00040">int</span> load_commands_offset <span style="color: #666666">=</span> offset;
+
+  <span style="color: #008000; font-weight: bold">if</span> (is_64) {
+    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header_64);
+    <span style="color: #008000; font-weight: bold">struct</span> mach_header_64 <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
+    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+      swap_mach_header_64(header, <span style="color: #666666">0</span>);
+    }
+    ncmds <span style="color: #666666">=</span> header<span style="color: #666666">-&gt;</span>ncmds;
+    load_commands_offset <span style="color: #666666">+=</span> header_size;
+
+    free(header);
+  } <span style="color: #008000; font-weight: bold">else</span> {
+    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header);
+    <span style="color: #008000; font-weight: bold">struct</span> mach_header <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
+    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+      swap_mach_header(header, <span style="color: #666666">0</span>);
+    }
+
+    ncmds <span style="color: #666666">=</span> header<span style="color: #666666">-&gt;</span>ncmds;
+    load_commands_offset <span style="color: #666666">+=</span> header_size;
+
+    free(header);
+  }
+
+  dump_segment_commands(obj_file, load_commands_offset, is_swap, ncmds);
+}
+</pre></div>
+
+<h4 id="segment-command">Segment Command</h4>
+
+<p>It&rsquo;s time to dump all segment names:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segment_commands</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> is_swap, <span style="color: #B00040">uint32_t</span> ncmds) {
+  <span style="color: #B00040">int</span> actual_offset <span style="color: #666666">=</span> offset;
+  <span style="color: #008000; font-weight: bold">for</span> (<span style="color: #B00040">int</span>  i <span style="color: #666666">=</span> <span style="color: #666666">0</span>; i <span style="color: #666666">&lt;</span> ncmds; i<span style="color: #666666">++</span>) {
+    <span style="color: #008000; font-weight: bold">struct</span> load_command <span style="color: #666666">*</span>cmd <span style="color: #666666">=</span> load_bytes(obj_file, actual_offset, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> load_command));
+    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+      swap_load_command(cmd, <span style="color: #666666">0</span>);
+    }
+
+    <span style="color: #008000; font-weight: bold">if</span> (cmd<span style="color: #666666">-&gt;</span>cmd <span style="color: #666666">==</span> LC_SEGMENT_64) {
+      <span style="color: #008000; font-weight: bold">struct</span> segment_command_64 <span style="color: #666666">*</span>segment <span style="color: #666666">=</span> load_bytes(obj_file, actual_offset, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> segment_command_64));
+      <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+        swap_segment_command_64(segment, <span style="color: #666666">0</span>);
+      }
+
+      printf(<span style="color: #BA2121">&quot;segname: %s</span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span>, segment<span style="color: #666666">-&gt;</span>segname);
+
+      free(segment);
+    } <span style="color: #008000; font-weight: bold">else</span> <span style="color: #008000; font-weight: bold">if</span> (cmd<span style="color: #666666">-&gt;</span>cmd <span style="color: #666666">==</span> LC_SEGMENT) {
+      <span style="color: #008000; font-weight: bold">struct</span> segment_command <span style="color: #666666">*</span>segment <span style="color: #666666">=</span> load_bytes(obj_file, actual_offset, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> segment_command));
+      <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+        swap_segment_command(segment, <span style="color: #666666">0</span>);
+      }
+
+      printf(<span style="color: #BA2121">&quot;segname: %s</span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span>, segment<span style="color: #666666">-&gt;</span>segname);
+
+      free(segment);
+    }
+
+    actual_offset <span style="color: #666666">+=</span> cmd<span style="color: #666666">-&gt;</span>cmdsize;
+
+    free(cmd);
+  }
+}
+</pre></div>
+
+<p>This function doesn&rsquo;t need <code>is_64</code> parameter, because we can infer it from <code>cmd</code> type itself (<code>LC_SEGMENT</code>/<code>LC_SEGMENT_64</code>). If it&rsquo;s not a segment, then we just skip the command and move forward to the next one.</p>
+
+<h4 id="cpu-name">CPU name</h4>
+
+<p>The last thing I want to show is how to retrieve the name of a processor based on a <code>cputype</code> from <code>mach_header</code>.
+I believe this is not the best option, but it&rsquo;s acceptable for this artificial example:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">struct</span> _cpu_type_names {
+  cpu_type_t cputype;
+  <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span>cpu_name;
+};
+
+<span style="color: #008000; font-weight: bold">static</span> <span style="color: #008000; font-weight: bold">struct</span> _cpu_type_names cpu_type_names[] <span style="color: #666666">=</span> {
+  { CPU_TYPE_I386, <span style="color: #BA2121">&quot;i386&quot;</span> },
+  { CPU_TYPE_X86_64, <span style="color: #BA2121">&quot;x86_64&quot;</span> },
+  { CPU_TYPE_ARM, <span style="color: #BA2121">&quot;arm&quot;</span> },
+  { CPU_TYPE_ARM64, <span style="color: #BA2121">&quot;arm64&quot;</span> }
+};
+
+<span style="color: #008000; font-weight: bold">static</span> <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span><span style="color: #0000FF">cpu_type_name</span>(cpu_type_t cpu_type) {
+  <span style="color: #008000; font-weight: bold">static</span> <span style="color: #B00040">int</span> cpu_type_names_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(cpu_type_names) <span style="color: #666666">/</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> _cpu_type_names);
+  <span style="color: #008000; font-weight: bold">for</span> (<span style="color: #B00040">int</span> i <span style="color: #666666">=</span> <span style="color: #666666">0</span>; i <span style="color: #666666">&lt;</span> cpu_type_names_size; i<span style="color: #666666">++</span> ) {
+    <span style="color: #008000; font-weight: bold">if</span> (cpu_type <span style="color: #666666">==</span> cpu_type_names[i].cputype) {
+      <span style="color: #008000; font-weight: bold">return</span> cpu_type_names[i].cpu_name;
+    }
+  }
+
+  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #BA2121">&quot;unknown&quot;</span>;
+}
+</pre></div>
+
+<p>OS X provides <code>CPU_TYPE_*</code> for a lot of CPUs, so we can &lsquo;easily&rsquo; associate particular magic number with a string literal. To print name of a CPU we need to modify <code>dump_mach_header</code> a bit:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header_64);
+<span style="color: #008000; font-weight: bold">struct</span> mach_header_64 <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
+<span style="color: #008000; font-weight: bold">if</span> (is_swap) {
+  swap_mach_header_64(header, <span style="color: #666666">0</span>);
+}
+ncmds <span style="color: #666666">=</span> header<span style="color: #666666">-&gt;</span>ncmds;
+load_commands_offset <span style="color: #666666">+=</span> header_size;
+
+printf(<span style="color: #BA2121">&quot;%s</span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span>, cpu_type_name(header<span style="color: #666666">-&gt;</span>cputype)); <span style="color: #408080; font-style: italic">// &lt;-</span>
+
+free(header);
+</pre></div>
+
+<h4 id="fat-objects">Fat objects</h4>
+
+<p>The article is already way too big, so I&rsquo;m not going to describe how to handle Fat objects, but you can find implementation here: <a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a></p>
+
+<h2 id="what-s-next">What&rsquo;s next</h2>
+
+<p>That&rsquo;s pretty much it.</p>
+
+<p>Here is a set of links that might be useful if you want to dig deeper and learn more about mach-o:</p>
+
+<ul>
+<li><a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">OS X ABI Mach-O File Format Reference</a> - official documentation from Apple</li>
+<li><a href="http://sourceforge.net/projects/machoview/">MachOView</a> - is a visual Mach-O file browser. It provides a complete solution for exploring and in-place editing Intel and ARM binaries.</li>
+<li><a href="http://www.objc.io/issues/6-build-tools/mach-o-executables/">Mach-O Executables</a> - nice article from <a href="http://www.objc.io">objc.io</a>.</li>
+<li><a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a> - simple C program that retrieves <a href="http://llvm.org/docs/BitCodeFormat.html">Bitcode</a> from Mach-O binaries.</li>
+<li><a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a> - source code from this article.</li>
+</ul>
+
+<p><strong>Happy hacking!</strong></p>
+
+<p><strong>P.S.</strong> This is a supplementary material for the next post, which will cover &lsquo;new&rsquo; <a href="https://developer.apple.com/library/prerelease/ios/documentation/IDEs/Conceptual/AppDistributionGuide/AppThinning/AppThinning.html#//apple_ref/doc/uid/TP40012582-CH35-SW2">Bitcode feature</a> from Apple.</p>
+
+				</div>
+			</article>
+
+      <span class="post-list-category tags">
+
+
+
+
+  
+  <a href="http://lowlevelbits.orgcategories/mach-o/">mach-o</a>
+
+</span>
+
+
+
+      <h3>Comments</h3>
+      <div id="disqus_thread" aria-live="polite"></div>
+
+		</div>
+
+	</div>
+
+  <hr>
+
+	<div class="row triple-row">
+
+		<div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
+      
+
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/system%20under%20test/" >system under test (3)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mutation%20testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/testing/" >testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+      </ul>
+</article>
+</div>
+
+
+		</div>
+
+		<div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-freebsd/"> System Under Test: FreeBSD</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-llvm/"> System Under Test: LLVM</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test/"> System Under Test</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/crash-free-code-with-fuzzer/"> Crash-free code with Fuzzer</a>
+        </li>
+      
+      </ul>
+
+</article>
+</div>
+
+
+
+		</div>
+
+		<div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="http://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+    <div>
+	  <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscibe</button></div>
+    </div>
+</form>
+</div>
+
+
+
+
+</article>
+</div>
+
+
+		</div>
+	</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2016 - Alex Denisov</div>
+</div>
+
+
+
+</div>  
+
+
+
+
+
+<script src="http://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="http://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="http://lowlevelbits.org/js/tinynav.js"></script>
+<script src="http://lowlevelbits.org/js/template.js"></script>
+
+
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+
+
+</body>
+</html>
+

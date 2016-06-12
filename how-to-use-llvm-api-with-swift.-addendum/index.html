@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+	<meta charset="UTF-8">
+
+  
+    <title>How to use LLVM API with Swift. Addendum - Low Level Bits</title>
+  
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+    <meta name="keywords" content="clang,llvm,compilers,ios development,developer tools" />
+  
+
+  
+    <meta name="description" content="Additional information shows how to use LLVM C API with MCJIT" />
+  
+
+  <link rel="shortcut icon" href="favicon.svg" type="image/x-icon" />
+
+	
+	<link href='http://fonts.googleapis.com/css?family=Poiret+One|PT+Serif|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+	
+  <link href="http://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/glyphicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/halflings.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+	
+  <script src="http://lowlevelbits.org/js/modernizr.js"></script>
+
+	
+    
+</head>
+
+
+<script type="text/javascript">
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://alex-denisov.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<body>
+
+<div class="container">
+
+  	<div class="masthead clearfix">
+
+    
+
+    <a href="/"><img id="logo" src="http://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+	    
+	    
+	    
+			
+			
+			
+			
+			
+			
+			
+	      
+
+		  
+			
+			
+			
+			
+			
+			
+	      
+        
+	    
+	</div>
+
+
+
+	<hr>
+
+	<div class="row main-content">
+		<div class="offset3 span6 zone-content">
+			<article>
+        <h1>How to use LLVM API with Swift. Addendum</h1>
+				<div>
+          
+
+<p>In the <a href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift/">previous article</a> I showed how to use LLVM with Swift.</p>
+
+<p>That time I didn&rsquo;t set up JIT engine properly. Few days later I dived a bit deeper and finally managed to run the program using <a href="http://llvm.org/docs/MCJITDesignAndImplementation.html">MCJIT</a> - new LLVM JIT engine, where &lsquo;MC&rsquo; states for &lsquo;machine code&rsquo;. This engine is different from &lsquo;classical&rsquo; JIT, but this is out of scope of this article. For more information please consider looking at documentation.</p>
+
+<h3 id="mcjit-execution-engine">MCJIT Execution Engine</h3>
+
+<p>Here is the snippet used to create interpreter:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">error</span> =  <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">alignof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
+
+LLVMLinkInInterpreter()
+
+<span style="color: #008000; font-weight: bold">if</span> LLVMCreateInterpreterForModule(engine, module, error) <span style="color: #666666">!=</span> <span style="color: #666666">0</span> {
+  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;can&#39;t initialize engine: </span><span style="color: #BB6688; font-weight: bold">\(</span><span style="color: #008000">String</span>.fromCString<span style="color: #BB6688; font-weight: bold">(</span>error.memory<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #666666">!</span><span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121">&quot;</span>)
+  <span style="color: #408080; font-style: italic">// TODO: cleanup all allocated memory ;)</span>
+  exit(<span style="color: #666666">1</span>)
+}
+</pre></div>
+
+<p>In this snippet the type of execution engine specified explicitly, though it could be more general.</p>
+
+<p>It is possible to use function <code>LLVMCreateExecutionEngineForModule</code>. The exact engine type will be specified by family of function <code>LLVMLinkInEETYPE</code>, where <code>EETYPE</code> is an execution engine type, one of <code>Interpreter</code>, <code>MCJIT</code>, and <code>OrcMCJITReplacement</code>.</p>
+
+<p>Since <code>MCJIT</code> is intended to generate machine code for some specific machine, we should also define which machine to use, e.g.: x86, x64, arm, and so on.</p>
+
+<p>For the sake of simplicity we will generate the code for the host machine. In this case we don&rsquo;t even have to now which CPU family we have. LLVM provides very useful shortcut, we could use <code>Native</code> when refer to a host machine.</p>
+
+<p><code>MCJIT</code> requires only information about a target and code generator for this specific target.</p>
+
+<p>Here is final snippet for the execution engine:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>LLVMLinkInMCJIT()
+LLVMInitializeNativeTarget()
+LLVMInitializeNativeAsmPrinter()
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">error</span> =  <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">alignof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
+
+LLVMLinkInInterpreter()
+
+<span style="color: #008000; font-weight: bold">if</span> LLVMCreateExecutionEngineForModule(engine, module, error) <span style="color: #666666">!=</span> <span style="color: #666666">0</span> {
+  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;can&#39;t initialize engine: </span><span style="color: #BB6688; font-weight: bold">\(</span><span style="color: #008000">String</span>.fromCString<span style="color: #BB6688; font-weight: bold">(</span>error.memory<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #666666">!</span><span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121">&quot;</span>)
+  <span style="color: #408080; font-style: italic">// TODO: cleanup all allocated memory ;)</span>
+  exit(<span style="color: #666666">1</span>)
+}
+</pre></div>
+
+<h3 id="function-main">Function <code>main</code></h3>
+
+<p>There is a small problem with <code>MCJIT</code>. Currently it can only run functions with signatures matching signatures of <code>main</code> C function, i.e. one of those:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>(<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">**</span>argv, <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">**</span>envp)
+(<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">**</span>argv)
+(<span style="color: #B00040">int</span> argc)
+()
+</pre></div>
+
+<p>Return type of the function is also limited: only <code>int</code>. <code>double</code>, <code>float</code>, <code>void</code> and a pointer to something.</p>
+
+<p>So how to call function with signature <code>(int a, int b)</code> and return type <code>int</code>?</p>
+
+<p>The solution is simple: we just need to create a new function with return type <code>int</code> and without parameters. Then we could put call to the <code>sum</code> function into the body of our pseudo-main function.</p>
+
+<p>Here is how it may look:</p>
+
+<p><em>Note: I put it into a function just to specify some scope</em></p>
+
+<p><em>Note2: I do not cleanup memory in this snippet just to save some space</em></p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">func</span> <span style="color: #0000FF">runFunction</span>(a: <span style="color: #008000">Int</span>, <span style="color: #008000; font-weight: bold">_</span> b: <span style="color: #008000">Int</span>) -&gt; <span style="color: #008000">Int</span> {
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">functionType</span> = LLVMFunctionType(returnType, <span style="color: #008000; font-weight: bold">nil</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>)
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">wrapperFunction</span> = LLVMAddFunction(module, <span style="color: #BA2121">&quot;&quot;</span>, functionType)
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">entryBlock</span> = LLVMAppendBasicBlock(wrapperFunction, <span style="color: #BA2121">&quot;entry&quot;</span>)
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">builder</span> = LLVMCreateBuilder()
+  LLVMPositionBuilderAtEnd(builder, entryBlock)
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">argumentsCount</span> = <span style="color: #666666">2</span>
+  <span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">argumentValues</span> = [LLVMValueRef]()
+
+  argumentValues.append(LLVMConstInt(int32, <span style="color: #008000">UInt64</span>(a), <span style="color: #666666">0</span>))
+  argumentValues.append(LLVMConstInt(int32, <span style="color: #008000">UInt64</span>(b), <span style="color: #666666">0</span>))
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">argumentsPointer</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMValueRef&gt;.alloc(<span style="color: #008000">strideof</span>(LLVMValueRef) <span style="color: #666666">*</span> argumentsCount)
+  argumentsPointer.initializeFrom(argumentValues)
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">callTemp</span> = LLVMBuildCall(builder,
+                               sumFunction,
+                               argumentsPointer,
+                               <span style="color: #008000">UInt32</span>(argumentsCount), <span style="color: #BA2121">&quot;sum_temp&quot;</span>)
+  LLVMBuildRet(builder, callTemp)
+
+  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>
+}
+
+runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">6</span>)
+</pre></div>
+
+<p>Here is an output after executing this code:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
+
+<span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>) {
+<span style="color: #A0A000">entry:</span>
+  <span style="color: #19177C">%temp</span> = <span style="color: #008000; font-weight: bold">add</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%0</span>, <span style="color: #19177C">%1</span>
+  <span style="color: #008000; font-weight: bold">ret</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%temp</span>
+}
+
+<span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@0</span>() {
+<span style="color: #A0A000">entry:</span>
+  <span style="color: #19177C">%sum_temp</span> = <span style="color: #008000; font-weight: bold">call</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span> <span style="color: #666666">5</span>, <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #666666">6</span>)
+  <span style="color: #008000; font-weight: bold">ret</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%sum_temp</span>
+}
+</pre></div>
+
+<p>Our unnamed wrapper function has name <code>@0</code>. Since this function is just a helper we will need to remove it after we have done execution.</p>
+
+<p>The way to run the function is the same as it was using interpreter:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">func</span> <span style="color: #0000FF">runFunction</span>(a: <span style="color: #008000">Int</span>, <span style="color: #008000; font-weight: bold">_</span> b: <span style="color: #008000">Int</span>) -&gt; <span style="color: #008000">Int</span> {
+  <span style="color: #408080; font-style: italic">/// ...</span>
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">executionEngine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">strideof</span>(LLVMExecutionEngineRef))
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">error</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">strideof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
+
+  defer {
+    error.dealloc(<span style="color: #008000">strideof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
+    executionEngine.dealloc(<span style="color: #008000">strideof</span>(LLVMExecutionEngineRef))
+  }
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">res</span> = LLVMCreateExecutionEngineForModule(executionEngine, module, error)
+  <span style="color: #008000; font-weight: bold">if</span> res <span style="color: #666666">!=</span> <span style="color: #666666">0</span> {
+    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">msg</span> = <span style="color: #008000">String</span>.fromCString(error.memory)
+    <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;</span><span style="color: #BB6688; font-weight: bold">\(</span>msg<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121">&quot;</span>)
+    exit(<span style="color: #666666">1</span>)
+  }
+
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">value</span> = LLVMRunFunction(executionEngine.memory, wrapperFunction, <span style="color: #666666">0</span>, <span style="color: #008000; font-weight: bold">nil</span>)
+  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">result</span> = LLVMGenericValueToInt(value, <span style="color: #666666">0</span>)
+
+  LLVMDeleteFunction(wrapperFunction)
+
+  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">Int</span>(result)
+}
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;</span><span style="color: #BB6688; font-weight: bold">\(</span>runFunction<span style="color: #BB6688; font-weight: bold">(</span><span style="color: #666666">5</span>, <span style="color: #666666">6</span><span style="color: #BB6688; font-weight: bold">))</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;</span><span style="color: #BB6688; font-weight: bold">\(</span>runFunction<span style="color: #BB6688; font-weight: bold">(</span><span style="color: #666666">7</span>, <span style="color: #666666">142</span><span style="color: #BB6688; font-weight: bold">))</span><span style="color: #BA2121">&quot;</span>)
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;</span><span style="color: #BB6688; font-weight: bold">\(</span>runFunction<span style="color: #BB6688; font-weight: bold">(</span><span style="color: #666666">557</span>, <span style="color: #666666">1024</span><span style="color: #BB6688; font-weight: bold">))</span><span style="color: #BA2121">&quot;</span>)
+</pre></div>
+
+<p>If we run this code we will actually see the result:</p>
+
+<pre><code>&gt; ./hello_llvm
+11
+149
+1581
+</code></pre>
+
+<h3 id="that-s-it">That&rsquo;s it</h3>
+
+<p>I have updated the repository so you can look at it to see the whole code for the article:</p>
+
+<p><a href="https://github.com/AlexDenisov/swift_llvm">https://github.com/AlexDenisov/swift_llvm</a></p>
+
+<p>Besides that, if you want to learn more about using LLVM with Swift and to see more practical examples, then I can recommend looking at LLVM&rsquo;s <a href="http://llvm.org/docs/tutorial/index.html">Kaleidoscope</a> implemented in Swift: <a href="https://github.com/AlexDenisov/SwiftKaleidoscope">SwiftKaleidoscope</a></p>
+
+				</div>
+			</article>
+
+      <span class="post-list-category tags">
+
+
+
+
+  
+  <a href="http://lowlevelbits.orgcategories/llvm/">llvm</a>,
+
+  
+  <a href="http://lowlevelbits.orgcategories/swift/">swift</a>
+
+</span>
+
+
+
+      <h3>Comments</h3>
+      <div id="disqus_thread" aria-live="polite"></div>
+
+		</div>
+
+	</div>
+
+  <hr>
+
+	<div class="row triple-row">
+
+		<div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
+      
+
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/system%20under%20test/" >system under test (3)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mutation%20testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/testing/" >testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+      </ul>
+</article>
+</div>
+
+
+		</div>
+
+		<div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-freebsd/"> System Under Test: FreeBSD</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-llvm/"> System Under Test: LLVM</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test/"> System Under Test</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/crash-free-code-with-fuzzer/"> Crash-free code with Fuzzer</a>
+        </li>
+      
+      </ul>
+
+</article>
+</div>
+
+
+
+		</div>
+
+		<div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="http://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+    <div>
+	  <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscibe</button></div>
+    </div>
+</form>
+</div>
+
+
+
+
+</article>
+</div>
+
+
+		</div>
+	</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2016 - Alex Denisov</div>
+</div>
+
+
+
+</div>  
+
+
+
+
+
+<script src="http://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="http://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="http://lowlevelbits.org/js/tinynav.js"></script>
+<script src="http://lowlevelbits.org/js/template.js"></script>
+
+
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+
+
+</body>
+</html>
+

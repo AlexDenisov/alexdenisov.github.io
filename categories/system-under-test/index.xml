@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>System Under Test on Low Level Bits</title>
+    <link>http://lowlevelbits.org/categories/system-under-test/</link>
+    <description>Recent content in System Under Test on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Thu, 31 Mar 2016 17:22:59 +0200</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/categories/system-under-test/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>System Under Test: FreeBSD</title>
+      <link>http://lowlevelbits.org/system-under-test-freebsd/</link>
+      <pubDate>Thu, 31 Mar 2016</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/system-under-test-freebsd/</guid>
+      <description>
+
+&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test&#34;&gt;&amp;ldquo;System Under Test&amp;rdquo;&lt;/a&gt;. It provides an overview of the FreeBSD test suite and tools FreeBSD developers use to write and run tests.&lt;/p&gt;
+
+&lt;h3 id=&#34;what-is-the-project-about&#34;&gt;What is the project about?&lt;/h3&gt;
+
+&lt;p&gt;FreeBSD is a well known Unix-based operating system.&lt;/p&gt;
+
+&lt;h3 id=&#34;tests&#34;&gt;Tests&lt;/h3&gt;
+
+&lt;p&gt;FreeBSD has one test suite. It contains ~3.6k tests and takes ~7.5 minutes to run on a virtual machine with 2Gb of RAM.&lt;/p&gt;
+
+&lt;h4 id=&#34;getting-tests&#34;&gt;Getting Tests&lt;/h4&gt;
+
+&lt;p&gt;The tests can be found in &lt;code&gt;/usr/tests&lt;/code&gt; directory. Though, you may not have them there because of one of the following reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Test suite is not a part of any distribution prior to FreeBSD 10.0.&lt;/li&gt;
+&lt;li&gt;Test suite is available out of the box only on FreeBSD 11.0 and newer.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
+Fortunately, it is very easy:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;WITH_TESTS=YES&amp;quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/src
+make buildworld
+make installworld
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&#34;running-tests&#34;&gt;Running tests&lt;/h4&gt;
+
+&lt;p&gt;FreeBSD adopted approach used by NetBSD project. Within the approach they included the toolchain: &lt;a href=&#34;https://github.com/jmmv/kyua&#34;&gt;Kyua&lt;/a&gt; and &lt;a href=&#34;https://github.com/jmmv/atf/&#34;&gt;ATF&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.&lt;/p&gt;
+
+&lt;p&gt;To run tests you need to point &lt;code&gt;kyua&lt;/code&gt; to a &lt;code&gt;Kyuafile&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/tests
+kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;when it’s done you may request report:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;kyua report
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Test report&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;toolchain&#34;&gt;Toolchain&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;Kyuafile&lt;/code&gt; specifies which tests to run. It also can include other &lt;code&gt;Kyuafile&lt;/code&gt;s. Here is an example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;include(&#39;lib/Kyuafile&#39;)
+atf_test_program{name=’some_atf_test&#39;}
+plain_test_program{name=&#39;some_plain_test&#39;}
+tap_test_program{name=&#39;some_tap_test’}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When run &lt;code&gt;kyua&lt;/code&gt; will execute all tests specified in &lt;code&gt;lib/Kyuafile&lt;/code&gt; (and in &lt;code&gt;Kyuafile&lt;/code&gt;s included from &lt;code&gt;lib/Kyuafile&lt;/code&gt;), and then will execute three tests: ATF test &lt;code&gt;some_atf_test&lt;/code&gt;, plain test &lt;code&gt;some_plain_test&lt;/code&gt;, and &lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;TAP&lt;/a&gt; test &lt;code&gt;some_tap_test&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Plain test is basically a simple program that returns non-zero if test failed and zero otherwise.&lt;/p&gt;
+
+&lt;p&gt;TAP tests are any possible tests, the only important thing there  is an output. If test prints &amp;ldquo;ok whatever&amp;rdquo; then it succeeded, if it prints &amp;ldquo;not ok whatnot&amp;rdquo; - it has failed.&lt;/p&gt;
+
+&lt;p&gt;ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.&lt;/p&gt;
+
+&lt;p&gt;Here is a part of an ATF test written in shell:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;test5678901234567&amp;quot;&lt;/span&gt;
+
+atf_test_case longname cleanup
+
+longname_head&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_set &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;require.user&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;root&amp;quot;&lt;/span&gt;
+  atf_set &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;descr&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Test that usernames longer than 16 &amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&lt;/span&gt;
+    &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;characters are allowed (PR bin/39546)&amp;quot;&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+
+longname_body&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw useradd &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+
+longname_cleanup&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_check -s ignore -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw userdel &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+
+atf_init_test_cases&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_add_test_case longname
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you try to find there a test written let’s say in C, then you will not succeed. All tests under &lt;code&gt;/usr/tests&lt;/code&gt; are executables.
+The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the &lt;code&gt;/usr/tests&lt;/code&gt;.
+For example, if you want to see tests for libc’ stdio, then you need to look at &lt;code&gt;/usr/src/lib/libc/tests/stdio&lt;/code&gt;.
+At the moment there is one test, here is part of it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+ATF_TC_BODY(test_append_binary_pos, tc)
+{
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * For compatibility with other implementations (glibc), we set the&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * position to 0 when opening an automatically allocated binary stream&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * for appending.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  */&lt;/span&gt;
+
+  &lt;span style=&#34;color: #B00040&#34;&gt;FILE&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;fp;
+
+  fp &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fmemopen(&lt;span style=&#34;color: #008000&#34;&gt;NULL&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;ab+&amp;quot;&lt;/span&gt;);
+  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color: #666666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0L&lt;/span&gt;);
+  fclose(fp);
+
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * Make sure that a pre-allocated buffer behaves correctly.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  */&lt;/span&gt;
+  &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; buf[] &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;;
+  fp &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fmemopen(buf, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;sizeof&lt;/span&gt;(buf), &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;ab+&amp;quot;&lt;/span&gt;);
+  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color: #666666&#34;&gt;==&lt;/span&gt; strlen(buf));
+  fclose(fp);
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;FreeBSD has ~3.6k tests. The amount of tests is suspiciously small for such a big project. Since I was (and still am) afraid that I missed some important part I did ask on mailing list &lt;a href=&#34;https://lists.freebsd.org/pipermail/freebsd-testing/2016-March/001306.html&#34;&gt;question about available tests&lt;/a&gt;, but didn’t
+get any answer so far.&lt;/p&gt;
+
+&lt;p&gt;FreeBSD has lots of various tools and libraries, but not all of them tested.&lt;/p&gt;
+
+&lt;p&gt;Maybe it’s a good starting point for a contribution?&lt;/p&gt;
+
+&lt;h3 id=&#34;further-reading&#34;&gt;Further reading&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;man 7 tests&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.freebsd.org/TestSuite&#34;&gt;FreeBSD Test Suite&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.netbsd.org/kyua/&#34;&gt;Kyua: An introduction for NetBSD users&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jmmv/kyua/wiki/About&#34;&gt;Kyua: project wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;Test Anything Protocol&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>System Under Test: LLVM</title>
+      <link>http://lowlevelbits.org/system-under-test-llvm/</link>
+      <pubDate>Thu, 24 Mar 2016</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/system-under-test-llvm/</guid>
+      <description>
+
+&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test&#34;&gt;&amp;ldquo;System Under Test&amp;rdquo;&lt;/a&gt;. It provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level.&lt;/p&gt;
+
+&lt;h3 id=&#34;what-is-llvm-about&#34;&gt;What is LLVM about?&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org&#34;&gt;http://llvm.org&lt;/a&gt; says that&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;It is not that much I can add here besides one link:&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://aosabook.org/en/llvm.html&#34;&gt;The Architecture of Open Source Applications: LLVM&lt;/a&gt; by Chris Lattner.&lt;/p&gt;
+
+&lt;p&gt;which sheds light on compilers in general and LLVM particularly.&lt;/p&gt;
+
+&lt;p&gt;LLVM is rather an umbrella project than a single project. It consists of compiler, debugger, linker, assemblers for several CPUs and of the most important - its Core: back-end and middle-end.&lt;/p&gt;
+
+&lt;p&gt;In this article I refer to LLVM as a back-end + middle-end, rather than the whole umbrella (that would be too much for one post).&lt;/p&gt;
+
+&lt;h3 id=&#34;tests&#34;&gt;Tests&lt;/h3&gt;
+
+&lt;p&gt;LLVM is a huge project. Therefore it has quite a few groups of tests: unit tests, regression tests, performance tracking and fuzzing tests.
+Since the project is not trivial the tools used for testing are mostly written from scratch and are part of LLVM project.
+Though, I wish I could use some of them without having LLVM as their dependency.&lt;/p&gt;
+
+&lt;h4 id=&#34;unit-tests&#34;&gt;Unit Tests&lt;/h4&gt;
+
+&lt;p&gt;Amount of unit tests is pretty small comparing to regression tests.
+One reason behind that decision is that LLVM internals constantly change all the time. Supporting tests under such conditions is very time consuming.
+However there are still parts that do not change very often, that is they are good target for unit testing.
+These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
+
+&lt;p&gt;They can be run using &lt;code&gt;make&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;make check-llvm-unit
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Showing this beautiful output:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Unit tests&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.&lt;/p&gt;
+
+&lt;p&gt;Unit Tests are written using &lt;a href=&#34;https://github.com/google/googletest&#34;&gt;Google Test&lt;/a&gt; framework.
+Here is an example of a simple test:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// unittests/Support/YAMLParserTest.cpp&lt;/span&gt;
+TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
+  SourceMgr SM;
+  yaml&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;Stream Stream(&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;[&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;, &lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;]&amp;quot;&lt;/span&gt;, SM);
+
+  yaml&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;SequenceNode &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;Node &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; dyn_cast&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;yaml&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;SequenceNode&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;(
+                                              Stream.begin()&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;getRoot());
+
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;auto&lt;/span&gt; Begin &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; Node&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;begin();
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;auto&lt;/span&gt; End &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; Node&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;end();
+
+  EXPECT_TRUE(Begin &lt;span style=&#34;color: #666666&#34;&gt;!=&lt;/span&gt; End);
+  EXPECT_FALSE(Begin &lt;span style=&#34;color: #666666&#34;&gt;!=&lt;/span&gt; Begin);
+  EXPECT_FALSE(End &lt;span style=&#34;color: #666666&#34;&gt;!=&lt;/span&gt; End);
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Pretty trivial.
+Let&amp;rsquo;s move forward and look at another, more interesting group of tests.&lt;/p&gt;
+
+&lt;h4 id=&#34;regression-tests&#34;&gt;Regression Tests&lt;/h4&gt;
+
+&lt;p&gt;The aim of this test suite is to verify the output of different tools, hence the internals can change separately from tests, making support less time-consuming.
+This test suite located in &lt;code&gt;test&lt;/code&gt; directory.
+It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
+It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;make check-llvm
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Regression tests&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Regression Tests (unlike Unit Tests) are using custom tools such as &lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;lit (LLVM Integrated Tester)&lt;/a&gt; and &lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;.
+Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; RUN: %lli %s | FileCheck %s&lt;/span&gt;
+
+&lt;span style=&#34;color: #19177C&#34;&gt;@flt&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;internal&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;global&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;12.0e+0&lt;/span&gt;
+&lt;span style=&#34;color: #19177C&#34;&gt;@str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;internal&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Double value: %f\0A\00&amp;quot;&lt;/span&gt;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;nocapture&lt;/span&gt;, ...) &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;nounwind&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@fflush&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;*) &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;nounwind&lt;/span&gt;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@main&lt;/span&gt;() {
+  &lt;span style=&#34;color: #19177C&#34;&gt;%flt&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;float&lt;/span&gt;, &lt;span style=&#34;color: #B00040&#34;&gt;float&lt;/span&gt;* &lt;span style=&#34;color: #19177C&#34;&gt;@flt&lt;/span&gt;
+  &lt;span style=&#34;color: #19177C&#34;&gt;%float2&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;frem&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;%flt&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;5.0&lt;/span&gt;
+  &lt;span style=&#34;color: #19177C&#34;&gt;%double1&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;fpext&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;%float2&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;*, ...) &lt;span style=&#34;color: #19177C&#34;&gt;@printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;getelementptr&lt;/span&gt; ([&lt;span style=&#34;color: #666666&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;], [&lt;span style=&#34;color: #666666&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;]* &lt;span style=&#34;color: #19177C&#34;&gt;@str&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i64&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;), &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;%double1&lt;/span&gt;)
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@fflush&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;null&lt;/span&gt;)
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; CHECK: Double value: 2.0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;This test can be split into three parts:&lt;/p&gt;
+
+&lt;p&gt;Run command (the top line):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; RUN: %lli %s | FileCheck %s&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Expectations (the bottom line):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; CHECK: Double value: 2.0&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;The rest (LLVM IR in the middle) is the body.&lt;/p&gt;
+
+&lt;p&gt;All tests in this suite have one or more &amp;lsquo;run&amp;rsquo; command.
+&lt;code&gt;lit&lt;/code&gt; uses set of rules to substitute the string into real runnable command. Substitutions are either built-in (such as &lt;code&gt;%s&lt;/code&gt;) or configurable (such as &lt;code&gt;%lli&lt;/code&gt;).
+&lt;code&gt;lit&lt;/code&gt; replaces &lt;code&gt;%s&lt;/code&gt; with the full path to a file under test, e.g.:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;~/llvm/test/ExecutionEngine/frem.ll
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Configurable substitutions however are taken from &lt;code&gt;lit.cfg&lt;/code&gt; file, which is basically a Python script.&lt;/p&gt;
+
+&lt;p&gt;For example, this config says that &lt;code&gt;%lli&lt;/code&gt; is to be replaced with &lt;code&gt;/usr/local/bin/lli&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;lli &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;/usr/local/bin/lli&amp;#39;&lt;/span&gt;
+config&lt;span style=&#34;color: #666666&#34;&gt;.&lt;/span&gt;substitutions&lt;span style=&#34;color: #666666&#34;&gt;.&lt;/span&gt;append( (&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;%lli&amp;#39;&lt;/span&gt;, lli ) )
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Having these parameters in place &lt;code&gt;lit&lt;/code&gt; will run the test using this command:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Which will interpret &lt;code&gt;frem.ll&lt;/code&gt; using LLVM Interpreter (&lt;code&gt;lli&lt;/code&gt;) and pass the output to the &lt;code&gt;FileCheck&lt;/code&gt;. &lt;code&gt;FileCheck&lt;/code&gt; in turn takes two arguments: filename with expectations and input that needs to be examined.&lt;/p&gt;
+
+&lt;p&gt;Summary of this example:&lt;/p&gt;
+
+&lt;p&gt;The test interprets the body (LLVM IR) from &lt;code&gt;~/llvm/test/ExecutionEngine/frem.ll&lt;/code&gt; using LLVM Interpreter (&lt;code&gt;%lli&lt;/code&gt; aka &lt;code&gt;/usr/local/bin/lli&lt;/code&gt;) and checks if the output of interpretation contains string &lt;code&gt;Double value: 2.0&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Both &lt;code&gt;lit&lt;/code&gt; and &lt;code&gt;FileCheck&lt;/code&gt; have lots of useful options. Consider looking at documentation to learn more.&lt;/p&gt;
+
+&lt;h4 id=&#34;performance-tracking&#34;&gt;Performance tracking&lt;/h4&gt;
+
+&lt;p&gt;Performance is one of the most important goals of any software. LLVM is not an exception.&lt;/p&gt;
+
+&lt;p&gt;Here LLVM also uses custom tool - &lt;a href=&#34;http://llvm.org/docs/lnt/intro.html&#34;&gt;LNT&lt;/a&gt;. This tool was initially written to be used inside LLVM, but its design allows it to be usable for performance testing of any other software.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/TestingGuide.html#test-suite-overview&#34;&gt;Performance tests suite&lt;/a&gt; is not a part of LLVM source tree. It has to be fetched separately. It is a set of programs that are compiled and executed to track performance changes.&lt;/p&gt;
+
+&lt;p&gt;Besides &lt;code&gt;LNT&lt;/code&gt; the test suite can be used within CMake as described in &lt;a href=&#34;http://llvm.org/docs/TestSuiteMakefileGuide.html&#34;&gt;LLVM &lt;code&gt;test-suite&lt;/code&gt; Guide&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;At the moment of writing this article external test suite contains 485 test cases. It takes ~5 minutes to run them using &lt;code&gt;lit&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h4 id=&#34;fuzz-testing&#34;&gt;Fuzz Testing&lt;/h4&gt;
+
+&lt;p&gt;Another powerful technique used to increase quality of LLVM is &lt;a href=&#34;https://en.wikipedia.org/wiki/Fuzz_testing&#34;&gt;Fuzz Testing&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Here as well LLVM has its own tool called &lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html&#34;&gt;LibFuzzer&lt;/a&gt;.
+The tool is so great that it is also used by &lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html#trophies&#34;&gt;other software&lt;/a&gt; such as Python, PCRE, OpenSSL, SQLite, and other.&lt;/p&gt;
+
+&lt;p&gt;Here is an example of a fuzz test:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;C&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; LLVMFuzzerTestOneInput(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;Data, &lt;span style=&#34;color: #B00040&#34;&gt;size_t&lt;/span&gt; Size) {
+
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Allocate space for locals before setjmp so that memory can be collected&lt;/span&gt;
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// if parse exits prematurely (via longjmp).&lt;/span&gt;
+  StringRef Input((&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)Data, Size);
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Note: We need to create a buffer to add a null terminator to the&lt;/span&gt;
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// end of the input string. The parser assumes that the string&lt;/span&gt;
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parsed is always null terminated.&lt;/span&gt;
+  std&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;unique_ptr&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;MemoryBuffer&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt; MemBuf &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; MemoryBuffer&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;getMemBufferCopy(Input);
+  SMDiagnostic Err;
+  LLVMContext &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;Context &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getGlobalContext();
+  std&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;unique_ptr&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;Module&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt; M;
+
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (setjmp(JmpBuf))
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// If reached, we have returned with non-zero status, so exit.&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
+
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// TODO(kschimpf) Write a main to do this initialization.&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;!&lt;/span&gt;InstalledHandler) {
+    llvm&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;install_fatal_error_handler(&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;MyFatalErrorHandler, nullptr);
+    InstalledHandler &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;true&lt;/span&gt;;
+  }
+
+  M &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; parseAssembly(MemBuf&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;getMemBufferRef(), Err, Context);
+
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;!&lt;/span&gt;M.get())
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
+
+  verifyModule(&lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;M.get());
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code&gt;LibFuzzer&lt;/code&gt; generates huge amount of different inputs using &lt;a href=&#34;https://en.wikipedia.org/wiki/Genetic_programming&#34;&gt;Genetic programming&lt;/a&gt; and calls &lt;code&gt;LLVMFuzzerTestOneInput&lt;/code&gt; within each input.
+This test then tries to parse the input as an assembly. The parser should not crash.&lt;/p&gt;
+
+&lt;p&gt;At the moment there are two targets for fuzz testing within LLVM source tree: &lt;code&gt;llvm-as-fuzzer&lt;/code&gt; and &lt;code&gt;llvm-mc-fuzzer&lt;/code&gt;. They are located in &lt;code&gt;tools&lt;/code&gt; directory.&lt;/p&gt;
+
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;LLVM uses a few test suites for different needs.
+There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run both tests in Debug mode on 2 y/o MacBook Pro using 4 threads.&lt;/p&gt;
+
+&lt;p&gt;LLVM uses Fuzzing Tests to prevent system from abnormal exit when erroneous input received.&lt;/p&gt;
+
+&lt;p&gt;LLVM has out-of-source-tree test-suite for performance tracking.&lt;/p&gt;
+
+&lt;p&gt;LLVM mostly uses custom tools for testing.&lt;/p&gt;
+
+&lt;h3 id=&#34;further-reading-additional-material&#34;&gt;Further Reading / Additional Material&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/TestingGuide.html&#34;&gt;LLVM Testing Infrastructure Guide&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;LLVM Integrated Tester&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html&#34;&gt;LibFuzzer&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/TestSuiteMakefileGuide.html&#34;&gt;LLVM test-suite Guide&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/lnt/quickstart.html&#34;&gt;LNT Quickstart Guide&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>System Under Test</title>
+      <link>http://lowlevelbits.org/system-under-test/</link>
+      <pubDate>Thu, 24 Mar 2016</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/system-under-test/</guid>
+      <description>&lt;p&gt;Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.&lt;/p&gt;
+
+&lt;p&gt;Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of these articles is to answer the question “How is X tested?”.&lt;/p&gt;
+
+&lt;p&gt;Here is a list of projects I want to start with:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-llvm/&#34;&gt;LLVM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd/&#34;&gt;FreeBSD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;PostgreSQL: TBD&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you want to see a post about particular project which is not on the list: please &lt;a href=&#34;mailto:1101.debian@gmail.com&#34;&gt;send me an email&lt;/a&gt; or leave a comment here with a name of the project.&lt;/p&gt;
+
+&lt;p&gt;If you don&amp;rsquo;t want to miss the next article - feel free to subscribe using the form in the sidebar or follow me on Twitter.&lt;/p&gt;
+
+&lt;p&gt;Enjoy reading!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

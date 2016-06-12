@@ -1,0 +1,179 @@
+[class^="smicon-"] {
+    display: inline-block;
+    *display: inline;
+    *zoom: 1;
+    width: 32px;
+    height: 32px;
+    background-image: url(../img/icons32px.png);
+    background-repeat: no-repeat;
+    background-position: 0px 0px;
+}
+
+
+.smicon-500px {
+    background-position: 0px 0px;
+}
+
+.smicon-addthis {
+    background-position: 0px -32px;
+}
+
+.smicon-behance {
+    background-position: 0px -64px;
+}
+
+.smicon-blogger {
+    background-position: 0px  -96px;
+}
+
+.smicon-delicious {
+    background-position: 0px -128px;
+}
+
+.smicon-deviantart {
+    background-position: 0px -160px;
+}
+
+.smicon-digg {
+    background-position: 0px -192px;
+}
+
+.smicon-dopplr {
+    background-position: 0px -224px;
+}
+
+.smicon-dribbble {
+    background-position: 0px -256px;
+}
+
+.smicon-evernote {
+    background-position: 0px -288px;
+}
+
+.smicon-facebook {
+    background-position: 0px -320px;
+}
+
+.smicon-flickr {
+    background-position: 0px -352px;
+}
+
+.smicon-forrst {
+    background-position: 0px -384px;
+}
+
+.smicon-github {
+    background-position: 0px -416px;
+}
+
+.smicon-google {
+    background-position: 0px -448px;
+}
+
+.smicon-grooveshark {
+    background-position: 0px -480px;
+}
+
+.smicon-instagram {
+    background-position: 0px -512px;
+}
+
+.smicon-lastfm {
+    background-position: 0px -544px;
+}
+
+.smicon-linkedin {
+    background-position: 0px -576px;
+}
+
+.smicon-mail {
+    background-position: 0px -608px;
+}
+
+.smicon-myspace {
+    background-position: 0px -640px;
+}
+
+.smicon-path {
+    background-position: -32px 0px;
+}                            
+                             
+.smicon-paypal {             
+    background-position: -32px -32px;
+}                            
+                             
+.smicon-picasa {             
+    background-position: -32px -64px;
+}                            
+                             
+.smicon-pinterest {          
+    background-position: -32px  -96px;
+}                            
+                             
+.smicon-posterous {          
+    background-position: -32px -128px;
+}                            
+                             
+.smicon-reddit {             
+    background-position: -32px -160px;
+}                            
+                             
+.smicon-rss {                
+    background-position: -32px -192px;
+}                            
+                             
+.smicon-sharethis {          
+    background-position: -32px -224px;
+}                            
+                             
+.smicon-skype {              
+    background-position: -32px -256px;
+}                            
+                             
+.smicon-soundcloud {         
+    background-position: -32px -288px;
+}                            
+                             
+.smicon-spotify {            
+    background-position: -32px -320px;
+}                            
+                             
+.smicon-stumbleupon {        
+    background-position: -32px -352px;
+}                           
+                            
+.smicon-tumblr {            
+    background-position: -32px -384px;
+}                           
+                            
+.smicon-twitter {           
+    background-position: -32px -416px;
+}                           
+                            
+.smicon-viddler {           
+    background-position: -32px -448px;
+}                           
+                            
+.smicon-vimeo {             
+    background-position: -32px -480px;
+}                           
+                            
+.smicon-virb {              
+    background-position: -32px -512px;
+}                           
+                            
+.smicon-windows {           
+    background-position: -32px -544px;
+}                           
+                            
+.smicon-wordpress {         
+    background-position: -32px -576px;
+}                           
+                            
+.smicon-youtube {           
+    background-position: -32px -608px;
+}                           
+                            
+.smicon-zerply {            
+    background-position: -32px -640px;
+}

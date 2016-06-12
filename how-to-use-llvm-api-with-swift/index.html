@@ -1,107 +1,102 @@
-
 <!DOCTYPE html>
-<!--[if IEMobile 7 ]><html class="no-js iem7"><![endif]-->
-<!--[if lt IE 9]><html class="no-js lte-ie8"><![endif]-->
-<!--[if (gt IE 8)|(gt IEMobile 7)|!(IEMobile)|!(IE)]><!--><html class="no-js" lang="en"><!--<![endif]-->
+
+
+
+ <html class="no-js" lang="en"> 
 <head>
-  <meta charset="utf-8">
-  <title>How to use LLVM API with Swift - Low Level Bits</title>
-  <meta name="author" content="AlexDenisov">
-
-
-  <meta name="description" content="The article shows how to use LLVM C API with Swift." />
-
-
-
-  <meta name="keywords" content="llvm, swift, interpreter, jit, mcjit" />
-
-
-  <!-- http://t.co/dKP3o1e -->
-  <meta name="HandheldFriendly" content="True">
-  <meta name="MobileOptimized" content="320">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta charset="UTF-8">
 
   
-  <link rel="canonical" href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift">
-  <link href="/favicon.png" rel="icon">
-  <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-  <link href="/atom.xml" rel="alternate" title="Low Level Bits" type="application/atom+xml">
-  <script src="/javascripts/modernizr-2.0.js"></script>
-  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
-  <script>!window.jQuery && document.write(unescape('%3Cscript src="./javascripts/libs/jquery.min.js"%3E%3C/script%3E'))</script>
-  <script src="/javascripts/octopress.js" type="text/javascript"></script>
-  <!--Fonts from Google"s Web font directory at http://google.com/webfonts -->
-<link href='https://fonts.googleapis.com/css?family=Noto+Serif:400,700' rel='stylesheet' type='text/css'>
-<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <title>How to use LLVM API with Swift - Low Level Bits</title>
+  
+
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   
-  <script type="text/javascript">
-    var _gaq = _gaq || [];
-    _gaq.push(['_setAccount', 'UA-58043349-1']);
-    _gaq.push(['_trackPageview']);
+    <meta name="keywords" content="clang,llvm,compilers,ios development,developer tools" />
+  
 
-    (function() {
-      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-    })();
-  </script>
+  
+    <meta name="description" content="The article shows how to use LLVM C API with Swift." />
+  
 
+  <link rel="shortcut icon" href="favicon.svg" type="image/x-icon" />
 
+	
+	<link href='http://fonts.googleapis.com/css?family=Poiret+One|PT+Serif|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+	
+  <link href="http://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/glyphicons.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/halflings.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="http://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+	
+  <script src="http://lowlevelbits.org/js/modernizr.js"></script>
+
+	
+    
 </head>
 
-<body   >
-  <header role="banner"><hgroup>
-  <h1><a href="/">Low Level Bits</a></h1>
-  
-    <h2>Software Development</h2>
-  
-</hgroup>
 
-</header>
-  <nav role="navigation"><ul class="subscription" data-subscription="rss">
-  
-  
-</ul>
+<script type="text/javascript">
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://alex-denisov.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
 
 
+<body>
 
-</nav>
-  <div id="main">
-    <div id="content">
-      <div>
-<article class="hentry" role="article">
-  
-  <header>
+<div class="container">
+
+  	<div class="masthead clearfix">
+
     
-      <h1 class="entry-title">How to use LLVM API with Swift</h1>
-    
-    
-      <p class="meta">
+
+    <a href="/"><img id="logo" src="http://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+	    
+	    
+	    
+			
+			
+			
+			
+			
+			
+			
+	      
+
+		  
+			
+			
+			
+			
+			
+			
+	      
         
+	    
+	</div>
 
 
 
+	<hr>
 
+	<div class="row main-content">
+		<div class="offset3 span6 zone-content">
+			<article>
+        <h1>How to use LLVM API with Swift</h1>
+				<div>
+          
 
-
-
-
-  
-
-
-
-<time datetime="2015-11-30T13:00:00+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-11-30T13:00:00+01:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-        
-           | <a href="#disqus_thread"
-             data-disqus-identifier="http://lowlevelbits.org">Comments</a>
-        
-      </p>
-    
-  </header>
-
-
-<div class="entry-content"><p>This article shows how to use LLVM C API with Swift. It doesn’t aim to show how to write proper idiomatic Swift. Besides that I omit some good practices for sake of simplicity.</p>
+<p>This article shows how to use LLVM C API with Swift. It doesn’t aim to show how to write proper idiomatic Swift. Besides that I omit some good practices for sake of simplicity.</p>
 
 <p>Our plan for today:</p>
 
@@ -112,36 +107,25 @@
 <li>create simple <code>sum</code> function in memory and execute it using LLVM interpreter</li>
 </ul>
 
-
 <p>So, let’s go to town!</p>
 
 <p><strong>UPD:</strong> There is a second part of the article. It shows how to actually use JIT engine: <a href="http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum">http://lowlevelbits.org/how-to-use-llvm-api-with-swift-addendum</a></p>
 
-<h3>Preparing LLVM</h3>
+<h3 id="preparing-llvm">Preparing LLVM</h3>
 
 <p>Let’s grab fresh version of LLVM. It can be done using central SVN repository, or via official git mirror. I prefer latter option, since it’s, imho, a bit faster.</p>
 
 <p>For this particular example I will put everything into a directory inside of the home directory:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~ <span class="nv">$ </span>mkdir swift_llvm
-</span><span class='line'>~ <span class="nv">$ </span><span class="nb">cd </span>swift_llvm
-</span><span class='line'>~/swift_llvm <span class="nv">$ </span>git clone http://llvm.org/git/llvm.git
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~ $ mkdir swift_llvm
+~ $ <span style="color: #008000">cd</span> swift_llvm
+~/swift_llvm $ git clone http://llvm.org/git/llvm.git
+</pre></div>
 
 <p>LLVM uses CMake as a build system. To make a build let’s create a separate directory near LLVM directory and generate build rules:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>mkdir build
-</span><span class='line'>~/swift_llvm <span class="nv">$ </span><span class="nb">cd </span>build
-</span><span class='line'>~/swift_llvm/build <span class="nv">$ </span>cmake  ../llvm
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ mkdir build
+~/swift_llvm $ <span style="color: #008000">cd</span> build
+~/swift_llvm/build $ cmake  ../llvm
+</pre></div>
 
 <p>CMake could generate various output: makefiles, Xcode projects, VisualStudio solutions and more. If build system is not specified (like in the script above), then CMake takes default one, which is GNU/Make.</p>
 
@@ -150,11 +134,8 @@
 <p>The naive way of solving this problem is to build the program and resolve linker errors manually until they disappear. It will work, indeed, but it’s became boring after resolving 5-6 errors.</p>
 
 <p>Thank god, LLVM developers are thoughtful and provide a great tool <code>llvm-config</code>. Let’s build it and see what it does.</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm/build <span class="nv">$ </span>make llvm-config -j4
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ make llvm-config -j4
+</pre></div>
 
 <p><em>Note: <code>-j4</code> says &lsquo;I have multi core/processor environment, run 4 jobs simultaneously&rsquo;</em></p>
 
@@ -163,229 +144,131 @@
 <p><em>Note: Run <code>llvm-config</code> without options to learn more.</em></p>
 
 <p>We’re particularly interested in interpreter. Let’s look what we need to build:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm/build <span class="nv">$ </span>./bin/llvm-config --libs interpreter
-</span><span class='line'>-lLLVMInterpreter -lLLVMExecutionEngine -lLLVMRuntimeDyld -lLLVMObject -lLLVMMCParser -lLLVMCodeGen -lLLVMTarget -lLLVMScalarOpts -lLLVMInstCombine -lLLVMInstrumentation -lLLVMTransformUtils -lLLVMMC -lLLVMBitWriter -lLLVMBitReader -lLLVMAnalysis -lLLVMCore -lLLVMSupport
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ ./bin/llvm-config --libs interpreter
+-lLLVMInterpreter -lLLVMExecutionEngine -lLLVMRuntimeDyld -lLLVMObject -lLLVMMCParser -lLLVMCodeGen -lLLVMTarget -lLLVMScalarOpts -lLLVMInstCombine -lLLVMInstrumentation -lLLVMTransformUtils -lLLVMMC -lLLVMBitWriter -lLLVMBitReader -lLLVMAnalysis -lLLVMCore -lLLVMSupport
+</pre></div>
 
 <p>To make our little program working we need to build all these libraries. Again, there is naive way of doing this, but we will go with shell magic:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ ./bin/llvm-config --libs interpreter | sed <span style="color: #BA2121">&quot;s/-l//g&quot;</span> | xargs make -j4
+</pre></div>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm/build <span class="nv">$ </span>./bin/llvm-config --libs interpreter <span class="p">|</span> sed <span class="s2">&quot;s/-l//g&quot;</span> <span class="p">|</span> xargs make -j4
-</span></code></pre></td></tr></table></div></figure>
-
-
-<h3>Hello LLVM</h3>
+<h3 id="hello-llvm">Hello LLVM</h3>
 
 <p>Since we have done and have everything in place it’s time to create our little Swift program:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm/build <span class="nv">$ </span><span class="nb">cd</span> ..
-</span><span class='line'>~/swift_llvm <span class="nv">$ </span>touch hello_llvm.swift
-</span><span class='line'>~/swift_llvm <span class="nv">$ </span>open hello_llvm.swift
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ <span style="color: #008000">cd</span> ..
+~/swift_llvm $ touch hello_llvm.swift
+~/swift_llvm $ open hello_llvm.swift
+</pre></div>
 
 <p>To check that everything is working as we expect we will first create an empty module and dump it:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">import</span> <span class="n">LLVM_C</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">module</span> <span class="o">=</span> <span class="n">LLVMModuleCreateWithName</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">LLVMDumpModule</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">LLVMDisposeModule</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> = LLVMModuleCreateWithName(<span style="color: #BA2121">&quot;Hello&quot;</span>)
 
+LLVMDumpModule(module)
+
+LLVMDisposeModule(module)
+</pre></div>
 
 <p>Building this small program requires passing numerous flags to compiler. We need to specify SDK, to set which module to link with, specify linker flags, set correct header search paths and probably provide some additional arguments:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
+</pre></div>
 
 <p>So many questions, so much magic.</p>
 
 <p>In fact specifying correct linker flags and libraries path is easy, thanks <code>llvm-config</code>:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span class="sb">`</span>./build/bin/llvm-config --libs interpreter<span class="sb">`</span> -L ./build/lib -I??? ???
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -I??? ???
+</pre></div>
 
 <p>Situation with headers and additional parameters is a bit more trickier. Normally, if we use clang, we could just rely on <code>llvm-config --cflags</code>, though it does not work with swift compiler. Let’s examine the <code>--cflags</code> and see what we can do here:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>./build/bin/llvm-config --cflags
-</span><span class='line'>-I/Users/alexdenisov/swift_llvm/llvm/include -I/Users/alexdenisov/swift_llvm/build/include  -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wmissing-field-initializers -pedantic -Wno-long-long -Wcovered-switch-default -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ ./build/bin/llvm-config --cflags
+-I/Users/alexdenisov/swift_llvm/llvm/include -I/Users/alexdenisov/swift_llvm/build/include  -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wmissing-field-initializers -pedantic -Wno-long-long -Wcovered-switch-default -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
+</pre></div>
 
 <p>The output contains a few parameters, we can easily omit all arguments except of headers search paths (<code>-I ...</code>) and macro definitions (<code>-D__...</code>). The problem is that swift compiler does not handle macro definitions the way as clang does, though we could bypass them directly to clang driver using <code>-Xcc</code> option:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span class="sb">`</span>./build/bin/llvm-config --libs interpreter<span class="sb">`</span> -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+</pre></div>
 
 <p>If you were eager enough and run the recent command, then you might see some errors: linker complains because it can’t find symbols from ncurses and STD C++ libraries. No worries, here is the correct command:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span class="sb">`</span>./build/bin/llvm-config --libs interpreter<span class="sb">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+</pre></div>
 
 <p>Now we can run the program and see the beautiful LLVM IR:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>./hello_llvm
-</span><span class='line'><span class="p">;</span> <span class="nv">ModuleID</span> <span class="o">=</span> <span class="s1">&#39;Hello&#39;</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ ./hello_llvm
+; <span style="color: #19177C">ModuleID</span> <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;Hello&#39;</span>
+</pre></div>
 
 <p>Ok, it’s empty and doesn’t look cool. But there are good news&shy;: we are able to use LLVM C API from Swift. Isn’t this impressive?</p>
 
 <p>Let’s go further and create simple <code>sum</code> function that accepts two integers, sums them and returns result. Here is a C equivalent:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='c'><span class='line'><span class="kt">int</span> <span class="nf">sum</span><span class="p">(</span><span class="kt">int</span> <span class="n">a</span><span class="p">,</span> <span class="kt">int</span> <span class="n">b</span><span class="p">)</span> <span class="p">{</span>
-</span><span class='line'>  <span class="k">return</span> <span class="n">a</span> <span class="o">+</span> <span class="n">b</span><span class="p">;</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
+  <span style="color: #008000; font-weight: bold">return</span> a <span style="color: #666666">+</span> b;
+}
+</pre></div>
 
 <p>To create a function we need to specify all types involved: return type and types of arguments.</p>
 
 <p>Types of arguments must be passed as an array. Since we interop with C API it’s a bit tricky, but still pretty straightforward:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">import</span> <span class="n">LLVM_C</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">module</span> <span class="o">=</span> <span class="n">LLVMModuleCreateWithName</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">int32</span> <span class="o">=</span> <span class="n">LLVMInt32Type</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">paramTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">int32</span><span class="p">,</span> <span class="n">int32</span><span class="p">]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// need to convert paramTypes into UnsafeMutablePointer because of API requirements</span>
-</span><span class='line'><span class="k">var</span> <span class="n">paramTypesRef</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMTypeRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'><span class="n">paramTypesRef</span><span class="p">.</span><span class="n">initializeFrom</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">returnType</span> <span class="o">=</span> <span class="n">int32</span>
-</span><span class='line'><span class="k">let</span> <span class="n">functionType</span> <span class="o">=</span> <span class="n">LLVMFunctionType</span><span class="p">(</span><span class="n">returnType</span><span class="p">,</span> <span class="n">paramTypesRef</span><span class="p">,</span> <span class="kt">UInt32</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">.</span><span class="n">count</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">sumFunction</span> <span class="o">=</span> <span class="n">LLVMAddFunction</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="err">“</span><span class="n">sum</span><span class="err">”</span><span class="p">,</span> <span class="n">functionType</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">LLVMDumpModule</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">paramTypesRef</span><span class="p">.</span><span class="n">dealloc</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'><span class="n">LLVMDisposeModule</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> = LLVMModuleCreateWithName(<span style="color: #BA2121">&quot;Hello&quot;</span>)
 
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">int32</span> = LLVMInt32Type()
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">paramTypes</span> = [int32, int32]
+
+<span style="color: #408080; font-style: italic">// need to convert paramTypes into UnsafeMutablePointer because of API requirements</span>
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">paramTypesRef</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMTypeRef&gt;.alloc(paramTypes.<span style="color: #008000">count</span>)
+paramTypesRef.initializeFrom(paramTypes)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">returnType</span> = int32
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">functionType</span> = LLVMFunctionType(returnType, paramTypesRef, <span style="color: #008000">UInt32</span>(paramTypes.<span style="color: #008000">count</span>), <span style="color: #666666">0</span>)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">sumFunction</span> = LLVMAddFunction(module, <span style="color: #BA2121">&quot;sum&quot;</span>, functionType)
+
+LLVMDumpModule(module)
+
+paramTypesRef.dealloc(paramTypes.<span style="color: #008000">count</span>)
+LLVMDisposeModule(module)
+</pre></div>
 
 <p>Build it:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='bash'><span class='line'>~/swift_llvm <span class="nv">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span class="sb">`</span>./build/bin/llvm-config --libs interpreter<span class="sb">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+</pre></div>
 
 <p>And run:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-</pre></td><td class='code'><pre><code class='asm'><span class='line'><span class="err">;</span> <span class="nf">ModuleID</span> <span class="err">=</span> <span class="err">&#39;</span><span class="no">Hello</span><span class="err">&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">declare</span> <span class="no">i32</span> <span class="err">@</span><span class="no">sum</span><span class="p">(</span><span class="no">i32</span><span class="p">,</span> <span class="no">i32</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<span style="color: #008000; font-weight: bold">declare</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>)
+</pre></div>
 
 <p>Here you go, function prototype is ready - next step is function body.</p>
 
 <p>Atomic particle of code is a <code>basic block</code>. Function or loop body, conditional branch (<code>if/else</code>, <code>switch/case</code>, etc.) these are basic blocks. Our simple function has one as well:</p>
-
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">entryBlock</span> <span class="o">=</span> <span class="n">LLVMAppendBasicBlock</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="s">&quot;entry&quot;</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">entryBlock</span> = LLVMAppendBasicBlock(sumFunction, <span style="color: #BA2121">&quot;entry&quot;</span>)
+</pre></div>
 
 <p>This block could be filled in using builder. First we emit instructions to access function arguments. Next one - addition of the arguments with the <code>temp</code> variable holding the result. And the last instruction - return statement.</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">builder</span> = LLVMCreateBuilder()
+LLVMPositionBuilderAtEnd(builder, entryBlock)
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">builder</span> <span class="o">=</span> <span class="n">LLVMCreateBuilder</span><span class="p">()</span>
-</span><span class='line'><span class="n">LLVMPositionBuilderAtEnd</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">entryBlock</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">a</span> <span class="o">=</span> <span class="n">LLVMGetParam</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span class='line'><span class="k">let</span> <span class="n">b</span> <span class="o">=</span> <span class="n">LLVMGetParam</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span class='line'><span class="k">let</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">LLVMBuildAdd</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="s">&quot;temp&quot;</span><span class="p">)</span>
-</span><span class='line'><span class="n">LLVMBuildRet</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">a</span> = LLVMGetParam(sumFunction, <span style="color: #666666">0</span>)
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">b</span> = LLVMGetParam(sumFunction, <span style="color: #666666">1</span>)
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">temp</span> = LLVMBuildAdd(builder, a, b, <span style="color: #BA2121">&quot;temp&quot;</span>)
+LLVMBuildRet(builder, temp)
+</pre></div>
 
 <p><em>Put this code after <code>sumFunction</code> declaration, but before <code>LLVMDumpModule</code>. Or just keep reading, you will see the full code listing at the end of the article.</em></p>
 
 <p>Build and run, you will see the function body:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-</pre></td><td class='code'><pre><code class='asm'><span class='line'><span class="err">;</span> <span class="nf">ModuleID</span> <span class="err">=</span> <span class="err">&#39;</span><span class="no">Hello</span><span class="err">&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">define</span> <span class="no">i32</span> <span class="err">@</span><span class="no">sum</span><span class="p">(</span><span class="no">i32</span><span class="p">,</span> <span class="no">i32</span><span class="p">)</span> <span class="err">{</span>
-</span><span class='line'><span class="nl">entry:</span>
-</span><span class='line'>  <span class="err">%</span><span class="nf">temp</span> <span class="err">=</span> <span class="no">add</span> <span class="no">i32</span> <span class="err">%</span><span class="mi">0</span><span class="p">,</span> <span class="err">%</span><span class="mi">1</span>
-</span><span class='line'>  <span class="nf">ret</span> <span class="no">i32</span> <span class="nv">%temp</span>
-</span><span class='line'><span class="err">}</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>) {
+<span style="color: #A0A000">entry:</span>
+  <span style="color: #19177C">%temp</span> = <span style="color: #008000; font-weight: bold">add</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%0</span>, <span style="color: #19177C">%1</span>
+  <span style="color: #008000; font-weight: bold">ret</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%temp</span>
+}
+</pre></div>
 
 <p>Last and the most interesting part - how to run this code?</p>
 
@@ -394,469 +277,704 @@
 <p><em>Note: To be honest I don’t really know exact difference between them, the only reason I use interpreter here - I got a few different errors when I tried to use MCJIT.</em></p>
 
 <p>Let’s create an execution engine:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">error</span> =  <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">alignof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="n">engine</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMExecutionEngineRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">LLVMExecutionEngineRef</span><span class="p">))</span>
-</span><span class='line'><span class="k">var</span> <span class="n">error</span> <span class="o">=</span>  <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;</span><span class="p">))</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">LLVMLinkInInterpreter</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="n">LLVMCreateInterpreterForModule</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">print</span><span class="p">(</span><span class="s">&quot;can&#39;t initialize engine: \(String.fromCString(error.memory)!)&quot;</span><span class="p">)</span>
-</span><span class='line'>  <span class="c1">// TODO: cleanup all allocated memory ;)</span>
-</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span class='line'><span class="p">}</span>
-</span></code></pre></td></tr></table></div></figure>
+LLVMLinkInInterpreter()
 
+<span style="color: #008000; font-weight: bold">if</span> LLVMCreateInterpreterForModule(engine, module, error) <span style="color: #666666">!=</span> <span style="color: #666666">0</span> {
+  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;can&#39;t initialize engine: </span><span style="color: #BB6688; font-weight: bold">\(</span><span style="color: #008000">String</span>.fromCString<span style="color: #BB6688; font-weight: bold">(</span>error.memory<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #666666">!</span><span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121">&quot;</span>)
+  <span style="color: #408080; font-style: italic">// TODO: cleanup all allocated memory ;)</span>
+  exit(<span style="color: #666666">1</span>)
+}
+</pre></div>
 
 <p>You can build and run it, just to ensure that everything is still working.</p>
 
 <p>Finally, let’s run our function and actually compute the sum. Here we do the same trick as with function type - API requires <code>UnsafeMutablePointer</code>. Keep in mind that you should deallocate this memory manually.</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">x</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">10</span>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">y</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">25</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">let</span> <span class="nl">x</span><span class="p">:</span> <span class="n">UInt64</span> <span class="o">=</span> <span class="mi">10</span>
-</span><span class='line'><span class="k">let</span> <span class="nl">y</span><span class="p">:</span> <span class="n">UInt64</span> <span class="o">=</span> <span class="mi">25</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">LLVMCreateGenericValueOfInt</span><span class="p">(</span><span class="n">int32</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-</span><span class='line'>            <span class="n">LLVMCreateGenericValueOfInt</span><span class="p">(</span><span class="n">int32</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">var</span> <span class="n">argsRef</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMTypeRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'><span class="n">argsRef</span><span class="p">.</span><span class="n">initializeFrom</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">result</span> <span class="o">=</span> <span class="n">LLVMRunFunction</span><span class="p">(</span><span class="n">engine</span><span class="p">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">sumFunction</span><span class="p">,</span> <span class="kt">UInt32</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">count</span><span class="p">),</span> <span class="n">argsRef</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">print</span><span class="p">(</span><span class="s">&quot;\(x) + \(y) = \(LLVMGenericValueToInt(result, 0))&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">argsRef</span><span class="p">.</span><span class="n">dealloc</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">args</span> = [LLVMCreateGenericValueOfInt(int32, x, <span style="color: #666666">0</span>),
+            LLVMCreateGenericValueOfInt(int32, y, <span style="color: #666666">1</span>)]
 
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">argsRef</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMTypeRef&gt;.alloc(args.<span style="color: #008000">count</span>)
+argsRef.initializeFrom(args)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">result</span> = LLVMRunFunction(engine.memory, sumFunction, <span style="color: #008000">UInt32</span>(args.<span style="color: #008000">count</span>), argsRef)
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;</span><span style="color: #BB6688; font-weight: bold">\(</span>x<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121"> + </span><span style="color: #BB6688; font-weight: bold">\(</span>y<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121"> = </span><span style="color: #BB6688; font-weight: bold">\(</span>LLVMGenericValueToInt<span style="color: #BB6688; font-weight: bold">(</span>result, <span style="color: #666666">0</span><span style="color: #BB6688; font-weight: bold">))</span><span style="color: #BA2121">&quot;</span>)
+
+argsRef.dealloc(args.<span style="color: #008000">count</span>)
+</pre></div>
 
 <p>If you build and run the program - you will see the result:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-</pre></td><td class='code'><pre><code class='asm'><span class='line'><span class="err">;</span> <span class="nf">ModuleID</span> <span class="err">=</span> <span class="err">&#39;</span><span class="no">Hello</span><span class="err">&#39;</span>
-</span><span class='line'>
-</span><span class='line'><span class="nf">define</span> <span class="no">i32</span> <span class="err">@</span><span class="no">sum</span><span class="p">(</span><span class="no">i32</span><span class="p">,</span> <span class="no">i32</span><span class="p">)</span> <span class="err">{</span>
-</span><span class='line'><span class="nl">entry:</span>
-</span><span class='line'>  <span class="err">%</span><span class="nf">temp</span> <span class="err">=</span> <span class="no">add</span> <span class="no">i32</span> <span class="err">%</span><span class="mi">0</span><span class="p">,</span> <span class="err">%</span><span class="mi">1</span>
-</span><span class='line'>  <span class="nf">ret</span> <span class="no">i32</span> <span class="nv">%temp</span>
-</span><span class='line'><span class="err">}</span>
-</span><span class='line'><span class="err">10</span> <span class="err">+</span> <span class="err">25</span> <span class="err">=</span> <span class="err">35</span>
-</span></code></pre></td></tr></table></div></figure>
-
+<span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>) {
+<span style="color: #A0A000">entry:</span>
+  <span style="color: #19177C">%temp</span> = <span style="color: #008000; font-weight: bold">add</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%0</span>, <span style="color: #19177C">%1</span>
+  <span style="color: #008000; font-weight: bold">ret</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">%temp</span>
+}
+<span style="color: #666666">10</span> <span style="border: 1px solid #FF0000">+</span> <span style="color: #666666">25</span> = <span style="color: #666666">35</span>
+</pre></div>
 
 <p>Here is the full code listing:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
 
-<figure class='code'><figcaption><span></span></figcaption><div class="highlight"><table><tr><td class="gutter"><pre class="line-numbers"><span class='line-number'>1</span>
-<span class='line-number'>2</span>
-<span class='line-number'>3</span>
-<span class='line-number'>4</span>
-<span class='line-number'>5</span>
-<span class='line-number'>6</span>
-<span class='line-number'>7</span>
-<span class='line-number'>8</span>
-<span class='line-number'>9</span>
-<span class='line-number'>10</span>
-<span class='line-number'>11</span>
-<span class='line-number'>12</span>
-<span class='line-number'>13</span>
-<span class='line-number'>14</span>
-<span class='line-number'>15</span>
-<span class='line-number'>16</span>
-<span class='line-number'>17</span>
-<span class='line-number'>18</span>
-<span class='line-number'>19</span>
-<span class='line-number'>20</span>
-<span class='line-number'>21</span>
-<span class='line-number'>22</span>
-<span class='line-number'>23</span>
-<span class='line-number'>24</span>
-<span class='line-number'>25</span>
-<span class='line-number'>26</span>
-<span class='line-number'>27</span>
-<span class='line-number'>28</span>
-<span class='line-number'>29</span>
-<span class='line-number'>30</span>
-<span class='line-number'>31</span>
-<span class='line-number'>32</span>
-<span class='line-number'>33</span>
-<span class='line-number'>34</span>
-<span class='line-number'>35</span>
-<span class='line-number'>36</span>
-<span class='line-number'>37</span>
-<span class='line-number'>38</span>
-<span class='line-number'>39</span>
-<span class='line-number'>40</span>
-<span class='line-number'>41</span>
-<span class='line-number'>42</span>
-<span class='line-number'>43</span>
-<span class='line-number'>44</span>
-<span class='line-number'>45</span>
-<span class='line-number'>46</span>
-<span class='line-number'>47</span>
-<span class='line-number'>48</span>
-<span class='line-number'>49</span>
-<span class='line-number'>50</span>
-<span class='line-number'>51</span>
-<span class='line-number'>52</span>
-<span class='line-number'>53</span>
-<span class='line-number'>54</span>
-<span class='line-number'>55</span>
-<span class='line-number'>56</span>
-<span class='line-number'>57</span>
-</pre></td><td class='code'><pre><code class='swift'><span class='line'><span class="k">import</span> <span class="n">LLVM_C</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">module</span> <span class="o">=</span> <span class="n">LLVMModuleCreateWithName</span><span class="p">(</span><span class="s">&quot;Hello&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">int32</span> <span class="o">=</span> <span class="n">LLVMInt32Type</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">paramTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">int32</span><span class="p">,</span> <span class="n">int32</span><span class="p">]</span>
-</span><span class='line'>
-</span><span class='line'><span class="c1">// need to convert paramTypes into UnsafeMutablePointer because of API requirements</span>
-</span><span class='line'><span class="k">var</span> <span class="n">paramTypesRef</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMTypeRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'><span class="n">paramTypesRef</span><span class="p">.</span><span class="n">initializeFrom</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">returnType</span> <span class="o">=</span> <span class="n">int32</span>
-</span><span class='line'><span class="k">let</span> <span class="n">functionType</span> <span class="o">=</span> <span class="n">LLVMFunctionType</span><span class="p">(</span><span class="n">returnType</span><span class="p">,</span> <span class="n">paramTypesRef</span><span class="p">,</span> <span class="kt">UInt32</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">.</span><span class="n">count</span><span class="p">),</span> <span class="mi">0</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">sumFunction</span> <span class="o">=</span> <span class="n">LLVMAddFunction</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="s">&quot;sum&quot;</span><span class="p">,</span> <span class="n">functionType</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">entryBlock</span> <span class="o">=</span> <span class="n">LLVMAppendBasicBlock</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="s">&quot;entry&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">builder</span> <span class="o">=</span> <span class="n">LLVMCreateBuilder</span><span class="p">()</span>
-</span><span class='line'><span class="n">LLVMPositionBuilderAtEnd</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">entryBlock</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">a</span> <span class="o">=</span> <span class="n">LLVMGetParam</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-</span><span class='line'><span class="k">let</span> <span class="n">b</span> <span class="o">=</span> <span class="n">LLVMGetParam</span><span class="p">(</span><span class="n">sumFunction</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-</span><span class='line'><span class="k">let</span> <span class="n">temp</span> <span class="o">=</span> <span class="n">LLVMBuildAdd</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="s">&quot;temp&quot;</span><span class="p">)</span>
-</span><span class='line'><span class="n">LLVMBuildRet</span><span class="p">(</span><span class="n">builder</span><span class="p">,</span> <span class="n">temp</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">LLVMDumpModule</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">engine</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMExecutionEngineRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">LLVMExecutionEngineRef</span><span class="p">))</span>
-</span><span class='line'><span class="k">var</span> <span class="n">error</span> <span class="o">=</span>  <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">alignof</span><span class="p">(</span><span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">Int8</span><span class="o">&gt;</span><span class="p">))</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">LLVMLinkInInterpreter</span><span class="p">()</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">if</span> <span class="n">LLVMCreateInterpreterForModule</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">module</span><span class="p">,</span> <span class="n">error</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="p">{</span>
-</span><span class='line'>  <span class="n">print</span><span class="p">(</span><span class="s">&quot;can&#39;t initialize engine: \(String.fromCString(error.memory)!)&quot;</span><span class="p">)</span>
-</span><span class='line'>  <span class="c1">// TODO: cleanup all allocated memory ;)</span>
-</span><span class='line'>  <span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-</span><span class='line'><span class="p">}</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="nl">x</span><span class="p">:</span> <span class="n">UInt64</span> <span class="o">=</span> <span class="mi">10</span>
-</span><span class='line'><span class="k">let</span> <span class="nl">y</span><span class="p">:</span> <span class="n">UInt64</span> <span class="o">=</span> <span class="mi">25</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">LLVMCreateGenericValueOfInt</span><span class="p">(</span><span class="n">int32</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-</span><span class='line'>            <span class="n">LLVMCreateGenericValueOfInt</span><span class="p">(</span><span class="n">int32</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)]</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">var</span> <span class="n">argsRef</span> <span class="o">=</span> <span class="n">UnsafeMutablePointer</span><span class="o">&lt;</span><span class="n">LLVMTypeRef</span><span class="o">&gt;</span><span class="p">.</span><span class="n">alloc</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'><span class="n">argsRef</span><span class="p">.</span><span class="n">initializeFrom</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="k">let</span> <span class="n">result</span> <span class="o">=</span> <span class="n">LLVMRunFunction</span><span class="p">(</span><span class="n">engine</span><span class="p">.</span><span class="n">memory</span><span class="p">,</span> <span class="n">sumFunction</span><span class="p">,</span> <span class="kt">UInt32</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">count</span><span class="p">),</span> <span class="n">argsRef</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">print</span><span class="p">(</span><span class="s">&quot;\(x) + \(y) = \(LLVMGenericValueToInt(result, 0))&quot;</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">argsRef</span><span class="p">.</span><span class="n">dealloc</span><span class="p">(</span><span class="n">args</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'>
-</span><span class='line'><span class="n">paramTypesRef</span><span class="p">.</span><span class="n">dealloc</span><span class="p">(</span><span class="n">paramTypes</span><span class="p">.</span><span class="n">count</span><span class="p">)</span>
-</span><span class='line'><span class="n">LLVMDisposeModule</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
-</span></code></pre></td></tr></table></div></figure>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> = LLVMModuleCreateWithName(<span style="color: #BA2121">&quot;Hello&quot;</span>)
 
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">int32</span> = LLVMInt32Type()
 
-<h3>Summary</h3>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">paramTypes</span> = [int32, int32]
+
+<span style="color: #408080; font-style: italic">// need to convert paramTypes into UnsafeMutablePointer because of API requirements</span>
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">paramTypesRef</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMTypeRef&gt;.alloc(paramTypes.<span style="color: #008000">count</span>)
+paramTypesRef.initializeFrom(paramTypes)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">returnType</span> = int32
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">functionType</span> = LLVMFunctionType(returnType, paramTypesRef, <span style="color: #008000">UInt32</span>(paramTypes.<span style="color: #008000">count</span>), <span style="color: #666666">0</span>)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">sumFunction</span> = LLVMAddFunction(module, <span style="color: #BA2121">&quot;sum&quot;</span>, functionType)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">entryBlock</span> = LLVMAppendBasicBlock(sumFunction, <span style="color: #BA2121">&quot;entry&quot;</span>)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">builder</span> = LLVMCreateBuilder()
+LLVMPositionBuilderAtEnd(builder, entryBlock)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">a</span> = LLVMGetParam(sumFunction, <span style="color: #666666">0</span>)
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">b</span> = LLVMGetParam(sumFunction, <span style="color: #666666">1</span>)
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">temp</span> = LLVMBuildAdd(builder, a, b, <span style="color: #BA2121">&quot;temp&quot;</span>)
+LLVMBuildRet(builder, temp)
+
+LLVMDumpModule(module)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">error</span> =  <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">alignof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
+
+LLVMLinkInInterpreter()
+
+<span style="color: #008000; font-weight: bold">if</span> LLVMCreateInterpreterForModule(engine, module, error) <span style="color: #666666">!=</span> <span style="color: #666666">0</span> {
+  <span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;can&#39;t initialize engine: </span><span style="color: #BB6688; font-weight: bold">\(</span><span style="color: #008000">String</span>.fromCString<span style="color: #BB6688; font-weight: bold">(</span>error.memory<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #666666">!</span><span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121">&quot;</span>)
+  <span style="color: #408080; font-style: italic">// TODO: cleanup all allocated memory ;)</span>
+  exit(<span style="color: #666666">1</span>)
+}
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">x</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">10</span>
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">y</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">25</span>
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">args</span> = [LLVMCreateGenericValueOfInt(int32, x, <span style="color: #666666">0</span>),
+            LLVMCreateGenericValueOfInt(int32, y, <span style="color: #666666">1</span>)]
+
+<span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">argsRef</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMTypeRef&gt;.alloc(args.<span style="color: #008000">count</span>)
+argsRef.initializeFrom(args)
+
+<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">result</span> = LLVMRunFunction(engine.memory, sumFunction, <span style="color: #008000">UInt32</span>(args.<span style="color: #008000">count</span>), argsRef)
+
+<span style="color: #008000">print</span>(<span style="color: #BA2121">&quot;</span><span style="color: #BB6688; font-weight: bold">\(</span>x<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121"> + </span><span style="color: #BB6688; font-weight: bold">\(</span>y<span style="color: #BB6688; font-weight: bold">)</span><span style="color: #BA2121"> = </span><span style="color: #BB6688; font-weight: bold">\(</span>LLVMGenericValueToInt<span style="color: #BB6688; font-weight: bold">(</span>result, <span style="color: #666666">0</span><span style="color: #BB6688; font-weight: bold">))</span><span style="color: #BA2121">&quot;</span>)
+
+argsRef.dealloc(args.<span style="color: #008000">count</span>)
+
+paramTypesRef.dealloc(paramTypes.<span style="color: #008000">count</span>)
+LLVMDisposeModule(module)
+</pre></div>
+
+<h3 id="summary">Summary</h3>
 
 <p>As you may see using LLVM from Swift is a bit tricky, but it’s still doable. It actually gives us great opportunity - you can write a language (probably domain specific) in Swift using all the power of LLVM. C API may look limited, but it’s full enough to start with.</p>
 
 <p>If you curious and want to learn more about the topic, please consider looking at these resources:</p>
 
-<p><a href="https://pauladamsmith.com/blog/2015/01/how-to-get-started-with-llvm-c-api.html">How to get started with the LLVM C API</a> - great how-to on LLVM C API. This article basically based on it.</p>
-
-<p><a href="http://llvm.org/docs/tutorial/index.html">Kaleidoscope Tutorials</a> - tutorial on implementing simple but powerful language. Currently, there are two versions - for C++ and OCaml.</p>
-
-<p><a href="https://github.com/bencochran/Kaleidoscope">Kaleidoscope Implementation</a> - same language as above implemented using Swift. Trove of treasures there.</p>
-
-<p><a href="https://github.com/robrix/Auspicion">Auspicion</a> - LLVM C API bindings for Swift.</p>
-
-<p><a href="https://github.com/bencochran/LLVM.swift">LLVM.swift</a> - another Swift wrapper for LLVM C API.</p>
-
-<p><a href="https://github.com/AlexDenisov/swift_llvm">Source code</a> - source code for this article.</p>
+<ul>
+<li><a href="https://pauladamsmith.com/blog/2015/01/how-to-get-started-with-llvm-c-api.html">How to get started with the LLVM C API</a> - great how-to on LLVM C API. This article basically based on it.</li>
+<li><a href="http://llvm.org/docs/tutorial/index.html">Kaleidoscope Tutorials</a> - tutorial on implementing simple but powerful language. Currently, there are two versions - for C++ and OCaml.</li>
+<li><a href="https://github.com/bencochran/Kaleidoscope">Kaleidoscope Implementation</a> - same language as above implemented using Swift. Trove of treasures there.</li>
+<li><a href="https://github.com/robrix/Auspicion">Auspicion</a> - LLVM C API bindings for Swift.</li>
+<li><a href="https://github.com/bencochran/LLVM.swift">LLVM.swift</a> - another Swift wrapper for LLVM C API.</li>
+<li><a href="https://github.com/AlexDenisov/swift_llvm">Source code</a> - source code for this article.</li>
+</ul>
 
 <p>Thank you for your attention.</p>
 
 <p>Happy hacking!</p>
-</div>
 
+				</div>
+			</article>
 
-  <footer>
-    <p class="meta">
-      
-  
-
-<span class="byline author vcard">Posted by <span class="fn">AlexDenisov</span></span>
-
-      
-
-
-
-
+      <span class="post-list-category tags">
 
 
 
 
   
+  <a href="http://lowlevelbits.orgcategories/llvm/">llvm</a>,
 
-
-
-<time datetime="2015-11-30T13:00:00+01:00" pubdate data-updated="true"><time class='entry-date' datetime='2015-11-30T13:00:00+01:00'><span class='date'><span class='date-month'>Nov</span> <span class='date-day'>30</span><span class='date-suffix'>th</span>, <span class='date-year'>2015</span></span></time></time>
-      
-
-<span class="categories">
   
-    <a class='category' href='/categories/llvm/'>llvm</a>, <a class='category' href='/categories/swift/'>swift</a>
-  
+  <a href="http://lowlevelbits.orgcategories/swift/">swift</a>
+
 </span>
 
 
-    </p>
-    
-      <div class="sharing">
-  
-  <a href="//twitter.com/share" class="twitter-share-button" data-url="http://lowlevelbits.org/how-to-use-llvm-api-with-swift/" data-via="1101_debian" data-counturl="http://lowlevelbits.org/how-to-use-llvm-api-with-swift/" >Tweet</a>
-  
-  
-  
-    <div class="fb-like" data-send="true" data-width="450" data-show-faces="false"></div>
-  
-</div>
 
-    
-    <p class="meta">
+      <h3>Comments</h3>
+      <div id="disqus_thread" aria-live="polite"></div>
+
+		</div>
+
+	</div>
+
+  <hr>
+
+	<div class="row triple-row">
+
+		<div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
       
-        <a class="basic-alignment left" href="/components-management/" title="Previous Post: Components: taking a step back from Dependency Management">&laquo; Components: taking a step back from Dependency Management</a>
+
       
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
       
-        <a class="basic-alignment right" href="/how-to-use-llvm-api-with-swift-addendum/" title="Next Post: How to use LLVM API with Swift. Addendum">How to use LLVM API with Swift. Addendum &raquo;</a>
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
       
-    </p>
-  </footer>
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/system%20under%20test/" >system under test (3)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/mutation%20testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/testing/" >testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+      </ul>
 </article>
-
-  <section>
-    <h1>Comments</h1>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
-  </section>
-
 </div>
 
-  <aside class="sidebar">
-   
-  
-    
 
-<style> 
-* {margin: 0; padding: 0;}
-#container {height: 100%; width:100%; font-size:0;}
-#left, #right {display: inline-block; *display: inline; zoom: 1; vertical-align: top; font-size: 15px;}
-#left {width: 45%;}
-#right {width: 55%;}
-#icon {
-  width: 15px;
-  border: none; 
-  box-shadow:none;
-}
-</style>
+		</div>
 
-<section>
-<div id="container">
-    <div id="left">
-		  <img src="http://www.gravatar.com/avatar/6dc2fd642323cb9bab9a050710290353?s=100" alt="Gravatar of AlexDenisov " title="Gravatar of AlexDenisov" />
-    </div>
-    <div id="right">
-      <div>
-        <a href="mailto:1101.debian@gmail.com"><img id="icon" src="/images/email.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;1101.debian</a>
-      </div>
-      <div>
-        <a href="https://github.com/AlexDenisov"><img id="icon" src="/images/github.png" alt="AlexDenisov" title="AlexDenisov" />&nbsp;AlexDenisov</a>
-      </div>
-      <div>
-        <a href="https://twitter.com/1101_debian"><img id="icon" src="/images/twitter.png" alt="1101_debian" title="1101_debian" />&nbsp;1101_debian</a>
-      </div>
-      <div>
-        <a href="/atom.xml"><img id="icon" src="/images/rss.png" alt="RSS" title="RSS" />&nbsp;RSS</a>
-      </div>
-      <div>
-        <a href="https://github.com/AlexDenisov/cv/blob/master/alex_denisov.pdf"><img id="icon" src="/images/cv.png" alt="CV" title="CV" />&nbsp;CV</a>
-      </div>
-    </div>
+		<div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
 
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-freebsd/"> System Under Test: FreeBSD</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test-llvm/"> System Under Test: LLVM</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/system-under-test/"> System Under Test</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/crash-free-code-with-fuzzer/"> Crash-free code with Fuzzer</a>
+        </li>
+      
+      </ul>
+
+</article>
 </div>
-</section>
 
-<!-- Begin MailChimp Signup Form -->
 
-<section>
+
+		</div>
+
+		<div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="http://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
 <div id="mc_embed_signup">
 <form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
     <div id="mc_embed_signup_scroll">
-      <h3>No bullshit, I promise</h3>
-	<input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="Email" required>
-    <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+    <div>
+	  <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
     <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
-    <div class="clear"><input type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button subscribe"></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscibe</button></div>
     </div>
 </form>
 </div>
-</section>
-
-<!--End mc_embed_signup-->
-<section>
-  <h1>Recent Posts</h1>
-  <ul id="recent_posts">
-    
-      <li class="post">
-        <a id="recent_post_link" href="/llvm-based-mutation-testing-system/">LLVM-based Mutation Testing System. Request For Comments</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/system-under-test-freebsd/">System Under Test: FreeBSD</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/system-under-test-llvm/">System Under Test: LLVM</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/system-under-test/">System Under Test</a>
-      </li>
-    
-      <li class="post">
-        <a id="recent_post_link" href="/crash-free-code-with-fuzzer/">Crash-free code with Fuzzer</a>
-      </li>
-    
-  </ul>
-</section>
-
-  
-</aside>
 
 
 
-    </div>
-  </div>
-  <footer role="contentinfo"><p>
-  Copyright &copy; 2016 - AlexDenisov -
-  <span class="credit">Powered by <a href="http://octopress.org">Octopress</a> with <a href="https://github.com/johnkeith/boldandblue">BoldAndBlue</a></span>
-</p>
 
-</footer>
-  
+</article>
+</div>
 
-<script type="text/javascript">
-      var disqus_shortname = 'alex-denisov';
-      
-        
-        // var disqus_developer = 1;
-        var disqus_identifier = 'http://lowlevelbits.org/how-to-use-llvm-api-with-swift/';
-        var disqus_url = 'http://lowlevelbits.org/how-to-use-llvm-api-with-swift/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+
+		</div>
+	</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2016 - Alex Denisov</div>
+</div>
 
 
 
-<div id="fb-root"></div>
-<script>(function(d, s, id) {
-  var js, fjs = d.getElementsByTagName(s)[0];
-  if (d.getElementById(id)) {return;}
-  js = d.createElement(s); js.id = id; js.async = true;
-  js.src = "//connect.facebook.net/en_US/all.js#appId=212934732101925&xfbml=1";
-  fjs.parentNode.insertBefore(js, fjs);
-}(document, 'script', 'facebook-jssdk'));</script>
+</div>  
 
 
 
 
 
-  <script type="text/javascript">
-    (function(){
-      var twitterWidgets = document.createElement('script');
-      twitterWidgets.type = 'text/javascript';
-      twitterWidgets.async = true;
-      twitterWidgets.src = '//platform.twitter.com/widgets.js';
-      document.getElementsByTagName('head')[0].appendChild(twitterWidgets);
-    })();
-  </script>
-
+<script src="http://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="http://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="http://lowlevelbits.org/js/tinynav.js"></script>
+<script src="http://lowlevelbits.org/js/template.js"></script>
 
 
 <script>
-  $(document).ready(function() {  
-  var stickyNavTop = $('nav').offset().top;  
-    
-  var stickyNav = function(){  
-  var scrollTop = $(window).scrollTop();  
-         
-  if (scrollTop > stickyNavTop) {   
-      $('nav').addClass('sticky');  
-  } else {  
-      $('nav').removeClass('sticky');   
-  }  
-  };  
-    
-  stickyNav();  
-    
-  $(window).scroll(function() {  
-      stickyNav();  
-  });  
-  });  
-
-(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
-for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
-mixpanel.init("cd35d7a41ba236cea12743777cdd75ff");
-mixpanel.track(document.title.replace(" - Low Level Bits", ""), {
-                "host" : document.location.host
-                });
-mixpanel.track_links("#recent_post_link", "click_recent_posts", {
-  "referrer": document.referrer
-});
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
 </script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
 
 
 </body>
 </html>
+
