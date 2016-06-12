@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Configuration on Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/configuration/</link>
+    <description>Recent content in Configuration on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Fri, 06 Feb 2015 00:43:11 +0100</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/tags/configuration/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>YAML-based Configuration for ObjC Projects</title>
+      <link>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
+      <pubDate>Fri, 06 Feb 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
+      <description>
+
+&lt;p&gt;Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &amp;ldquo;&lt;a href=&#34;https://staging.example.com&amp;quot;&#34;&gt;https://staging.example.com&amp;quot;&lt;/a&gt; and &amp;ldquo;&lt;a href=&#34;https://example.com&amp;quot;&#34;&gt;https://example.com&amp;quot;&lt;/a&gt;.
+Our toolchain does not provide good solution for this problem, so we have to implement our own.&lt;/p&gt;
+
+&lt;p&gt;When I worked with Ruby On Rails I really loved its approach for database configuration:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;development:
+  user: dev
+  password: dev123
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
+production:
+  user: root
+  password: supersecurepassword
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;I wish I can use the same approach in my daily iOS development.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, I can!&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Checkout project &lt;a href=&#34;https://github.com/AlexDenisov/xcconf&#34;&gt;xcconf&lt;/a&gt; and &lt;code&gt;Sample/Sample.xcodeproj&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;commonly-used-mechanisms&#34;&gt;Commonly used mechanisms&lt;/h3&gt;
+
+&lt;p&gt;There are at least two common approaches to separate configurations: preprocessor definitions and plist file.
+Both of them have serious disadvantages.&lt;/p&gt;
+
+&lt;h4 id=&#34;preprocessor-definition&#34;&gt;Preprocessor Definition&lt;/h4&gt;
+
+&lt;p&gt;You may saw and probably used this approach. It&amp;rsquo;s pretty easy and simple to use:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://staging.example.com&amp;quot;&lt;/span&gt;;
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#else&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://example.com&amp;quot;&lt;/span&gt;;
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;But let&amp;rsquo;s say that you add one more environment, e.g. &amp;ldquo;Beta&amp;rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&amp;rsquo;s really easy to make a typo or &amp;ldquo;accidentally&amp;rdquo; drop a definition. Your code will compile, but it&amp;rsquo;d use wrong environment.
+Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.&lt;/p&gt;
+
+&lt;h4 id=&#34;plist-file&#34;&gt;Plist file&lt;/h4&gt;
+
+&lt;p&gt;This is other commonly used mechanism. This approach described &lt;a href=&#34;http://code.tutsplus.com/tutorials/ios-quick-tip-managing-configurations-with-ease--mobile-18324&#34;&gt;here&lt;/a&gt;.
+It&amp;rsquo;s also has some disadvantages: if you want to add new configuration variable - you have to add it to every subsection, also you need to add a property to class and write (copy-paste?) initialization code.
+Moreover, you will distribute all your keys/endpoints to the end user, or you&amp;rsquo;ll have to cleanup the file right before deploy to the AppStore.
+Still you have to perform way too many actions for such a simple task.&lt;/p&gt;
+
+&lt;p&gt;Thanks god there is more easier and robust way.&lt;/p&gt;
+
+&lt;h3 id=&#34;xcconf-and-yaml&#34;&gt;XCCONF and YAML&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/AlexDenisov/xcconf&#34;&gt;xcconf&lt;/a&gt; incorporates only best parts from methods described previously:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;all settings store in one place&lt;/li&gt;
+&lt;li&gt;you don&amp;rsquo;t expose private data&lt;/li&gt;
+&lt;li&gt;everything done at compile time&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;here-is-how-it-looks-like&#34;&gt;Here is how it looks like:&lt;/h5&gt;
+
+&lt;p&gt;Configuration file:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Configuration
+
+Debug:
+  serverAddress: https://staging.example.com
+  APIKey: qwe123!!qwe
+
+Release:
+  serverAddress: https://example.com
+  APIKey: qwe123qwe
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;ObjC code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;-&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)serverAddress;
+- (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;APIKey&lt;/span&gt;;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+
+Config &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Config new];
+NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/span&gt;, config.serverAddress);
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;No preprocessor, no boilerplate!&lt;/p&gt;
+
+&lt;h4 id=&#34;installation-and-usage&#34;&gt;Installation and usage&lt;/h4&gt;
+
+&lt;p&gt;To install &lt;code&gt;xcconf&lt;/code&gt; you need to clone repo and run one command, it&amp;rsquo;ll build executable and install it into &lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; xcconf
+make install
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Integration into project looks weird, but don&amp;rsquo;t worry, that&amp;rsquo;s ok :)&lt;/p&gt;
+
+&lt;p&gt;First of all create YAML file, e.g,: &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;New file&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Put there initial configuration:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Config
+
+Debug:
+  color: Green
+
+Release:
+  color: Blue
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Prepare class interface for configuration. &lt;strong&gt;But do not create implementation&lt;/strong&gt;. Its name should be equal to &lt;code&gt;principalClass&lt;/code&gt; and it might contain getter methods for all available parameters, in this case it&amp;rsquo;s just &lt;code&gt;color&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+- (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;color&lt;/span&gt;;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Compile YAML&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Obviously Xcode doesn&amp;rsquo;t have YAML compiler, but we can provide our own. Open &lt;code&gt;Build Rules&lt;/code&gt;, add new one that matches files with pattern &lt;code&gt;*.yaml&lt;/code&gt; and run shell command &lt;code&gt;/usr/local/bin/xcconf&lt;/code&gt;.
+Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
+&lt;code&gt;$(DERIVED_FILE_DIR)/xcconf.m&lt;/code&gt;. Make sure that output file has extension &lt;code&gt;.m&lt;/code&gt;, so that Xcode can compile it and provide implementation for the &lt;code&gt;principalClass&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;xcconf&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we&amp;rsquo;re ready to use it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
+
+&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; argv[]) {
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@autoreleasepool&lt;/span&gt; {
+        Config &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Config new];
+        NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/span&gt;, config.color);
+    }
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;output&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;d really appreciate any feedback.&lt;/p&gt;
+
+&lt;p&gt;P.S. Pull Requests are welcome! :)&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

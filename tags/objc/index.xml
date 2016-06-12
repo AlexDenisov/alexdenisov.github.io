@@ -1,0 +1,654 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Objc on Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/objc/</link>
+    <description>Recent content in Objc on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Fri, 26 Jun 2015 09:22:57 +0200</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/tags/objc/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>NSValue and Boxed Expressions</title>
+      <link>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
+      <pubDate>Fri, 26 Jun 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
+      <description>
+
+&lt;p&gt;Few hours ago I finally finished with my patch to Clang.
+It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.&lt;/p&gt;
+
+&lt;p&gt;I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.&lt;/p&gt;
+
+&lt;p&gt;For those of you who want to see the code and documentation: &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d&#34;&gt;code&lt;/a&gt;
+&lt;a href=&#34;http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures&#34;&gt;docs&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
+
+&lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
+                                     &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.frame);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Rect r = view.frame;&lt;/span&gt;
+                                     &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;r objCType:@encode(Rect)];&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+    &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; x, y;
+};
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+    &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; width, height;
+} Size;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
+	Point origin;
+  Size size;
+} Rect;
+
+Rect r;
+&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);       &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// error&lt;/span&gt;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+
+&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ok&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
+
+&lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
+
+&lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; animation &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; &lt;span style=&#34;color: #A0A000&#34;&gt;animationWithKeyPath&lt;/span&gt;:&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;position&amp;quot;&lt;/span&gt;];
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)&lt;/span&gt;
+    animation.fromValue &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(layer.position);
+    animation.toValue &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(newPosition);
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#else&lt;/span&gt;
+    animation.fromValue &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #A0A000&#34;&gt;valueWithCGPoint&lt;/span&gt;:layer.position];
+    animation.toValue &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #A0A000&#34;&gt;valueWithCGPoint&lt;/span&gt;:newPosition];
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
+[layer &lt;span style=&#34;color: #A0A000&#34;&gt;addAnimation&lt;/span&gt;:animation &lt;span style=&#34;color: #A0A000&#34;&gt;forKey&lt;/span&gt;:&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;move&amp;quot;&lt;/span&gt;];
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;boring-numbers&#34;&gt;Boring Numbers&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;222 days since first version of patch&lt;/li&gt;
+&lt;li&gt;85 commits in an own fork of clang&lt;/li&gt;
+&lt;li&gt;50 emails in the mail thread&lt;/li&gt;
+&lt;li&gt;8 versions of the patch&lt;/li&gt;
+&lt;li&gt;3 different implementations&lt;/li&gt;
+&lt;li&gt;1 retired reviewer&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h3 id=&#34;that-s-it&#34;&gt;That&amp;rsquo;s it&lt;/h3&gt;
+
+&lt;p&gt;It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Getting Rid of Asynchronous Tests</title>
+      <link>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
+      <pubDate>Wed, 17 Jun 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
+      <description>
+
+&lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;
+
+&lt;p&gt;So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like &lt;a href=&#34;https://github.com/luisobo/Nocilla&#34;&gt;Nocilla&lt;/a&gt; and &lt;a href=&#34;https://github.com/AliSoftware/OHHTTPStubs&#34;&gt;OHHTTPStubs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: &lt;strong&gt;asynchronous tests are unreliable&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;getting-rid-of-asynchrony&#34;&gt;Getting rid of asynchrony&lt;/h3&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;To make those tests reliable we need to get rid of asynchrony. There are a few frameworks that simplify this task, like: &lt;a href=&#34;http://ocmock.org&#34;&gt;OCMock&lt;/a&gt;, &lt;a href=&#34;https://github.com/jonreid/OCMockito&#34;&gt;OCMockito&lt;/a&gt; or &lt;a href=&#34;https://github.com/pivotal/cedar&#34;&gt;Cedar&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As big fan of ObjC++, I’ll go with Cedar, but any one of the above can get the job done.&lt;/p&gt;
+
+&lt;p&gt;Let’s first consider the components of a system under test:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Loader&lt;/code&gt; - loads raw &lt;code&gt;NSData&lt;/code&gt; from the network or returns an error&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Client&lt;/code&gt; - handles error/raw data from the &lt;code&gt;Loader&lt;/code&gt; and sends it to an end user&lt;/p&gt;
+
+&lt;p&gt;Here is the interface of the &lt;code&gt;Loader&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadDataWithCompletion:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;) (&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error))&lt;span style=&#34;color: #19177C&#34;&gt;completion&lt;/span&gt;;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;the interface of the &lt;code&gt;Client&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;Callback) (&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt;;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@property&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader;
+
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt;;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and it’s implementation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt;
+
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt; {
+  [&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.loader &lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; parseUsers(data);
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;finalError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; processError(error);
+    callback(users, finalError);
+  }];
+}
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Our goal is to test that the client parses data and handles errors in a correct way:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+  Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonUsers();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; users;
+    }];
+
+    actualUsers should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedUsers);
+  });
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should process error&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonError();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; error;
+    }];
+
+    actualError should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedError);
+  });
+
+});
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To test this we just need to replace the &lt;code&gt;client.loader&lt;/code&gt; with a fake object that is going to mimic the desired behavior.&lt;/p&gt;
+
+&lt;p&gt;Here is how it looks like with Cedar:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
+&lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+  LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+  &lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getUsersData();
+  [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+  callback(data, &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;);
+});
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
+&lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+  LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+  &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getError();
+  [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+  callback(&lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;, error);
+});
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For those unfamiliar with &lt;a href=&#34;https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html&#34;&gt;&lt;code&gt;NSInvocation&lt;/code&gt;&lt;/a&gt; let me cite it&amp;rsquo;s documentation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;buffer:&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;index:&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An integer specifying the index of the argument to get.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;*/&lt;/span&gt;
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;getArgument:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; nonnull)&lt;span style=&#34;color: #19177C&#34;&gt;buffer&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;atIndex:&lt;/span&gt;(NSInteger)&lt;span style=&#34;color: #19177C&#34;&gt;index&lt;/span&gt;;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After putting these parts together you&amp;rsquo;ll have this cryptic code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeUsersLoader&lt;/span&gt;() {
+  &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+  Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+  loader stub_method(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+    LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+    &lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getUsersData();
+    [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+    callback(data, &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;);
+  });
+}
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeErrorLoader&lt;/span&gt;() {
+  &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+  Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+  loader stub_method(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+    LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getError();
+    [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+    callback(&lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;, error);
+  });
+}
+
+describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+  Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    client.loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fakeUsersLoader();
+
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonUsers();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; users;
+    }];
+
+    actualUsers should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedUsers);
+  });
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should process error&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    client.loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fakeErrorLoader();
+
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonError();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; error;
+    }];
+
+    actualError should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedError);
+  });
+});
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;One of our modules had lots of asynchronous network tests which were failing randomly. As you might imagine, that’s not an optimal situation to find yourself in. By getting rid of asynchrony, we didn’t only get rid of random failures, but also decreased execution time from ~2.5s to ~0.01s.&lt;/p&gt;
+
+&lt;p&gt;Have fun writing those reliable, deterministic tests!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>&#39;if (self)&#39; and Sanity</title>
+      <link>http://lowlevelbits.org/if-self-and-sanity/</link>
+      <pubDate>Tue, 05 May 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/if-self-and-sanity/</guid>
+      <description>
+
+&lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;
+
+&lt;p&gt;I believe it was a hard task, but Apple managed to find that thing:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;super&lt;/span&gt; init];
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;) { &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// &amp;lt;- this is silly&lt;/span&gt;
+}
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;**&lt;em&gt;Don&amp;rsquo;t want to offend you, I did this silly thing for years&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Check the value of &lt;code&gt;self&lt;/code&gt; in constructor only if you use ivars.&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h3 id=&#34;why&#34;&gt;Why?&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSObject_Class/index.html#//apple_ref/occ/instm/NSObject/init&#34;&gt;Documentation&lt;/a&gt; of NSObject’s &lt;code&gt;-init&lt;/code&gt; method says:&lt;/p&gt;
+
+&lt;blockquote&gt;
+&lt;p&gt;Return Value&lt;/p&gt;
+
+&lt;p&gt;An initialized object, or nil if an object could not be created for some reason that would not result in an exception.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Which is completely OK, but &lt;strong&gt;why should we check if self is nil or not&lt;/strong&gt;?&lt;/p&gt;
+
+&lt;p&gt;To get the answer let’s take a look at a few possible variations of a constructor:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;super.init&lt;/code&gt; returns &lt;code&gt;nil&lt;/code&gt;, programmer uses properties (send messages)
+&lt;code&gt;objective-c
+self = [super init];
+self.foo = @&amp;quot;Foo&amp;quot;;
+return self;
+&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;super.init&lt;/code&gt; returns &lt;code&gt;nil&lt;/code&gt;, programmer uses ivars
+&lt;code&gt;objective-c
+self = [super init];
+_foo = @&amp;quot;Foo&amp;quot;;
+return self;
+&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;em&gt;I skipped options when &lt;code&gt;super.init&lt;/code&gt; returns a valid object, because they’re considered correct and valid in any situation&lt;/em&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;nil-object-and-messaging&#34;&gt;Nil object and messaging&lt;/h4&gt;
+
+&lt;p&gt;In a first case an assignment expression just converts into a function call:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// converts into&lt;/span&gt;
+objc_msgSend(&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;setFoo&lt;/span&gt;:), &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;);
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;What happens when you send a message to a Nil object?&lt;/p&gt;
+
+&lt;p&gt;Well, nothing happens.&lt;/p&gt;
+
+&lt;h4 id=&#34;nil-object-and-pointers&#34;&gt;Nil object and pointers&lt;/h4&gt;
+
+&lt;p&gt;The second constructor also has a different final form:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
+_foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// actually means&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;_foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;OK, another question: what happens when you dereference null pointer?&lt;/p&gt;
+
+&lt;p&gt;Behaviour in this case is undefined, but for iOS/OS X platforms it’s usually a crash.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Based on the statements above we can conclude that we don’t need to check &lt;code&gt;self&lt;/code&gt; in every constructor, but only when ivars are used.&lt;/p&gt;
+
+&lt;p&gt;As far as I see some developers do this check, but they don’t know why.&lt;/p&gt;
+
+&lt;p&gt;The reason, imho, is obvious: ObjC is an old language and tons of documentation/examples were written when properties were not introduced yet and programmers had to use ivars.&lt;/p&gt;
+
+&lt;p&gt;After doing this for a years it’s just turned into a habit.&lt;/p&gt;
+
+&lt;p&gt;Nowadays we have properties, that allow us to write clean and robust code, so let’s do it and, please, &lt;strong&gt;check the value of &lt;code&gt;self&lt;/code&gt; in constructor only if you use ivars.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Happy and sane hacking!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Circular Containers in Objective-C</title>
+      <link>http://lowlevelbits.org/circular-containers-in-objective-c/</link>
+      <pubDate>Mon, 13 Apr 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/circular-containers-in-objective-c/</guid>
+      <description>
+
+&lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+    XCCEnvironment &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] &lt;span style=&#34;color: #A0A000&#34;&gt;initWithName&lt;/span&gt;:key
+                                                            &lt;span style=&#34;color: #A0A000&#34;&gt;parameters&lt;/span&gt;:dictionary[key]];
+    [environments &lt;span style=&#34;color: #A0A000&#34;&gt;addObject&lt;/span&gt;:environments];
+}
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; environments;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;h3 id=&#34;problem&#34;&gt;Problem&lt;/h3&gt;
+
+&lt;p&gt;When I run the program I got a crash:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+[environments &lt;span style=&#34;color: #A0A000&#34;&gt;addObject&lt;/span&gt;:environments];
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
+
+&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
+
+&lt;p&gt;I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &amp;lsquo;programmers do not dereference null pointers&amp;rsquo; - it is still happens and probably it&amp;rsquo;s kinda unexpected behaviour.&lt;/p&gt;
+
+&lt;p&gt;I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&amp;rsquo;t find any warning/flag/setting that does this check.&lt;/p&gt;
+
+&lt;p&gt;Eventually I decided to implement it. Implementation took a couple of evenings but now it&amp;rsquo;s &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248&#34;&gt;in trunk&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Actual patch checks the following mutable collections:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;NSMutableArray&lt;/li&gt;
+&lt;li&gt;NSMutableDictionary&lt;/li&gt;
+&lt;li&gt;NSMutableSet&lt;/li&gt;
+&lt;li&gt;NSMutableOrderedSet&lt;/li&gt;
+&lt;li&gt;NSCountedSet&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;And shows warning if you trying to put collection inside itself&lt;/p&gt;
+
+&lt;p&gt;The warning could be enabled/disabled with &lt;code&gt;-wobjc-circular-container&lt;/code&gt;/&lt;code&gt;-wno-objc-circular-container&lt;/code&gt; respectively, though it&amp;rsquo;s enabled &amp;lsquo;by default&amp;rsquo;.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;Recent clang version contains this feature, but it&amp;rsquo;s not yet available within Xcode, and I guess it&amp;rsquo;ll appear with the next major release - in a year or so.&lt;/p&gt;
+
+&lt;p&gt;But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.&lt;/p&gt;
+
+&lt;p&gt;Happy hacking!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>YAML-based Configuration for ObjC Projects</title>
+      <link>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
+      <pubDate>Fri, 06 Feb 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
+      <description>
+
+&lt;p&gt;Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &amp;ldquo;&lt;a href=&#34;https://staging.example.com&amp;quot;&#34;&gt;https://staging.example.com&amp;quot;&lt;/a&gt; and &amp;ldquo;&lt;a href=&#34;https://example.com&amp;quot;&#34;&gt;https://example.com&amp;quot;&lt;/a&gt;.
+Our toolchain does not provide good solution for this problem, so we have to implement our own.&lt;/p&gt;
+
+&lt;p&gt;When I worked with Ruby On Rails I really loved its approach for database configuration:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;development:
+  user: dev
+  password: dev123
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
+production:
+  user: root
+  password: supersecurepassword
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;I wish I can use the same approach in my daily iOS development.&lt;/p&gt;
+
+&lt;p&gt;Fortunately, I can!&lt;/p&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;&lt;strong&gt;TL;DR;&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Checkout project &lt;a href=&#34;https://github.com/AlexDenisov/xcconf&#34;&gt;xcconf&lt;/a&gt; and &lt;code&gt;Sample/Sample.xcodeproj&lt;/code&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;commonly-used-mechanisms&#34;&gt;Commonly used mechanisms&lt;/h3&gt;
+
+&lt;p&gt;There are at least two common approaches to separate configurations: preprocessor definitions and plist file.
+Both of them have serious disadvantages.&lt;/p&gt;
+
+&lt;h4 id=&#34;preprocessor-definition&#34;&gt;Preprocessor Definition&lt;/h4&gt;
+
+&lt;p&gt;You may saw and probably used this approach. It&amp;rsquo;s pretty easy and simple to use:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://staging.example.com&amp;quot;&lt;/span&gt;;
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#else&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://example.com&amp;quot;&lt;/span&gt;;
+&lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;But let&amp;rsquo;s say that you add one more environment, e.g. &amp;ldquo;Beta&amp;rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&amp;rsquo;s really easy to make a typo or &amp;ldquo;accidentally&amp;rdquo; drop a definition. Your code will compile, but it&amp;rsquo;d use wrong environment.
+Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.&lt;/p&gt;
+
+&lt;h4 id=&#34;plist-file&#34;&gt;Plist file&lt;/h4&gt;
+
+&lt;p&gt;This is other commonly used mechanism. This approach described &lt;a href=&#34;http://code.tutsplus.com/tutorials/ios-quick-tip-managing-configurations-with-ease--mobile-18324&#34;&gt;here&lt;/a&gt;.
+It&amp;rsquo;s also has some disadvantages: if you want to add new configuration variable - you have to add it to every subsection, also you need to add a property to class and write (copy-paste?) initialization code.
+Moreover, you will distribute all your keys/endpoints to the end user, or you&amp;rsquo;ll have to cleanup the file right before deploy to the AppStore.
+Still you have to perform way too many actions for such a simple task.&lt;/p&gt;
+
+&lt;p&gt;Thanks god there is more easier and robust way.&lt;/p&gt;
+
+&lt;h3 id=&#34;xcconf-and-yaml&#34;&gt;XCCONF and YAML&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/AlexDenisov/xcconf&#34;&gt;xcconf&lt;/a&gt; incorporates only best parts from methods described previously:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;all settings store in one place&lt;/li&gt;
+&lt;li&gt;you don&amp;rsquo;t expose private data&lt;/li&gt;
+&lt;li&gt;everything done at compile time&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h5 id=&#34;here-is-how-it-looks-like&#34;&gt;Here is how it looks like:&lt;/h5&gt;
+
+&lt;p&gt;Configuration file:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Configuration
+
+Debug:
+  serverAddress: https://staging.example.com
+  APIKey: qwe123!!qwe
+
+Release:
+  serverAddress: https://example.com
+  APIKey: qwe123qwe
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;ObjC code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;-&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)serverAddress;
+- (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;APIKey&lt;/span&gt;;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+
+Config &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Config new];
+NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/span&gt;, config.serverAddress);
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;No preprocessor, no boilerplate!&lt;/p&gt;
+
+&lt;h4 id=&#34;installation-and-usage&#34;&gt;Installation and usage&lt;/h4&gt;
+
+&lt;p&gt;To install &lt;code&gt;xcconf&lt;/code&gt; you need to clone repo and run one command, it&amp;rsquo;ll build executable and install it into &lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; xcconf
+make install
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Integration into project looks weird, but don&amp;rsquo;t worry, that&amp;rsquo;s ok :)&lt;/p&gt;
+
+&lt;p&gt;First of all create YAML file, e.g,: &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;New file&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Put there initial configuration:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Config
+
+Debug:
+  color: Green
+
+Release:
+  color: Blue
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Prepare class interface for configuration. &lt;strong&gt;But do not create implementation&lt;/strong&gt;. Its name should be equal to &lt;code&gt;principalClass&lt;/code&gt; and it might contain getter methods for all available parameters, in this case it&amp;rsquo;s just &lt;code&gt;color&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+- (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;color&lt;/span&gt;;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Compile YAML&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Obviously Xcode doesn&amp;rsquo;t have YAML compiler, but we can provide our own. Open &lt;code&gt;Build Rules&lt;/code&gt;, add new one that matches files with pattern &lt;code&gt;*.yaml&lt;/code&gt; and run shell command &lt;code&gt;/usr/local/bin/xcconf&lt;/code&gt;.
+Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
+&lt;code&gt;$(DERIVED_FILE_DIR)/xcconf.m&lt;/code&gt;. Make sure that output file has extension &lt;code&gt;.m&lt;/code&gt;, so that Xcode can compile it and provide implementation for the &lt;code&gt;principalClass&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;xcconf&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Now we&amp;rsquo;re ready to use it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
+
+&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; argv[]) {
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@autoreleasepool&lt;/span&gt; {
+        Config &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Config new];
+        NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/span&gt;, config.color);
+    }
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;output&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;d really appreciate any feedback.&lt;/p&gt;
+
+&lt;p&gt;P.S. Pull Requests are welcome! :)&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

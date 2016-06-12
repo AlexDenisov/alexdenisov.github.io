@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Module on Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/module/</link>
+    <description>Recent content in Module on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Thu, 26 Jun 2014 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/tags/module/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Creation of pure Swift module</title>
+      <link>http://lowlevelbits.org/creation-of-pure-swift-module/</link>
+      <pubDate>Thu, 26 Jun 2014</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/creation-of-pure-swift-module/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

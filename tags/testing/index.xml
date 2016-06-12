@@ -1,0 +1,468 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Testing on Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/testing/</link>
+    <description>Recent content in Testing on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Thu, 14 Apr 2016 10:00:00 +0200</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/tags/testing/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>LLVM-based Mutation Testing System. Request For Comments</title>
+      <link>http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
+      <pubDate>Thu, 14 Apr 2016</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
+      <description>
+
+&lt;p&gt;Several years ago I discovered very powerful technique - &lt;a href=&#34;https://en.wikipedia.org/wiki/Mutation_testing&#34;&gt;Mutation Testing&lt;/a&gt;.
+Since then I was (and still am) dreaming to have a tool which will do the job for languages like C, Objective-C and C++.&lt;/p&gt;
+
+&lt;p&gt;Now I have confidence in that it can be implemented using LLVM.&lt;/p&gt;
+
+&lt;p&gt;Outline for this article:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;overview of mutation testing&lt;/li&gt;
+&lt;li&gt;mutation testing system - proof of concept&lt;/li&gt;
+&lt;li&gt;thoughts on potential implementation of MT system using LLVM&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4 id=&#34;acknowledgements&#34;&gt;Acknowledgements&lt;/h4&gt;
+
+&lt;p&gt;I want to say &amp;lsquo;thanks&amp;rsquo; explicitly to &lt;a href=&#34;https://github.com/mbj&#34;&gt;Markus Schirp&lt;/a&gt; and &lt;a href=&#34;https://github.com/hcoles&#34;&gt;Henry Coles&lt;/a&gt; for their work on &lt;a href=&#34;https://github.com/mbj/mutant&#34;&gt;Mutant&lt;/a&gt; and &lt;a href=&#34;https://github.com/hcoles/pitest&#34;&gt;Pitest&lt;/a&gt; and hints they gave me several years ago.&lt;/p&gt;
+
+&lt;p&gt;Also, I want to say &amp;lsquo;thanks&amp;rsquo; to all the people involved into development of LLVM.&lt;/p&gt;
+
+&lt;h3 id=&#34;mutation-testing-in-a-nutshell&#34;&gt;Mutation Testing in a nutshell&lt;/h3&gt;
+
+&lt;p&gt;There is a strong belief that code coverage is a meaningful metric. That is incorrect.&lt;/p&gt;
+
+&lt;p&gt;Obviously, if code coverage is 0% then you have some problems. On the other hand having 100% code coverage means literally nothing.&lt;/p&gt;
+
+&lt;p&gt;Consider the following situation: you have a test case which covers implementation of a function &lt;code&gt;sum&lt;/code&gt;. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.&lt;/p&gt;
+
+&lt;p&gt;Here is the test:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;test_result &lt;span style=&#34;color: #0000FF&#34;&gt;test_sum&lt;/span&gt;() {
+  &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; result &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; sum(&lt;span style=&#34;color: #666666&#34;&gt;9&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;);
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (result &lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;) {
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; success;
+  }
+
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; fail;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Implementation of the &lt;code&gt;sum&lt;/code&gt; function is rather simple. But, since you missed your morning coffee you write a wrong operator there:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; b;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You run the tests - everything is working.&lt;/p&gt;
+
+&lt;p&gt;You check code coverage - oh wow, 100%.&lt;/p&gt;
+
+&lt;p&gt;You didn&amp;rsquo;t spot the problem because you trust your tests. And because you rely on code coverage. Neither of these is acceptable.&lt;/p&gt;
+
+&lt;p&gt;This situation raises very valid question - &lt;strong&gt;who tests the tests?&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;One of the answers is Mutation Testing.&lt;/p&gt;
+
+&lt;p&gt;The idea is that MT system generates lots of variations of a program under test (in this case function &lt;code&gt;sum&lt;/code&gt;) which are slightly different from original program. Then the system evaluates test against each mutant and check the result. If test failed, then mutant is killed, otherwise - it is survived.&lt;/p&gt;
+
+&lt;p&gt;Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.&lt;/p&gt;
+
+&lt;p&gt;Here is one potential mutation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt; int sum(int a, int b) {
+&lt;span style=&#34;color: #A00000&#34;&gt;-  return a * b;&lt;/span&gt;
+&lt;span style=&#34;color: #00A000&#34;&gt;+  return a + b;&lt;/span&gt;
+ }
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition &lt;code&gt;sum(9, 5) &amp;gt; 0&lt;/code&gt; still holds.&lt;/p&gt;
+
+&lt;p&gt;This survived mutant should give a hint to developer that something is wrong.&lt;/p&gt;
+
+&lt;h3 id=&#34;proof-of-concept&#34;&gt;Proof of Concept&lt;/h3&gt;
+
+&lt;p&gt;&lt;strong&gt;I do claim that such a system can be built on top of LLVM using LLVM IR/bitcode, JIT and &lt;a href=&#34;https://lh6.googleusercontent.com/hY5_U3eO3lPP2fhwcZgCFHC9IpOomMR1YIXz4kDML1hpliTNmaZ5DLrTzyKq9RMAMIYwPocbSkzGiRSUrVzwpyHeSBxVDbR3MHK41bHiE7feidNeUOXqPrwfv1ZNb2tEWPR4msan&#34;&gt;ponies&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;So far I have managed to create a proof of concept which obviously lacks tons of features and skips lots of real problems.&lt;/p&gt;
+
+&lt;p&gt;Code is available &lt;a href=&#34;https://github.com/AlexDenisov/mutation-testing-poc&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;It is not intended to be runnable on your machine, since it uses &amp;lsquo;slightly forked&amp;rsquo; LLVM with couple of functions that were &amp;lsquo;missing&amp;rsquo;.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;So far it does very little:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;loads LLVM IR from bitcode files into memory&lt;/li&gt;
+&lt;li&gt;finds first test function&lt;/li&gt;
+&lt;li&gt;finds a function (testee) used from test function&lt;/li&gt;
+&lt;li&gt;replaces first occurrence of &amp;lsquo;+&amp;rsquo; with &amp;lsquo;-&amp;rsquo;&lt;/li&gt;
+&lt;li&gt;prints diff (using libgit2) between original and mutated function&lt;/li&gt;
+&lt;li&gt;runs test against original function and mutated function&lt;/li&gt;
+&lt;li&gt;compares test results, assuming mutant is killed when results are different&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;I guess it doesn&amp;rsquo;t look impressive and mind-blowing.
+However, this proof of concept inspires me to start working on a real system, despite that it will take enormous amount of time since (almost) all this work I do in my spare time.&lt;/p&gt;
+
+&lt;h3 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h3&gt;
+
+&lt;p&gt;The next step actually is to start implementing the system that can be used in production.&lt;/p&gt;
+
+&lt;p&gt;Below you can see a high level overview of an algorithm I have in my head.
+It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    Classes used within the algorithm&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;*/&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/* Basic instruction, e.g. a + b */&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Instruction&lt;/span&gt; {
+
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/* Represents set of istructions in a single scope, e.g. if/else branch */&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;BasicBlock&lt;/span&gt; {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;instructions&lt;/span&gt; : [Instruction]
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/* Function is a function, that&amp;#39;s it */&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Function&lt;/span&gt; {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;basicBlocks&lt;/span&gt; : [BasicBlock]
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/* Representation of a source file */&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Module&lt;/span&gt; {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;functions&lt;/span&gt; : [Function]
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/* Shows instruction that needs to be mutated */&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;MutationPoint&lt;/span&gt; {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;instruction&lt;/span&gt; : Instruction
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;basicBlock&lt;/span&gt; : BasicBlock
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;function&lt;/span&gt; : Function
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;module&lt;/span&gt; : Module
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    Algorithm&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;*/&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/* Load all files into memory */&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;modules&lt;/span&gt; = loadProgramModules()
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    Find all functions that represent test&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    &amp;#39;testFinder&amp;#39; is an abstraction intended to hide language/framework specific logic.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    Example classes are &amp;#39;CPP_GTest_TestFinder&amp;#39;, &amp;#39;ObjC_XCTest_TestFinder&amp;#39;,&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    &amp;#39;ObjC_Cedar_TestFinder&amp;#39; and so on.&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;*/&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;tests&lt;/span&gt; = testFinder.findAllTests(modules)
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; tests {
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;      For each test we need to find a set of functions that can be mutated in some way&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  */&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;testeeFunctions&lt;/span&gt; = mutationFinder.findAllTesteeFunctions(test)
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; testee &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; testeeFunctions {
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        For each testee we do the following:&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        Testee belongs to a module, we need to make two copies of this module:&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        one copy will contain only testee (moduleWithOriginal)&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        another one will contain all functions but testee (moduleWithoutTesteeFunction)&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        Having this split we can mutate function inside of &amp;#39;moduleWithOriginal&amp;#39;&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        without affecting and recompiling potentially big module&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    */&lt;/span&gt;
+
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;moduleWithOriginal&lt;/span&gt; = copyOfModuleWithOnlyFunction(testee.module, testee)
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;moduleWithoutTesteeFunction&lt;/span&gt; = copyOfModuleWithoutFunction(testee.module, testee)
+
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        Now we can create JIT engine using all modules, excluding the module of testee.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        In fact the latter one if replaced by &amp;#39;moduleWithoutTesteeFunction&amp;#39;&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    */&lt;/span&gt;
+
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;modulesWithoutTesteeModule&lt;/span&gt; = modules.without(testee.module)
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;executionEngine&lt;/span&gt; = executionEngineWithModules(modulesWithoutTesteeModule)
+    executionEngine.addModule(moduleWithoutTesteeFunction)
+
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        Having JIT engine in place we can run the test against original implementation of testee&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    */&lt;/span&gt;
+
+    executionEngine.addModule(moduleWithOriginal)
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;originalResult&lt;/span&gt; = executionEngine.runTest(test)
+    executionEngine.removeModule(moduleWithOriginal)
+
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        Now we need to find all places where we can apply mutation&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;    */&lt;/span&gt;
+
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;mutationPoints&lt;/span&gt; = mutationFinder.findAllMutationPoints(functino)
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; mutationPoints {
+        &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;            And for each such place we are getting copy of &amp;#39;moduleWithOriginal&amp;#39;&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;            within applied mutation&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        */&lt;/span&gt;
+
+        &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;moduleWithMutation&lt;/span&gt; = applyMutationOnModule(point, moduleWithOriginal)
+
+        &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;            Now we run the test against the mutant&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        */&lt;/span&gt;
+
+        executionEngine.addModule(moduleWithMutation)
+        &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;mutationResult&lt;/span&gt; = executionEngine.runTest(test)
+        executionEngine.removeModule(moduleWithMutation)
+
+        &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;            And finally compare results&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;        */&lt;/span&gt;
+
+        analyzeResults(originalResult, mutationResult)
+    }
+  }
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;As you can see the starting point here is a bitcode, which means the system is language agnostic.&lt;/p&gt;
+
+&lt;p&gt;However this approach has it&amp;rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.&lt;/p&gt;
+
+&lt;p&gt;Being able to re-run test just by replacing a module with mutated function gives an ability to increase performance drastically. However, execution may interrupt because of signal (segfault, bad access, etc.) or it may go into an infiinte loop. To fix those problems there might be a need to run each mutant as a separate process.&lt;/p&gt;
+
+&lt;p&gt;Besides that there are quite a few open questions such as:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;how to get bitcode for each translation unit (source file) automatically&lt;/li&gt;
+&lt;li&gt;how to compare test results of original and mutated program for different testing frameworks&lt;/li&gt;
+&lt;li&gt;how to deal with tests that are touching OS resources such as file system, I/O, etc&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Obviously, there are many more questions and problems that I&amp;rsquo;m not aware of yet.&lt;/p&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;LLVM gives us an ability to build a powerful, language and framework agnostic system for Mutation Testing.&lt;/p&gt;
+
+&lt;p&gt;I want to use this ability to build this tool and to get as much fun as possible.&lt;/p&gt;
+
+&lt;p&gt;Besides motivating myself by making this public commitment, this blog post has two other goals:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;get comments from people who are heavily involved in LLVM and/or mutation testing systems development&lt;/li&gt;
+&lt;li&gt;to attract people who may be willing to join the project when I have something to show&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you have something to add or want to share your knowledge or concerns - please do it.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>System Under Test: FreeBSD</title>
+      <link>http://lowlevelbits.org/system-under-test-freebsd/</link>
+      <pubDate>Thu, 31 Mar 2016</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/system-under-test-freebsd/</guid>
+      <description>
+
+&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test&#34;&gt;&amp;ldquo;System Under Test&amp;rdquo;&lt;/a&gt;. It provides an overview of the FreeBSD test suite and tools FreeBSD developers use to write and run tests.&lt;/p&gt;
+
+&lt;h3 id=&#34;what-is-the-project-about&#34;&gt;What is the project about?&lt;/h3&gt;
+
+&lt;p&gt;FreeBSD is a well known Unix-based operating system.&lt;/p&gt;
+
+&lt;h3 id=&#34;tests&#34;&gt;Tests&lt;/h3&gt;
+
+&lt;p&gt;FreeBSD has one test suite. It contains ~3.6k tests and takes ~7.5 minutes to run on a virtual machine with 2Gb of RAM.&lt;/p&gt;
+
+&lt;h4 id=&#34;getting-tests&#34;&gt;Getting Tests&lt;/h4&gt;
+
+&lt;p&gt;The tests can be found in &lt;code&gt;/usr/tests&lt;/code&gt; directory. Though, you may not have them there because of one of the following reasons:&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Test suite is not a part of any distribution prior to FreeBSD 10.0.&lt;/li&gt;
+&lt;li&gt;Test suite is available out of the box only on FreeBSD 11.0 and newer.&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
+Fortunately, it is very easy:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;WITH_TESTS=YES&amp;quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/src
+make buildworld
+make installworld
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h4 id=&#34;running-tests&#34;&gt;Running tests&lt;/h4&gt;
+
+&lt;p&gt;FreeBSD adopted approach used by NetBSD project. Within the approach they included the toolchain: &lt;a href=&#34;https://github.com/jmmv/kyua&#34;&gt;Kyua&lt;/a&gt; and &lt;a href=&#34;https://github.com/jmmv/atf/&#34;&gt;ATF&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.&lt;/p&gt;
+
+&lt;p&gt;To run tests you need to point &lt;code&gt;kyua&lt;/code&gt; to a &lt;code&gt;Kyuafile&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/tests
+kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;when it’s done you may request report:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;kyua report
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Test report&#34; /&gt;&lt;/p&gt;
+
+&lt;h4 id=&#34;toolchain&#34;&gt;Toolchain&lt;/h4&gt;
+
+&lt;p&gt;&lt;code&gt;Kyuafile&lt;/code&gt; specifies which tests to run. It also can include other &lt;code&gt;Kyuafile&lt;/code&gt;s. Here is an example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;include(&#39;lib/Kyuafile&#39;)
+atf_test_program{name=’some_atf_test&#39;}
+plain_test_program{name=&#39;some_plain_test&#39;}
+tap_test_program{name=&#39;some_tap_test’}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;When run &lt;code&gt;kyua&lt;/code&gt; will execute all tests specified in &lt;code&gt;lib/Kyuafile&lt;/code&gt; (and in &lt;code&gt;Kyuafile&lt;/code&gt;s included from &lt;code&gt;lib/Kyuafile&lt;/code&gt;), and then will execute three tests: ATF test &lt;code&gt;some_atf_test&lt;/code&gt;, plain test &lt;code&gt;some_plain_test&lt;/code&gt;, and &lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;TAP&lt;/a&gt; test &lt;code&gt;some_tap_test&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;Plain test is basically a simple program that returns non-zero if test failed and zero otherwise.&lt;/p&gt;
+
+&lt;p&gt;TAP tests are any possible tests, the only important thing there  is an output. If test prints &amp;ldquo;ok whatever&amp;rdquo; then it succeeded, if it prints &amp;ldquo;not ok whatnot&amp;rdquo; - it has failed.&lt;/p&gt;
+
+&lt;p&gt;ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.&lt;/p&gt;
+
+&lt;p&gt;Here is a part of an ATF test written in shell:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;test5678901234567&amp;quot;&lt;/span&gt;
+
+atf_test_case longname cleanup
+
+longname_head&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_set &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;require.user&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;root&amp;quot;&lt;/span&gt;
+  atf_set &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;descr&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Test that usernames longer than 16 &amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&lt;/span&gt;
+    &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;characters are allowed (PR bin/39546)&amp;quot;&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+
+longname_body&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw useradd &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+
+longname_cleanup&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_check -s ignore -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw userdel &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+
+atf_init_test_cases&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
+  atf_add_test_case longname
+&lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If you try to find there a test written let’s say in C, then you will not succeed. All tests under &lt;code&gt;/usr/tests&lt;/code&gt; are executables.
+The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the &lt;code&gt;/usr/tests&lt;/code&gt;.
+For example, if you want to see tests for libc’ stdio, then you need to look at &lt;code&gt;/usr/src/lib/libc/tests/stdio&lt;/code&gt;.
+At the moment there is one test, here is part of it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+ATF_TC_BODY(test_append_binary_pos, tc)
+{
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * For compatibility with other implementations (glibc), we set the&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * position to 0 when opening an automatically allocated binary stream&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * for appending.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  */&lt;/span&gt;
+
+  &lt;span style=&#34;color: #B00040&#34;&gt;FILE&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;fp;
+
+  fp &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fmemopen(&lt;span style=&#34;color: #008000&#34;&gt;NULL&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;ab+&amp;quot;&lt;/span&gt;);
+  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color: #666666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0L&lt;/span&gt;);
+  fclose(fp);
+
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  * Make sure that a pre-allocated buffer behaves correctly.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  */&lt;/span&gt;
+  &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; buf[] &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;;
+  fp &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fmemopen(buf, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;sizeof&lt;/span&gt;(buf), &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;ab+&amp;quot;&lt;/span&gt;);
+  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color: #666666&#34;&gt;==&lt;/span&gt; strlen(buf));
+  fclose(fp);
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+
+&lt;p&gt;FreeBSD has ~3.6k tests. The amount of tests is suspiciously small for such a big project. Since I was (and still am) afraid that I missed some important part I did ask on mailing list &lt;a href=&#34;https://lists.freebsd.org/pipermail/freebsd-testing/2016-March/001306.html&#34;&gt;question about available tests&lt;/a&gt;, but didn’t
+get any answer so far.&lt;/p&gt;
+
+&lt;p&gt;FreeBSD has lots of various tools and libraries, but not all of them tested.&lt;/p&gt;
+
+&lt;p&gt;Maybe it’s a good starting point for a contribution?&lt;/p&gt;
+
+&lt;h3 id=&#34;further-reading&#34;&gt;Further reading&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;man 7 tests&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.freebsd.org/TestSuite&#34;&gt;FreeBSD Test Suite&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.netbsd.org/kyua/&#34;&gt;Kyua: An introduction for NetBSD users&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jmmv/kyua/wiki/About&#34;&gt;Kyua: project wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;Test Anything Protocol&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>System Under Test</title>
+      <link>http://lowlevelbits.org/system-under-test/</link>
+      <pubDate>Thu, 24 Mar 2016</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/system-under-test/</guid>
+      <description>&lt;p&gt;Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.&lt;/p&gt;
+
+&lt;p&gt;Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of these articles is to answer the question “How is X tested?”.&lt;/p&gt;
+
+&lt;p&gt;Here is a list of projects I want to start with:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-llvm/&#34;&gt;LLVM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd/&#34;&gt;FreeBSD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;PostgreSQL: TBD&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you want to see a post about particular project which is not on the list: please &lt;a href=&#34;mailto:1101.debian@gmail.com&#34;&gt;send me an email&lt;/a&gt; or leave a comment here with a name of the project.&lt;/p&gt;
+
+&lt;p&gt;If you don&amp;rsquo;t want to miss the next article - feel free to subscribe using the form in the sidebar or follow me on Twitter.&lt;/p&gt;
+
+&lt;p&gt;Enjoy reading!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

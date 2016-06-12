@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ohhttpstubs on Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/ohhttpstubs/</link>
+    <description>Recent content in Ohhttpstubs on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Wed, 17 Jun 2015 12:31:15 +0200</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/tags/ohhttpstubs/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Getting Rid of Asynchronous Tests</title>
+      <link>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
+      <pubDate>Wed, 17 Jun 2015</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
+      <description>
+
+&lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;
+
+&lt;p&gt;So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like &lt;a href=&#34;https://github.com/luisobo/Nocilla&#34;&gt;Nocilla&lt;/a&gt; and &lt;a href=&#34;https://github.com/AliSoftware/OHHTTPStubs&#34;&gt;OHHTTPStubs&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: &lt;strong&gt;asynchronous tests are unreliable&lt;/strong&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;getting-rid-of-asynchrony&#34;&gt;Getting rid of asynchrony&lt;/h3&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;To make those tests reliable we need to get rid of asynchrony. There are a few frameworks that simplify this task, like: &lt;a href=&#34;http://ocmock.org&#34;&gt;OCMock&lt;/a&gt;, &lt;a href=&#34;https://github.com/jonreid/OCMockito&#34;&gt;OCMockito&lt;/a&gt; or &lt;a href=&#34;https://github.com/pivotal/cedar&#34;&gt;Cedar&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As big fan of ObjC++, I’ll go with Cedar, but any one of the above can get the job done.&lt;/p&gt;
+
+&lt;p&gt;Let’s first consider the components of a system under test:&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Loader&lt;/code&gt; - loads raw &lt;code&gt;NSData&lt;/code&gt; from the network or returns an error&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Client&lt;/code&gt; - handles error/raw data from the &lt;code&gt;Loader&lt;/code&gt; and sends it to an end user&lt;/p&gt;
+
+&lt;p&gt;Here is the interface of the &lt;code&gt;Loader&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadDataWithCompletion:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;) (&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error))&lt;span style=&#34;color: #19177C&#34;&gt;completion&lt;/span&gt;;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;the interface of the &lt;code&gt;Client&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;Callback) (&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt;;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@property&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader;
+
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt;;
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and it’s implementation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt;
+
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt; {
+  [&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.loader &lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; parseUsers(data);
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;finalError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; processError(error);
+    callback(users, finalError);
+  }];
+}
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Our goal is to test that the client parses data and handles errors in a correct way:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+  Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonUsers();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; users;
+    }];
+
+    actualUsers should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedUsers);
+  });
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should process error&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonError();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; error;
+    }];
+
+    actualError should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedError);
+  });
+
+});
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;To test this we just need to replace the &lt;code&gt;client.loader&lt;/code&gt; with a fake object that is going to mimic the desired behavior.&lt;/p&gt;
+
+&lt;p&gt;Here is how it looks like with Cedar:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
+&lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+  LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+  &lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getUsersData();
+  [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+  callback(data, &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;);
+});
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
+&lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+  LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+  &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getError();
+  [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+  callback(&lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;, error);
+});
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;For those unfamiliar with &lt;a href=&#34;https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html&#34;&gt;&lt;code&gt;NSInvocation&lt;/code&gt;&lt;/a&gt; let me cite it&amp;rsquo;s documentation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;buffer:&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.&lt;/span&gt;
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;index:&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An integer specifying the index of the argument to get.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;*/&lt;/span&gt;
+- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;getArgument:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; nonnull)&lt;span style=&#34;color: #19177C&#34;&gt;buffer&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;atIndex:&lt;/span&gt;(NSInteger)&lt;span style=&#34;color: #19177C&#34;&gt;index&lt;/span&gt;;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;After putting these parts together you&amp;rsquo;ll have this cryptic code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeUsersLoader&lt;/span&gt;() {
+  &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+  Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+  loader stub_method(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+    LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+    &lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getUsersData();
+    [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+    callback(data, &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;);
+  });
+}
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeErrorLoader&lt;/span&gt;() {
+  &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
+  Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
+  loader stub_method(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
+    LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getError();
+    [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
+    callback(&lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;, error);
+  });
+}
+
+describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+  Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    client.loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fakeUsersLoader();
+
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonUsers();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; users;
+    }];
+
+    actualUsers should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedUsers);
+  });
+
+  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should process error&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+    client.loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fakeErrorLoader();
+
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonError();
+    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
+
+    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
+      actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; error;
+    }];
+
+    actualError should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedError);
+  });
+});
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;One of our modules had lots of asynchronous network tests which were failing randomly. As you might imagine, that’s not an optimal situation to find yourself in. By getting rid of asynchrony, we didn’t only get rid of random failures, but also decreased execution time from ~2.5s to ~0.01s.&lt;/p&gt;
+
+&lt;p&gt;Have fun writing those reliable, deterministic tests!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

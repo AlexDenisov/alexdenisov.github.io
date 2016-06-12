@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Howto on Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/howto/</link>
+    <description>Recent content in Howto on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Sat, 27 Dec 2014 23:03:50 +0100</lastBuildDate>
+    <atom:link href="http://lowlevelbits.org/tags/howto/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Getting Started With LLVM/Clang on OS X</title>
+      <link>http://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
+      <pubDate>Sat, 27 Dec 2014</pubDate>
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <guid>http://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
+      <description>
+
+&lt;p&gt;This article is a guide how to set up development environment for Clang on OS X.
+The following topics are covered:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;getting sources&lt;/li&gt;
+&lt;li&gt;setting up IDE/compiling&lt;/li&gt;
+&lt;li&gt;debugging&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;!-- more --&gt;
+
+&lt;p&gt;&lt;em&gt;The article doesn&amp;rsquo;t cover basics of compiler construction. If you&amp;rsquo;re looking for a theory take a look at Summary section at the bottom of the page.&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;getting-sources&#34;&gt;Getting sources&lt;/h3&gt;
+
+&lt;p&gt;Clang (and other projects from LLVM suite) uses SVN as a main version control system, but also provides a git mirror. Alternatively, you can use unofficial git mirror from Github, which updates every hour.&lt;/p&gt;
+
+&lt;p&gt;In this tutorial I use git as a VCS, but you may use an SVN without any restrictions.&lt;/p&gt;
+
+&lt;p&gt;To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.&lt;/p&gt;
+
+&lt;p&gt;Let’s grab the latest sources:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;mkdir ~/Projects/clang_dev
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+git clone http://llvm.org/git/llvm.git
+git clone http://llvm.org/git/clang.git llvm/tools/clang
+git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra
+git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;You can checkout particular branch if you&amp;rsquo;re interested in a particular version (e.g. 3.4)&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;mkdir ~/Projects/clang_dev
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;span style=&#34;color: #008000&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;BRANCH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;release_34
+git clone http://llvm.org/git/llvm.git -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
+git clone http://llvm.org/git/clang.git llvm/tools/clang -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
+git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
+git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;From to time to time you have to update the sources if you use &lt;code&gt;HEAD&lt;/code&gt;. If you don’t want to do it manually, just put the script into &lt;code&gt;clang_dev&lt;/code&gt; directory:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#!/bin/env sh&lt;/span&gt;
+&lt;span style=&#34;color: #19177C&#34;&gt;root&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/tools/clang &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/projects/compiler-rt &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/tools/clang/tools/extra &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and make it executable&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;chmod +x update.sh
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;h3 id=&#34;setting-up-ide-and-compiling&#34;&gt;Setting up IDE and compiling&lt;/h3&gt;
+
+&lt;p&gt;LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.&lt;/p&gt;
+
+&lt;p&gt;Let’s create the project for Xcode&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+mkdir build
+&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; build
+cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Debug&amp;quot;&lt;/span&gt; ../llvm
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;open it&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;open LLVM.xcodeproj
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and find something to do (it’s not about ‘make tea’, but about ‘go for a party&amp;rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.&lt;/p&gt;
+
+&lt;p&gt;Well, once the project indexing is over you can build the clang.&lt;/p&gt;
+
+&lt;p&gt;But before, probably, you need to cleanup the list of targets/schemes.&lt;/p&gt;
+
+&lt;p&gt;Click on &amp;lsquo;ALL_BUILD&amp;rsquo;&lt;/p&gt;
+
+
+&lt;figure &gt;
+    
+        &lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/all_build_target.png&#34; alt=&#34;ALL_BUILD target&#34; /&gt;
+    
+    
+&lt;/figure&gt;
+
+
+&lt;p&gt;choose ‘Manage Schemes&amp;hellip;&amp;rsquo;&lt;/p&gt;
+
+
+&lt;figure &gt;
+    
+        &lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/manage_schemes.png&#34; alt=&#34;Manage Schemes...&#34; /&gt;
+    
+    
+&lt;/figure&gt;
+
+
+&lt;p&gt;you’ll see a huge list of available targets, you don’t need most of them so feel free to hide &amp;lsquo;useless&amp;rsquo; ones by unchecking &amp;lsquo;Show&amp;rsquo; flag:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/schemes.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Schemes&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If we just build and run clang, then it’ll do nothing, let’s add some parameters, for instance, print version.&lt;/p&gt;
+
+&lt;p&gt;Select &lt;code&gt;Edit scheme&lt;/code&gt;:&lt;/p&gt;
+
+
+&lt;figure &gt;
+    
+        &lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/edit_scheme.png&#34; alt=&#34;Edit scheme&#34; /&gt;
+    
+    
+&lt;/figure&gt;
+
+
+&lt;p&gt;and add &lt;code&gt;-v&lt;/code&gt; to the &lt;code&gt;Arguments passed on launch&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/version_arguments.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Version arguments&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;That’s pretty much it, just hit &lt;code&gt;Cmd + R&lt;/code&gt; and it’ll build clang and run built binary with a specified parameter.&lt;/p&gt;
+
+&lt;p&gt;When build done (it also takes a while) and program executed you’ll see the clang version in the Xcode output window&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/clang_version.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Clang version&#34; /&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;debugging&#34;&gt;Debugging&lt;/h3&gt;
+
+&lt;p&gt;Clang is a big project therefore debugging without a decent GUI tool is not an easy task. Fortunately, we have Xcode.&lt;/p&gt;
+
+&lt;p&gt;In this example we’re going to debug a parser and semantic analysis phase of clang.&lt;/p&gt;
+
+&lt;p&gt;Create a file &lt;code&gt;/tmp/sum.c&lt;/code&gt; which contains the following code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
+     &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; b;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;and specify the file as an argument for a clang binary, with additional parameters:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/debug_arguments.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Debug arguments&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;clang&lt;/code&gt; executable itself is just a driver, which determines what to do next with all received parameters. By default it calls &amp;lsquo;clang compiler’ and passes the parameters, but it calls it as a separate process, so it’s hard to debug in a traditional way. By specifying &lt;code&gt;-cc1&lt;/code&gt; option it calls compiler directly, in the same process.&lt;/p&gt;
+
+&lt;p&gt;Since we aren’t going to compile the source, but only make semantic analysis, we can add &lt;code&gt;-fsyntax-only&lt;/code&gt; argument.&lt;/p&gt;
+
+&lt;p&gt;Let’s start debugging.&lt;/p&gt;
+
+&lt;p&gt;Find a &lt;code&gt;ParseExpr.cpp&lt;/code&gt;, set a breakpoint at the &lt;code&gt;ParseExpression&lt;/code&gt; method:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/breakpoint.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Breakpoint&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;and run. When program reach this breakpoint you can retrieve some useful information.&lt;/p&gt;
+
+&lt;p&gt;Most of LLVM&amp;rsquo; classes have method &lt;code&gt;dump&lt;/code&gt; which prints all valuable information about an object. You can easily access it by evaluating LLDB command &lt;code&gt;expression&lt;/code&gt; (or simply &lt;code&gt;expr&lt;/code&gt;):&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/dump.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34;
+  alt=&#34;Dump&#34; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Here you see an AST representation of the addition expression from a &lt;code&gt;sum&lt;/code&gt; method: &lt;code&gt;a + b&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;As you can see this article is not a comprehensive guide, but only a very small instruction set, which might be helpful if you just started playing with compiler internals and want to try to touch them.&lt;/p&gt;
+
+&lt;p&gt;If you&amp;rsquo;re looking for a more theoretical and practical information I&amp;rsquo;d recommend to read the following articles:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://aosabook.org/en/llvm.html&#34;&gt;The Architecture of Open Source Applications: LLVM&lt;/a&gt; by &lt;a href=&#34;http://nondot.org/~sabre/&#34;&gt;Chris Lattner&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.objc.io/issue-6/compiler.html&#34;&gt;objc.io #6. The Compiler&lt;/a&gt; by &lt;a href=&#34;https://twitter.com/chriseidhof&#34;&gt;Chris Eidhof&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;strong&gt;Stay tuned if you interested how-to write tests for Clang and LLVM.&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Happy hacking!&lt;/strong&gt;&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
