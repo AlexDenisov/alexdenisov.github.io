@@ -931,3 +931,11 @@ aside.aside-column article.widget header h1 {
 blockquote {
   padding-left: 12px;
 }
+
+pre {
+  overflow: auto;
+  word-wrap: normal;
+  white-space: pre;
+  font-size: 16px;
+}
+
