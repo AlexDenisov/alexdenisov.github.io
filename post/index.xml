@@ -2438,7 +2438,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; Of course I do not take in count resources, it&amp;rsquo;s just about binary itself. For instance, app I&amp;rsquo;m working on currently has size ~40 megabytes (including assets, xibs. fonts), size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if  we crop just one of them it will decrease size of the app by ~20%.&lt;/p&gt;
 
-&lt;h2 id=&#34;what-problems-bitcode-introduces&#34;&gt;What problems Bitcode introduces?&lt;/h2&gt;
+&lt;h2 id=&#34;what-problems-do-bitcode-introduce&#34;&gt;What problems do Bitcode introduce?&lt;/h2&gt;
 
 &lt;p&gt;The idea of Bitcode and recompiling for each platform looks really great and it&amp;rsquo;s a huge improvement, though it has downsides as well: the biggest one is security.&lt;/p&gt;
 
