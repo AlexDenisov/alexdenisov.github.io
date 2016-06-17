@@ -3355,6 +3355,17 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
 &lt;p&gt;But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.&lt;/p&gt;
 
 &lt;p&gt;Happy hacking!&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;UPD&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          height: auto;&#34; /&gt;&lt;/p&gt;
 </description>
     </item>
     
