@@ -171,7 +171,9 @@ output with lots of errors and finally:
 212 Tests in 66 Categories Failed (See .diff* files in work dir for details) :-(
 &lt;/pre&gt;
 
-&lt;p&gt;We see here that oldness of default Make on OS X does cost 212 failing tests. To understand how that is different for latest Make let&amp;rsquo;s build it from source and run tests against it.&lt;/p&gt;
+&lt;p&gt;We see here that oldness of default Make on OS X does cost 212 failing tests. I assume that the reason why most of these failing tests are failing is not a regression in core functionality of Make but rather because of new features were added to GNU Make since 2006.&lt;/p&gt;
+
+&lt;p&gt;To understand how that is different for latest Make let&amp;rsquo;s build it from source and run tests against it.&lt;/p&gt;
 
 &lt;h3 id=&#34;running-tests-against-latest-make-built-from-source&#34;&gt;Running tests against latest Make built from source&lt;/h3&gt;
 
