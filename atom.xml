@@ -1043,6 +1043,9 @@ config&lt;span style=&#34;color: #666666&#34;&gt;.&lt;/span&gt;substitutions&lt;
 
 &lt;p&gt;Both &lt;code&gt;lit&lt;/code&gt; and &lt;code&gt;FileCheck&lt;/code&gt; have lots of useful options. Consider looking at documentation to learn more.&lt;/p&gt;
 
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;upd 22.06.16:&lt;/strong&gt;&lt;/em&gt;
+As Daniel Dunbar &lt;a href=&#34;https://twitter.com/daniel_dunbar/status/745285660626452480&#34;&gt;mentioned&lt;/a&gt; it possible to use &lt;code&gt;lit&lt;/code&gt; without LLVM, simply by installing it using &lt;code&gt;pip&lt;/code&gt;: &lt;code&gt;pip install lit&lt;/code&gt;&lt;/p&gt;
+
 &lt;h4 id=&#34;performance-tracking&#34;&gt;Performance tracking&lt;/h4&gt;
 
 &lt;p&gt;Performance is one of the most important goals of any software. LLVM is not an exception.&lt;/p&gt;
