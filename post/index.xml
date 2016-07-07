@@ -1054,7 +1054,7 @@ As Daniel Dunbar &lt;a href=&#34;https://twitter.com/daniel_dunbar/status/745285
 
 &lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/TestingGuide.html#test-suite-overview&#34;&gt;Performance tests suite&lt;/a&gt; is not a part of LLVM source tree. It has to be fetched separately. It is a set of programs that are compiled and executed to track performance changes.&lt;/p&gt;
 
-&lt;p&gt;Besides &lt;code&gt;LNT&lt;/code&gt; the test suite can be used within CMake as described in &lt;a href=&#34;http://llvm.org/docs/TestSuiteMakefileGuide.html&#34;&gt;LLVM &lt;code&gt;test-suite&lt;/code&gt; Guide&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Besides &lt;code&gt;LNT&lt;/code&gt; the test suite can be used within CMake as described in &lt;a href=&#34;http://llvm.org/docs/TestSuiteMakefileGuide.html&#34;&gt;LLVM test-suite Guide&lt;/a&gt;&lt;/p&gt;
 
 &lt;p&gt;At the moment of writing this article external test suite contains 485 test cases. It takes ~5 minutes to run them using &lt;code&gt;lit&lt;/code&gt;.&lt;/p&gt;
 
