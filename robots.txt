@@ -1,4 +1,5 @@
 User-agent: *
-Disallow: 
+Disallow:
+Disallow: /drafts/
 
-Sitemap: http://lowlevelbits.org/sitemap.xml 
+Sitemap: http://lowlevelbits.org/sitemap.xml
