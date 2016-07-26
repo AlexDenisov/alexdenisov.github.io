@@ -13,10 +13,10 @@
     
     <item>
       <title>System Under Test: GNU Make</title>
-      <link>http://lowlevelbits.org/system-under-test-gnu-make/</link>
+      <link>http://systemundertest.org/gnu-make/</link>
       <pubDate>Sun, 12 Jun 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/system-under-test-gnu-make/</guid>
+      <guid>http://systemundertest.org/gnu-make/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/gnu-make&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -737,10 +737,10 @@ It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
     
     <item>
       <title>System Under Test: FreeBSD</title>
-      <link>http://lowlevelbits.org/system-under-test-freebsd/</link>
+      <link>http://systemundertest.org/freebsd/</link>
       <pubDate>Thu, 31 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/system-under-test-freebsd/</guid>
+      <guid>http://systemundertest.org/freebsd/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/freebsd&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -891,10 +891,10 @@ get any answer so far.&lt;/p&gt;
     
     <item>
       <title>System Under Test: LLVM</title>
-      <link>http://lowlevelbits.org/system-under-test-llvm/</link>
+      <link>http://systemundertest.org/llvm/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/system-under-test-llvm/</guid>
+      <guid>http://systemundertest.org/llvm/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -1166,10 +1166,10 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>http://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
+      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
+      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
       <description>
 
 &lt;p&gt;We all know that the API has a specification.

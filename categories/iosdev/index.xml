@@ -13,10 +13,10 @@
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>http://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
+      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
+      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
       <description>
 
 &lt;p&gt;We all know that the API has a specification.
@@ -1301,28 +1301,28 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
     
     <item>
       <title>Global variables in Swift are not variables</title>
-      <link>http://lowlevelbits.org/global-variables-in-swift-are-not-variables/</link>
+      <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
       <pubDate>Wed, 11 Jun 2014</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/global-variables-in-swift-are-not-variables/</guid>
+      <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Dependency Injection in Objective-C with Blood and Magic</title>
-      <link>http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic/</link>
+      <link>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</link>
       <pubDate>Tue, 15 Oct 2013</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/dependency-injection-in-objective-c-with-blood-and-magic/</guid>
+      <guid>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</guid>
       <description></description>
     </item>
     
     <item>
       <title>Using Forward Declaration In Your Objective-C Projects</title>
-      <link>http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects/</link>
+      <link>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</link>
       <pubDate>Fri, 09 Aug 2013</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects/</guid>
+      <guid>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</guid>
       <description></description>
     </item>
     

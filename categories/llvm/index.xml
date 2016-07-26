@@ -288,10 +288,10 @@ It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
     
     <item>
       <title>System Under Test: LLVM</title>
-      <link>http://lowlevelbits.org/system-under-test-llvm/</link>
+      <link>http://systemundertest.org/llvm/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/system-under-test-llvm/</guid>
+      <guid>http://systemundertest.org/llvm/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;

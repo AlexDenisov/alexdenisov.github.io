@@ -13,10 +13,10 @@
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>http://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
+      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
+      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
       <description>
 
 &lt;p&gt;We all know that the API has a specification.
