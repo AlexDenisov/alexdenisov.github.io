@@ -17,16 +17,18 @@
       <pubDate>Thu, 24 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>http://lowlevelbits.org/system-under-test/</guid>
-      <description>&lt;p&gt;Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.&lt;/p&gt;
+      <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; After a while we made decision to convert the series of posts into an independent project: &lt;a href=&#34;http://systemundertest.org&#34;&gt;System Under Test&lt;/a&gt;. For updates please subscribe for &lt;a href=&#34;http://systemundertest.org/index.xml&#34;&gt;RSS&lt;/a&gt; or follow us on twitter: &lt;a href=&#34;https://twitter.com/systemundertest&#34;&gt;@systemundertest&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.&lt;/p&gt;
 
 &lt;p&gt;Having that in mind, I decided to start a short series of posts called “System Under Test”. Each article will cover testing techniques used in particular open-source project. The goal of these articles is to answer the question “How is X tested?”.&lt;/p&gt;
 
 &lt;p&gt;Here is a list of projects I want to start with:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-llvm/&#34;&gt;LLVM&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd/&#34;&gt;FreeBSD&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/system-under-test-gnu-make/&#34;&gt;GNU Make&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://systemundertest.org/llvm/&#34;&gt;LLVM&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://systemundertest.org/freebsd/&#34;&gt;FreeBSD&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://systemundertest.org/gnu-make/&#34;&gt;GNU Make&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;PostgreSQL: TBD&lt;/li&gt;
 &lt;/ul&gt;
 

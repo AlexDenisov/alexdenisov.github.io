@@ -95,7 +95,66 @@
         <h1>Understanding JIT</h1>
 
 				<div>
-          <p>Hello</p>
+          
+
+<p>The goal of this article is to shed light on Just In Time compilation.
+To understand JIT better we will move up from very low level. Our path will run through logic gates, CPU, object code, assembler, linker, and dynamic loader.</p>
+
+<h3 id="logic-gates">Logic Gates</h3>
+
+<p>Basically, a logic gate is a physical implementation of a Boolean function. It has one or more inputs and just one output, such as:</p>
+
+<p>not.png
+and.png
+nand.png</p>
+
+<p>Several logic gates can be combined together to form another logic gate. For example, all primitive logic gates such as &lsquo;and&rsquo;, &lsquo;or&rsquo;, &lsquo;not&rsquo;, etc. can be build from &lsquo;nand&rsquo; gates:</p>
+
+<p>and_from_nand.png
+not_from_nand.png</p>
+
+<p>Combination of logic gates can also produce more than just gate, but a logic <em>circuit</em>. For example:</p>
+
+<p>half_adder.png
+mux.png</p>
+
+<h3 id="cpu">CPU</h3>
+
+<p>Hence, having enough &lsquo;nand&rsquo; gates at hand one can build real processor, with several inputs and several outputs:</p>
+
+<p>simple_cpu.png</p>
+
+<p>Having such processor you can take some stream of 0&rsquo;s and 1&rsquo;s and, well, process it:</p>
+
+<p>process_zeros_ones.png</p>
+
+<p>For readability you may split them into groups:</p>
+
+<pre><code>1101 0011 1100 0111
+1001 0101 0110 0000
+0001 0110 1001 1010
+</code></pre>
+
+<p>And this is how processor works: complex logic circuit consumes zeros and ones, and spits zeros and ones as an output.</p>
+
+<h3 id="assembly-language">Assembly language</h3>
+
+<p>Programming a computer using just ones and zeros is extremely hard, non-intuitive, and error-prone. That&rsquo;s why some smart people came up with a great idea several decades ago. The idea is to use some encoding to represent human-readable zeros and ones with actually human-understandable words, also called mnemonics. For example:</p>
+
+<p>mnemonic_mapping.png</p>
+
+<p>This way one can just write</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #0000FF">mov</span> <span style="color: #880000">ax</span>, <span style="color: #880000">bx</span>
+<span style="color: #0000FF">ret</span>
+</pre></div>
+
+<p>Which will be converted to actual 0&rsquo;s and 1&rsquo;s. This is exactly what happening with assembly or a high level code when it is compiled.
+These blobs of zeros and ones usually stored on disk for later processing. They referred to as object files.
+Basically any compiled program on your machine is a big stream of 0&rsquo;s and 1&rsquo;s. And some metadata.</p>
+
+<h3 id="dynamic-loader">Dynamic Loader</h3>
+
+<p>When you attempt to run a program then part of operating system called dynamic loader reads the metadata from object file and makes decision what to do with the file</p>
 
 				</div>
 			</article>
@@ -536,7 +595,7 @@
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -544,7 +603,7 @@
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -564,7 +623,15 @@
         </li>
       
         <li>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
           <a href="http://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
@@ -572,15 +639,7 @@
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
           <a href="http://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
       </ul>

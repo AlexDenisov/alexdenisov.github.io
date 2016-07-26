@@ -294,6 +294,8 @@ It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
       <guid>http://lowlevelbits.org/system-under-test-llvm/</guid>
       <description>
 
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
+
 &lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test&#34;&gt;&amp;ldquo;System Under Test&amp;rdquo;&lt;/a&gt;. It provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level.&lt;/p&gt;
 
 &lt;h3 id=&#34;what-is-llvm-about&#34;&gt;What is LLVM about?&lt;/h3&gt;
