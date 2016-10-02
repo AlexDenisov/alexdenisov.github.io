@@ -47,9 +47,9 @@ a:hover, a:focus {
 
 body{
 	background-color:#eeeee6;
-	font-family: 'PT Serif', serif;
+	font-family: 'Open Sans', sans-serif;
 	font-size:18px;
-	line-height: 30px;
+	line-height: 140%;
 }
 
 blockquote {
@@ -57,7 +57,7 @@ blockquote {
 }
 
 blockquote small {
-  line-height: 30px;
+  line-height: 140%;
 }
 
 body, legend {
@@ -66,7 +66,7 @@ body, legend {
 
 code {
   color: inherit;
-  padding: 6px 6px;
+  padding: 0px;
 }
 
 h1 {
@@ -74,13 +74,17 @@ h1 {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 34px;
 	font-weight: 300;
-	margin-bottom: 30px;
+	margin-bottom: 12px;
 	text-align: center;
 	text-transform: uppercase;
 }
 
 h1 a, h1 a:hover, h1 a:focus {
     text-decoration:none;
+}
+
+h3 {
+    margin-top:20px;
 }
 
 h4 {
@@ -94,15 +98,15 @@ hr {
 }
 
 li {
-    line-height: 30px;
+    line-height: 140%;
 }
 
 ol, ul {
-    margin-bottom:30px;
+    margin-bottom: 12px;
 }
 
 p {
-    margin-bottom:30px;
+    margin-bottom: 12px;
 }
 
 
@@ -129,15 +133,15 @@ body {
 }
 
 .main-content {
-	margin-top:32px;
-  margin-bottom:70px;
+	margin-top:20px;
+  margin-bottom: 24px;
 }
 
 /* Landscape phones and down */
 @media (max-width: 480px) {
     .main-content {
       margin-top:40px;
-      margin-bottom:30px;
+      margin-bottom: 12px;
     }
  }
 
@@ -234,7 +238,7 @@ body {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 20px;
 	font-weight:300;
-	line-height: 14px;
+	line-height: 120%;
 	margin-left: 0px;
 	margin-right: 2px;
 	padding-right: 0px;
@@ -493,7 +497,7 @@ h1.page-title {
 }
 
 .zone-content h1 {
-    margin-bottom:50px;
+    margin-bottom:30px;
 }
 
 
@@ -506,7 +510,7 @@ h1.page-title {
 }
 
 .blog-post {
-    line-height:30px;
+    line-height: 140%;
 }
 
 .blog-posts .published {
@@ -670,7 +674,7 @@ p.tags{
 
 fieldset.login-form {
     margin-top:40px;
-    margin-bottom:40px;
+    margin-bottom:24px;
     text-align: center;
 }
 
@@ -716,7 +720,7 @@ article.comment h4 {
 #comments .text
 {
 	font-size: 16px;
-	line-height: 30px;
+	line-height: 140%;
 	text-align: left;
 }
 
@@ -764,7 +768,7 @@ ul.comments {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 30px;
 	font-weight: 300;
-	margin-bottom: 30px;
+	margin-bottom: 20px;
 	text-align: center;
 	text-transform: uppercase;
 }
@@ -781,8 +785,8 @@ fieldset.what {
 
 aside.aside-column article.widget {
 	/*border-top:1px solid #b2b8c1;*/
-	margin-bottom:50px;
-	padding-top:30px;
+	margin-bottom: 30px;
+	padding-top: 30px;
 }
 
 aside.aside-column article.widget:first-child {
@@ -812,7 +816,7 @@ aside.aside-column article.widget header h1 {
 }
 
 .triple-row {
-	margin-bottom:30px;
+	margin-bottom: 20px;
 }
 
 
@@ -879,7 +883,7 @@ aside.aside-column article.widget header h1 {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 24px;
 	font-weight:300;
-	line-height: 16px;
+	line-height: 120%;
 	margin-left: 0px;
 	margin-right: 2px;
 	padding-right: 0px;
@@ -893,7 +897,7 @@ aside.aside-column article.widget header h1 {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 16px;
 	font-weight:300;
-	line-height: 16px;
+	line-height: 120%;
 	margin-left: 0px;
 	margin-right: 2px;
 	padding-right: 0px;
@@ -906,7 +910,7 @@ aside.aside-column article.widget header h1 {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 16px;
 	font-weight:300;
-	line-height: 16px;
+	line-height: 120%;
 	margin-left: 0px;
 	margin-right: 2px;
 	padding-right: 0px;
@@ -919,7 +923,7 @@ aside.aside-column article.widget header h1 {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 16px;
 	font-weight:300;
-	line-height: 16px;
+	line-height: 120%;
 	margin-left: 0px;
 	margin-right: 2px;
 	padding-right: 0px;
@@ -937,5 +941,6 @@ pre {
   word-wrap: normal;
   white-space: pre;
   font-size: 16px;
+  padding: 4px;
 }
 

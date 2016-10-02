@@ -26,7 +26,7 @@
   <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
 
 	
-	<link href='http://fonts.googleapis.com/css?family=Poiret+One|PT+Serif|Open+Sans:400,300' rel='stylesheet' type='text/css'>
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
 
   
 	
@@ -59,34 +59,18 @@
 
 <div class="container">
 
-  	<div class="masthead clearfix">
+    <div class="masthead clearfix">
 
     
 
     <a href="/"><img id="logo" src="http://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
-	    
-	    
-	    
-			
-			
-			
-			
-			
-			
-			
-	      
+      <ul id="nav" class="nav ww-nav pull-right hidden-phone">
 
-		  
-			
-			
-			
-			
-			
-			
-	      
-        
-	    
-	</div>
+        <li><a href="http://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">Subscribe</a></li>
+        <li><a href="https://twitter.com/1101_debian" target="_blank">Follow</a></li>
+        <li><a href="http://lowlevelbits.org/about">About</a></li>
+      </ul>
+  </div>
 
 
 
@@ -100,26 +84,74 @@
 				<div>
           
 
-<p>The goal of this article is to shed light on Just In Time compilation.
+<p>The goal of this article is to shed some light on Just In Time compilation.
 To understand JIT better we will move up from very low level. Our path will run through logic gates, CPU, object code, assembler, linker, and dynamic loader.</p>
 
 <h3 id="logic-gates">Logic Gates</h3>
 
 <p>Basically, a logic gate is a physical implementation of a Boolean function. It has one or more inputs and just one output, such as:</p>
 
-<p>not.png
-and.png
-nand.png</p>
+<p><img src="/img/understanding-jit/and.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
+
+<p><img src="/img/understanding-jit/or.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
+
+<p><img src="/img/understanding-jit/nand.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
 
 <p>Several logic gates can be combined together to form another logic gate. For example, all primitive logic gates such as &lsquo;and&rsquo;, &lsquo;or&rsquo;, &lsquo;not&rsquo;, etc. can be build from &lsquo;nand&rsquo; gates:</p>
 
-<p>and_from_nand.png
-not_from_nand.png</p>
+<p><img src="/img/understanding-jit/or_from_nand.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
+
+<p><img src="/img/understanding-jit/and_from_nand.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
 
 <p>Combination of logic gates can also produce more than just gate, but a logic <em>circuit</em>. For example:</p>
 
-<p>half_adder.png
-mux.png</p>
+<p><img src="/img/understanding-jit/half_adder.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
+
+<p><img src="/img/understanding-jit/mux.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
+
+<h3 id="alu">ALU</h3>
+
+<p><img src="/img/understanding-jit/alu.png"
+  style=" display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 80%;
+          height: auto;" /></p>
 
 <h3 id="cpu">CPU</h3>
 
@@ -594,10 +626,6 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
-        </li>
-      
-        <li>
           <a href="http://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
@@ -607,6 +635,10 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
       
         <li>
           <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -622,19 +654,11 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
           <a href="http://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
@@ -642,7 +666,15 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
           <a href="http://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
       </ul>
