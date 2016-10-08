@@ -87,73 +87,121 @@
 <p>The goal of this article is to shed some light on Just In Time compilation.
 To understand JIT better we will move up from very low level. Our path will run through logic gates, CPU, object code, assembler, linker, and dynamic loader.</p>
 
-<h3 id="logic-gates">Logic Gates</h3>
+<h3 id="gates-and-circuits">Gates and Circuits</h3>
 
-<p>Basically, a logic gate is a physical implementation of a Boolean function. It has one or more inputs and just one output, such as:</p>
+<h4 id="primitive-logic-gates">Primitive Logic Gates</h4>
 
-<p><img src="/img/understanding-jit/and.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<p>Basically, a logic gate is a physical implementation of a Boolean function. It has one or more inputs and just one output. Here are few examples:</p>
 
-<p><img src="/img/understanding-jit/or.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<div class="image-box">
+  <img src="/img/understanding-jit/and.png"
+    style="
+            width: 30%;
+            height: auto;" />
+  <img src="/img/understanding-jit/or.png"
+    style="
+            width: 30%;
+            height: auto;" />
+  <img src="/img/understanding-jit/nand.png"
+    style="
+            width: 30%;
+            height: auto;" />
+</div>
 
-<p><img src="/img/understanding-jit/nand.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<h4 id="complex-logic-gates">Complex Logic Gates</h4>
 
-<p>Several logic gates can be combined together to form another logic gate. For example, all primitive logic gates such as &lsquo;and&rsquo;, &lsquo;or&rsquo;, &lsquo;not&rsquo;, etc. can be build from &lsquo;nand&rsquo; gates:</p>
+<p>Several logic gates can be combined together to form another logic gate.</p>
 
-<p><img src="/img/understanding-jit/or_from_nand.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<p>For example, all primitive logic gates such as <code>and</code>, <code>or</code>, <code>not</code>, etc. can be build from <code>nand</code> gates, as presented on the pictures below:</p>
 
-<p><img src="/img/understanding-jit/and_from_nand.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<div class="image-box">
+<img src="/img/understanding-jit/or_from_nand.png"
+  style="
+          width: 45%;
+          height: auto;" />
+<img src="/img/understanding-jit/and_from_nand.png"
+  style="
+          width: 50%;
+          height: auto;" />
+</div>
 
-<p>Combination of logic gates can also produce more than just gate, but a logic <em>circuit</em>. For example:</p>
+<h4 id="logic-circuits">Logic Circuits</h4>
 
-<p><img src="/img/understanding-jit/half_adder.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<p>Combination of logic gates can also produce more than just gate, but a logic <em>circuit</em>. These could have more than one output. Example below shows two such circuits.</p>
 
-<p><img src="/img/understanding-jit/mux.png"
-  style=" display: block;
-          margin-left: auto;
-          margin-right: auto;
-          width: 80%;
-          height: auto;" /></p>
+<p><code>Half Adder</code> takes two binary digits as an input and gives two bits as an
+output: <code>sum</code> holds the sum, while <code>carry</code> shows whether &lsquo;overflow&rsquo; happened or
+not.</p>
+
+<p>Nothing describes <code>Mux</code> better than this piece of code:</p>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">mux</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b, <span style="color: #B00040">bool</span> sel) {
+  <span style="color: #008000; font-weight: bold">if</span> (sel) {
+    <span style="color: #008000; font-weight: bold">return</span> b;
+  } <span style="color: #008000; font-weight: bold">else</span> {
+    <span style="color: #008000; font-weight: bold">return</span> a;
+  }
+}
+</pre></div>
+
+<div class="image-box">
+<img src="/img/understanding-jit/half_adder.png"
+  style="
+          width: 48%;
+          height: auto;" />
+<img src="/img/understanding-jit/mux.png"
+  style="
+          width: 51%;
+          height: auto;" />
+</div>
 
 <h3 id="alu">ALU</h3>
 
-<p><img src="/img/understanding-jit/alu.png"
-  style=" display: block;
-          margin-left: auto;
+<p>One can take enough logic gates and circuits and build so-called ALU - <a href="https://en.wikipedia.org/wiki/Arithmetic_logic_unit">Arithmetic Logic Unit</a>.</p>
+
+<p>Here is very simple example just to give you an idea:</p>
+
+<div class="image-box">
+<img src="/img/understanding-jit/alu.png"
+  style=" margin-left: auto;
           margin-right: auto;
+          display: block;
           width: 80%;
-          height: auto;" /></p>
+          height: auto;" />
+</div>
+
+<p>ALU is pretty much like <code>Mux</code>, but a bit more complex.</p>
+
+<p>It has few components:</p>
+
+<ul>
+<li>data buses, e.g. two inputs and one output (<code>A</code>, <code>B</code>, <code>OUT</code>)</li>
+<li>opcode or operation code, e.g. control bits on the picture (<code>CTRL</code>)</li>
+<li>status, e.g. holds additional information about the result of an operation
+(<code>ZR</code>, <code>OF</code>)</li>
+</ul>
+
+<p>Data buses, opcodes and status vary among different ALUs and are defined by
+an ALU designer.</p>
+
+<p>In the example above data buses have equal width of 8 bits.</p>
+
+<p>The control bits represent different operations, e.g. there are <code>a+b</code> and <code>-b</code>,
+but no <code>a-b</code> because it&rsquo;s simply <code>a+(-b)</code>. You may find it not efficient, but
+it&rsquo;s all about trade-offs: it&rsquo;s possible to create an ALU which will handle all
+the operations possible, but such ALU will be more complicated to build, hence
+higher price and worse characteristics (e.g. higher energy consumption, bigger
+size, etc.).</p>
+
+<p>The statuses may hold very important information, e.g. indication of whether overflow
+happened or not. Also, they can be sort of shortcuts: it&rsquo;s possible to take
+enough arithmetic operations and determine whether the result is zero, or is
+negative, or it&rsquo;s odd or even, but it&rsquo;s possible to determine it during
+computation of an operation.</p>
 
 <h3 id="cpu">CPU</h3>
+
+<p>ALU is a very important building block of the next circuit - <a href="https://en.wikipedia.org/wiki/Central_processing_unit">CPU (Central
+Processing Unit)</a>.</p>
 
 <p>Hence, having enough &lsquo;nand&rsquo; gates at hand one can build real processor, with several inputs and several outputs:</p>
 
@@ -626,11 +674,7 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
-        </li>
-      
-        <li>
-          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -638,7 +682,11 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="http://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -646,19 +694,15 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
-        </li>
-      
-        <li>
           <a href="http://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="http://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
@@ -670,7 +714,11 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="http://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="http://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="http://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
         <li>
