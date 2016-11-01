@@ -1,0 +1,14 @@
+.container {
+  width: auto;
+  max-width: 680px;
+  padding: 0 15px;
+}
+
+.source-code {
+  font-family: "Andale Mono";
+}
+
+.pre {
+  line-height: 0.8;
+}
+

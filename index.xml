@@ -2,14 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/</link>
+    <link>http://lowlevelbits.org/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
     <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Tue, 01 Nov 2016 00:00:00 +0100</lastBuildDate>
-    <atom:link href="http://lowlevelbits.org/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: GNU Make</title>
@@ -1170,9 +1170,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       <pubDate>Fri, 11 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
-      <description>
-
-&lt;p&gt;We all know that the API has a specification.
+      <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
 
 &lt;p&gt;It may seem that we’re pretty safe if we have tests and follow the specification.
@@ -1180,6 +1178,8 @@ Well, actually no. Usually it works well in theory, but doesn’t really work in
 
 &lt;p&gt;We can write as many tests as we need to cover all edge cases, but that is both time consuming and error prone.
 The best choice would be is to automate this process.&lt;/p&gt;
+
+&lt;p&gt;&lt;/p&gt;
 
 &lt;h3 id=&#34;fuzzing&#34;&gt;Fuzzing&lt;/h3&gt;
 
@@ -1377,8 +1377,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;p&gt;Please, don’t crash when your server lies!&lt;/p&gt;
 
 &lt;p&gt;P.S. I do consider to include &lt;code&gt;ReplaceSampleMutation&lt;/code&gt; into the set of built-in mutations.
-I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexDenisov/Fuzzer&#34;&gt;Pull Request&lt;/a&gt;.&lt;/p&gt;
-</description>
+I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexDenisov/Fuzzer&#34;&gt;Pull Request&lt;/a&gt;.&lt;/p&gt;</description>
     </item>
     
     <item>

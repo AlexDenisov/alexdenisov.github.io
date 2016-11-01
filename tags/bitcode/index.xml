@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Bitcode on Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/bitcode/</link>
-    <description>Recent content in Bitcode on Low Level Bits</description>
+    <title>Low Level Bits</title>
+    <link>http://lowlevelbits.org/tags/bitcode/index.xml</link>
+    <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
     <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
-    <lastBuildDate>Sat, 05 Sep 2015 12:25:00 +0200</lastBuildDate>
-    <atom:link href="http://lowlevelbits.org/tags/bitcode/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="/tags/bitcode/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Bitcode Demystified</title>
