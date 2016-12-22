@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/self/index.xml</link>
+    <link>https://lowlevelbits.org/tags/self/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>&#39;if (self)&#39; and Sanity</title>
-      <link>http://lowlevelbits.org/if-self-and-sanity/</link>
+      <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/if-self-and-sanity/</guid>
+      <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;

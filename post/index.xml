@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Post-rsses on Low Level Bits</title>
-    <link>http://lowlevelbits.org/post/index.xml</link>
+    <link>https://lowlevelbits.org/post/index.xml</link>
     <description>Recent content in Post-rsses on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -13,10 +13,10 @@
     
     <item>
       <title>Java Papers</title>
-      <link>http://lowlevelbits.org/java-papers/</link>
+      <link>https://lowlevelbits.org/java-papers/</link>
       <pubDate>Wed, 23 Nov 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/java-papers/</guid>
+      <guid>https://lowlevelbits.org/java-papers/</guid>
       <description>
 
 &lt;p&gt;Recently I looked at source code of OpenJDK and found there a link to
@@ -656,10 +656,10 @@ can impact future tests.&lt;/p&gt;
     
     <item>
       <title>LLVM-based Mutation Testing System. Request For Comments</title>
-      <link>http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
+      <link>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
       <pubDate>Thu, 14 Apr 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
+      <guid>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
       <description>
 
 &lt;p&gt;Several years ago I discovered very powerful technique - &lt;a href=&#34;https://en.wikipedia.org/wiki/Mutation_testing&#34;&gt;Mutation Testing&lt;/a&gt;.
@@ -983,7 +983,7 @@ kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
 
 &lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -1132,7 +1132,7 @@ These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
 
 &lt;p&gt;Showing this beautiful output:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -1175,7 +1175,7 @@ It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
 
 &lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -1331,10 +1331,10 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
     
     <item>
       <title>System Under Test</title>
-      <link>http://lowlevelbits.org/system-under-test/</link>
+      <link>https://lowlevelbits.org/system-under-test/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/system-under-test/</guid>
+      <guid>https://lowlevelbits.org/system-under-test/</guid>
       <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; After a while we made decision to convert the series of posts into an independent project: &lt;a href=&#34;http://systemundertest.org&#34;&gt;System Under Test&lt;/a&gt;. For updates please subscribe for &lt;a href=&#34;http://systemundertest.org/index.xml&#34;&gt;RSS&lt;/a&gt; or follow us on twitter: &lt;a href=&#34;https://twitter.com/systemundertest&#34;&gt;@systemundertest&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.&lt;/p&gt;
@@ -1576,10 +1576,10 @@ I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexD
     
     <item>
       <title>How to use LLVM API with Swift. Addendum</title>
-      <link>http://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
+      <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
       <pubDate>Wed, 27 Jan 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
+      <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
       <description>
 
 &lt;p&gt;In the &lt;a href=&#34;http://lowlevelbits.org/how-to-use-llvm-api-with-swift/&#34;&gt;previous article&lt;/a&gt; I showed how to use LLVM with Swift.&lt;/p&gt;
@@ -1748,10 +1748,10 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
     
     <item>
       <title>How to use LLVM API with Swift</title>
-      <link>http://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
+      <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
       <pubDate>Mon, 30 Nov 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
+      <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
       <description>
 
 &lt;p&gt;This article shows how to use LLVM C API with Swift. It doesn’t aim to show how to write proper idiomatic Swift. Besides that I omit some good practices for sake of simplicity.&lt;/p&gt;
@@ -2060,10 +2060,10 @@ LLVMDisposeModule(module)
     
     <item>
       <title>Components: taking a step back from Dependency Management</title>
-      <link>http://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
+      <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
+      <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
 &lt;p&gt;In this article I will be talking about dependency management, problems we have in this area and will give you a concept that is intended to solve these problems. I will be talking in the context of iOS development, though it might be applied to any OS, language, and platform.&lt;/p&gt;
@@ -2567,10 +2567,10 @@ Alex.
     
     <item>
       <title>Bitcode Demystified</title>
-      <link>http://lowlevelbits.org/bitcode-demystified/</link>
+      <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/bitcode-demystified/</guid>
+      <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
 &lt;p&gt;Few months ago Apple announced a &amp;lsquo;new feature&amp;rsquo;, called &amp;lsquo;Bitcode&amp;rsquo;. In this article I’ll try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.&lt;/p&gt;
@@ -2596,7 +2596,7 @@ Alex.
 
 &lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/compilation_process.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/compilation_process.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2613,7 +2613,7 @@ Alex.
 
 &lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/macho_file.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/macho_file.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2631,7 +2631,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 
 &lt;p&gt;Apple didn&amp;rsquo;t give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/app_thinning.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/app_thinning.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2688,7 +2688,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 
 &lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/bitcode_storage.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/bitcode_storage.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2737,10 +2737,10 @@ Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built
     
     <item>
       <title>Parsing Mach-O files</title>
-      <link>http://lowlevelbits.org/parsing-mach-o-files/</link>
+      <link>https://lowlevelbits.org/parsing-mach-o-files/</link>
       <pubDate>Thu, 20 Aug 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/parsing-mach-o-files/</guid>
+      <guid>https://lowlevelbits.org/parsing-mach-o-files/</guid>
       <description>
 
 &lt;p&gt;This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
@@ -2772,7 +2772,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Here is a simplified graphical representation:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/macho_header.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/macho_header.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2783,7 +2783,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/fat_header.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/fat_header.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2798,7 +2798,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/sample_macho.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/sample_macho.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -2833,7 +2833,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Here is how memory mapping looks like:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/macho_memory_layout.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/macho_memory_layout.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -3113,10 +3113,10 @@ free(header);
     
     <item>
       <title>NSValue and Boxed Expressions</title>
-      <link>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
+      <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
+      <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
 &lt;p&gt;Few hours ago I finally finished with my patch to Clang.
@@ -3199,10 +3199,10 @@ Rect r;
     
     <item>
       <title>Getting Rid of Asynchronous Tests</title>
-      <link>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
+      <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
+      <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
 &lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;
@@ -3393,10 +3393,10 @@ describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&
     
     <item>
       <title>&#39;if (self)&#39; and Sanity</title>
-      <link>http://lowlevelbits.org/if-self-and-sanity/</link>
+      <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/if-self-and-sanity/</guid>
+      <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;

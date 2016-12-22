@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/makefile/index.xml</link>
+    <link>https://lowlevelbits.org/tags/makefile/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -461,10 +461,10 @@ can impact future tests.&lt;/p&gt;
     
     <item>
       <title>Components: taking a step back from Dependency Management</title>
-      <link>http://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
+      <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
+      <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
 &lt;p&gt;In this article I will be talking about dependency management, problems we have in this area and will give you a concept that is intended to solve these problems. I will be talking in the context of iOS development, though it might be applied to any OS, language, and platform.&lt;/p&gt;

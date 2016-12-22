@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/macho/index.xml</link>
+    <link>https://lowlevelbits.org/tags/macho/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Parsing Mach-O files</title>
-      <link>http://lowlevelbits.org/parsing-mach-o-files/</link>
+      <link>https://lowlevelbits.org/parsing-mach-o-files/</link>
       <pubDate>Thu, 20 Aug 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/parsing-mach-o-files/</guid>
+      <guid>https://lowlevelbits.org/parsing-mach-o-files/</guid>
       <description>
 
 &lt;p&gt;This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
@@ -47,7 +47,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Here is a simplified graphical representation:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/macho_header.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/macho_header.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -58,7 +58,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/fat_header.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/fat_header.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -73,7 +73,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/sample_macho.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/sample_macho.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -108,7 +108,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Here is how memory mapping looks like:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/parse-mach-o-files/macho_memory_layout.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/macho_memory_layout.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

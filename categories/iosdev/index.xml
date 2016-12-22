@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/categories/iosdev/index.xml</link>
+    <link>https://lowlevelbits.org/categories/iosdev/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -228,10 +228,10 @@ I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexD
     
     <item>
       <title>Components: taking a step back from Dependency Management</title>
-      <link>http://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
+      <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
+      <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
 &lt;p&gt;In this article I will be talking about dependency management, problems we have in this area and will give you a concept that is intended to solve these problems. I will be talking in the context of iOS development, though it might be applied to any OS, language, and platform.&lt;/p&gt;
@@ -735,10 +735,10 @@ Alex.
     
     <item>
       <title>NSValue and Boxed Expressions</title>
-      <link>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
+      <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
+      <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
 &lt;p&gt;Few hours ago I finally finished with my patch to Clang.
@@ -821,10 +821,10 @@ Rect r;
     
     <item>
       <title>Getting Rid of Asynchronous Tests</title>
-      <link>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
+      <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
+      <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
 &lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;
@@ -1015,10 +1015,10 @@ describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&
     
     <item>
       <title>&#39;if (self)&#39; and Sanity</title>
-      <link>http://lowlevelbits.org/if-self-and-sanity/</link>
+      <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/if-self-and-sanity/</guid>
+      <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;
@@ -1113,10 +1113,10 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
     
     <item>
       <title>YAML-based Configuration for ObjC Projects</title>
-      <link>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
+      <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
+      <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
 &lt;p&gt;Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &amp;ldquo;&lt;a href=&#34;https://staging.example.com&amp;quot;&#34;&gt;https://staging.example.com&amp;quot;&lt;/a&gt; and &amp;ldquo;&lt;a href=&#34;https://example.com&amp;quot;&#34;&gt;https://example.com&amp;quot;&lt;/a&gt;.
@@ -1219,7 +1219,7 @@ make install
 
 &lt;p&gt;First of all create YAML file, e.g,: &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -1245,7 +1245,7 @@ Release:
 
 &lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -1257,7 +1257,7 @@ Release:
 Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 &lt;code&gt;$(DERIVED_FILE_DIR)/xcconf.m&lt;/code&gt;. Make sure that output file has extension &lt;code&gt;.m&lt;/code&gt;, so that Xcode can compile it and provide implementation for the &lt;code&gt;principalClass&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -1279,7 +1279,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 
 &lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

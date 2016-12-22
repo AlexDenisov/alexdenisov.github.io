@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/tdd/index.xml</link>
+    <link>https://lowlevelbits.org/tags/tdd/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Getting Rid of Asynchronous Tests</title>
-      <link>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
+      <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
+      <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
 &lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;

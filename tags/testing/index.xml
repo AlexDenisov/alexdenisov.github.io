@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/testing/index.xml</link>
+    <link>https://lowlevelbits.org/tags/testing/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -461,10 +461,10 @@ can impact future tests.&lt;/p&gt;
     
     <item>
       <title>LLVM-based Mutation Testing System. Request For Comments</title>
-      <link>http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
+      <link>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
       <pubDate>Thu, 14 Apr 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
+      <guid>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
       <description>
 
 &lt;p&gt;Several years ago I discovered very powerful technique - &lt;a href=&#34;https://en.wikipedia.org/wiki/Mutation_testing&#34;&gt;Mutation Testing&lt;/a&gt;.
@@ -788,7 +788,7 @@ kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
 
 &lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -890,10 +890,10 @@ get any answer so far.&lt;/p&gt;
     
     <item>
       <title>System Under Test</title>
-      <link>http://lowlevelbits.org/system-under-test/</link>
+      <link>https://lowlevelbits.org/system-under-test/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/system-under-test/</guid>
+      <guid>https://lowlevelbits.org/system-under-test/</guid>
       <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; After a while we made decision to convert the series of posts into an independent project: &lt;a href=&#34;http://systemundertest.org&#34;&gt;System Under Test&lt;/a&gt;. For updates please subscribe for &lt;a href=&#34;http://systemundertest.org/index.xml&#34;&gt;RSS&lt;/a&gt; or follow us on twitter: &lt;a href=&#34;https://twitter.com/systemundertest&#34;&gt;@systemundertest&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;Obsession with tests always forces you to look for new ways and approaches for testing. Quite often it is very helpful to get inspiration from other projects.&lt;/p&gt;

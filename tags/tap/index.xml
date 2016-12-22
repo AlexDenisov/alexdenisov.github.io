@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/tap/index.xml</link>
+    <link>https://lowlevelbits.org/tags/tap/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -64,7 +64,7 @@ kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
 
 &lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

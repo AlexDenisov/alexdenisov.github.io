@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/scientific-papers/index.xml</link>
+    <link>https://lowlevelbits.org/tags/scientific-papers/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Java Papers</title>
-      <link>http://lowlevelbits.org/java-papers/</link>
+      <link>https://lowlevelbits.org/java-papers/</link>
       <pubDate>Wed, 23 Nov 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/java-papers/</guid>
+      <guid>https://lowlevelbits.org/java-papers/</guid>
       <description>
 
 &lt;p&gt;Recently I looked at source code of OpenJDK and found there a link to

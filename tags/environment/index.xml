@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/environment/index.xml</link>
+    <link>https://lowlevelbits.org/tags/environment/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>YAML-based Configuration for ObjC Projects</title>
-      <link>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
+      <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
+      <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
 &lt;p&gt;Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &amp;ldquo;&lt;a href=&#34;https://staging.example.com&amp;quot;&#34;&gt;https://staging.example.com&amp;quot;&lt;/a&gt; and &amp;ldquo;&lt;a href=&#34;https://example.com&amp;quot;&#34;&gt;https://example.com&amp;quot;&lt;/a&gt;.
@@ -118,7 +118,7 @@ make install
 
 &lt;p&gt;First of all create YAML file, e.g,: &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -144,7 +144,7 @@ Release:
 
 &lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -156,7 +156,7 @@ Release:
 Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 &lt;code&gt;$(DERIVED_FILE_DIR)/xcconf.m&lt;/code&gt;. Make sure that output file has extension &lt;code&gt;.m&lt;/code&gt;, so that Xcode can compile it and provide implementation for the &lt;code&gt;principalClass&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -178,7 +178,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 
 &lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

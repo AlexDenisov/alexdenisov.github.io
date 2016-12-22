@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/howto/index.xml</link>
+    <link>https://lowlevelbits.org/tags/howto/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Getting Started With LLVM/Clang on OS X</title>
-      <link>http://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
+      <link>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
       <pubDate>Sat, 27 Dec 2014</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
+      <guid>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
       <description>
 
 &lt;p&gt;This article is a guide how to set up development environment for Clang on OS X.
@@ -97,7 +97,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;figure &gt;
     
-        &lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/all_build_target.png&#34; alt=&#34;ALL_BUILD target&#34; /&gt;
+        &lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/all_build_target.png&#34; alt=&#34;ALL_BUILD target&#34; /&gt;
     
     
 &lt;/figure&gt;
@@ -108,7 +108,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;figure &gt;
     
-        &lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/manage_schemes.png&#34; alt=&#34;Manage Schemes...&#34; /&gt;
+        &lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/manage_schemes.png&#34; alt=&#34;Manage Schemes...&#34; /&gt;
     
     
 &lt;/figure&gt;
@@ -116,7 +116,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;p&gt;you’ll see a huge list of available targets, you don’t need most of them so feel free to hide &amp;lsquo;useless&amp;rsquo; ones by unchecking &amp;lsquo;Show&amp;rsquo; flag:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/schemes.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/schemes.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -131,7 +131,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;figure &gt;
     
-        &lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/edit_scheme.png&#34; alt=&#34;Edit scheme&#34; /&gt;
+        &lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/edit_scheme.png&#34; alt=&#34;Edit scheme&#34; /&gt;
     
     
 &lt;/figure&gt;
@@ -139,7 +139,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;p&gt;and add &lt;code&gt;-v&lt;/code&gt; to the &lt;code&gt;Arguments passed on launch&lt;/code&gt;:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/version_arguments.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/version_arguments.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -151,7 +151,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;p&gt;When build done (it also takes a while) and program executed you’ll see the clang version in the Xcode output window&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/clang_version.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/clang_version.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -173,7 +173,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;p&gt;and specify the file as an argument for a clang binary, with additional parameters:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/debug_arguments.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/debug_arguments.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -189,7 +189,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;p&gt;Find a &lt;code&gt;ParseExpr.cpp&lt;/code&gt;, set a breakpoint at the &lt;code&gt;ParseExpression&lt;/code&gt; method:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/breakpoint.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/breakpoint.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -201,7 +201,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 
 &lt;p&gt;Most of LLVM&amp;rsquo; classes have method &lt;code&gt;dump&lt;/code&gt; which prints all valuable information about an object. You can easily access it by evaluating LLDB command &lt;code&gt;expression&lt;/code&gt; (or simply &lt;code&gt;expr&lt;/code&gt;):&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/getting-started-with-clang/dump.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/dump.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

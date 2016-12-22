@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/security/index.xml</link>
+    <link>https://lowlevelbits.org/tags/security/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Bitcode Demystified</title>
-      <link>http://lowlevelbits.org/bitcode-demystified/</link>
+      <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/bitcode-demystified/</guid>
+      <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
 &lt;p&gt;Few months ago Apple announced a &amp;lsquo;new feature&amp;rsquo;, called &amp;lsquo;Bitcode&amp;rsquo;. In this article I’ll try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.&lt;/p&gt;
@@ -41,7 +41,7 @@
 
 &lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/compilation_process.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/compilation_process.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -58,7 +58,7 @@
 
 &lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/macho_file.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/macho_file.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -76,7 +76,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 
 &lt;p&gt;Apple didn&amp;rsquo;t give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/app_thinning.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/app_thinning.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -133,7 +133,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 
 &lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/bitcode-demystified/bitcode_storage.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/bitcode_storage.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/objective-c/index.xml</link>
+    <link>https://lowlevelbits.org/tags/objective-c/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>NSValue and Boxed Expressions</title>
-      <link>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
+      <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
+      <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
 &lt;p&gt;Few hours ago I finally finished with my patch to Clang.
@@ -98,10 +98,10 @@ Rect r;
     
     <item>
       <title>Getting Rid of Asynchronous Tests</title>
-      <link>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
+      <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
+      <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
 &lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;
@@ -292,10 +292,10 @@ describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&
     
     <item>
       <title>&#39;if (self)&#39; and Sanity</title>
-      <link>http://lowlevelbits.org/if-self-and-sanity/</link>
+      <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/if-self-and-sanity/</guid>
+      <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;
@@ -390,10 +390,10 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
     
     <item>
       <title>Circular Containers in Objective-C</title>
-      <link>http://lowlevelbits.org/circular-containers-in-objective-c/</link>
+      <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/circular-containers-in-objective-c/</guid>
+      <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
@@ -465,7 +465,7 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
 
 &lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -476,10 +476,10 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
     
     <item>
       <title>YAML-based Configuration for ObjC Projects</title>
-      <link>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
+      <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
+      <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
 &lt;p&gt;Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &amp;ldquo;&lt;a href=&#34;https://staging.example.com&amp;quot;&#34;&gt;https://staging.example.com&amp;quot;&lt;/a&gt; and &amp;ldquo;&lt;a href=&#34;https://example.com&amp;quot;&#34;&gt;https://example.com&amp;quot;&lt;/a&gt;.
@@ -582,7 +582,7 @@ make install
 
 &lt;p&gt;First of all create YAML file, e.g,: &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/new_file.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -608,7 +608,7 @@ Release:
 
 &lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -620,7 +620,7 @@ Release:
 Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 &lt;code&gt;$(DERIVED_FILE_DIR)/xcconf.m&lt;/code&gt;. Make sure that output file has extension &lt;code&gt;.m&lt;/code&gt;, so that Xcode can compile it and provide implementation for the &lt;code&gt;principalClass&lt;/code&gt;.&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/xcconf.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -642,7 +642,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 
 &lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

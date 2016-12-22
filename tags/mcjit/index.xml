@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/mcjit/index.xml</link>
+    <link>https://lowlevelbits.org/tags/mcjit/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>How to use LLVM API with Swift. Addendum</title>
-      <link>http://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
+      <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
       <pubDate>Wed, 27 Jan 2016</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
+      <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
       <description>
 
 &lt;p&gt;In the &lt;a href=&#34;http://lowlevelbits.org/how-to-use-llvm-api-with-swift/&#34;&gt;previous article&lt;/a&gt; I showed how to use LLVM with Swift.&lt;/p&gt;
@@ -184,10 +184,10 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
     
     <item>
       <title>How to use LLVM API with Swift</title>
-      <link>http://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
+      <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
       <pubDate>Mon, 30 Nov 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
+      <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
       <description>
 
 &lt;p&gt;This article shows how to use LLVM C API with Swift. It doesn’t aim to show how to write proper idiomatic Swift. Besides that I omit some good practices for sake of simplicity.&lt;/p&gt;

@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/circular-containers/index.xml</link>
+    <link>https://lowlevelbits.org/tags/circular-containers/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -12,10 +12,10 @@
     
     <item>
       <title>Circular Containers in Objective-C</title>
-      <link>http://lowlevelbits.org/circular-containers-in-objective-c/</link>
+      <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
       <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://lowlevelbits.org/circular-containers-in-objective-c/</guid>
+      <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
@@ -87,7 +87,7 @@
 
 &lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;

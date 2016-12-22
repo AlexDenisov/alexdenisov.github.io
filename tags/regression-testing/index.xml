@@ -2,7 +2,7 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Low Level Bits</title>
-    <link>http://lowlevelbits.org/tags/regression-testing/index.xml</link>
+    <link>https://lowlevelbits.org/tags/regression-testing/index.xml</link>
     <description>Recent content on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
@@ -59,7 +59,7 @@ These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
 
 &lt;p&gt;Showing this beautiful output:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
@@ -102,7 +102,7 @@ It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
 
 &lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
 
-&lt;p&gt;&lt;img src=&#34;http://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
   style=&#34; display: block;
           margin-left: auto;
           margin-right: auto;
