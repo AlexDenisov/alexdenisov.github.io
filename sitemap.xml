@@ -17,6 +17,16 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/ADTTests/</loc>
+    <lastmod>2016-11-01T00:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/IRTests/</loc>
+    <lastmod>2016-11-01T00:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/MutangReport/</loc>
     <lastmod>2016-11-01T00:00:00+01:00</lastmod>
   </url>
