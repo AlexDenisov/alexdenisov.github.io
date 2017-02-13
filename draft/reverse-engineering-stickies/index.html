@@ -87,7 +87,7 @@
 
 <p>Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.</p>
 
-<p>However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.</p>
+<p>However, the first thing I did when I ran the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.</p>
 
 <p>I decided to fix that. Here is the result:</p>
 
@@ -115,7 +115,7 @@
 
 <p>The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&rsquo;s used. Maybe then I will get another hint.</p>
 
-<p>Localizations stored within the app&rsquo;s bundle, at <code>Contents/Resources</code> folder. I am interested in <code>Contents/Resources/English.lproj/Localizable.strings</code> particularly. By default, strings are Binary Plists. One can use <code>plutil</code> to convert them into human-readable XML:</p>
+<p>Localizations are stored within the app&rsquo;s bundle, at <code>Contents/Resources</code> folder. I am particularly interested in <code>Contents/Resources/English.lproj/Localizable.strings</code>. By default, strings are Binary Plists. One can use <code>plutil</code> to convert them into human-readable XML:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
 </pre></div>
 
@@ -139,7 +139,7 @@
           width: 100%;
           height: auto;" /></p>
 
-<p>As far as I know nib files used some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:</p>
+<p>As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
 </pre></div>
 
@@ -178,7 +178,7 @@ The <code>MainMenu</code> contains 20k lines. Also, it is quite cryptic:</p>
 <p>My attempt to find traces from UI has failed.
 What&rsquo;s left? The binary itself!</p>
 
-<p>I usually use <a href="https://sourceforge.net/projects/machoview/">MachOView</a> if I need to look into a binary. Let&rsquo;s see if I can find some method related to the colors.</p>
+<p>I usually use <a href="https://sourceforge.net/projects/machoview/">MachOView</a> if I need to look into a binary. Let&rsquo;s see if I can find a method related to the colors.</p>
 
 <p>Search for &ldquo;blue&rdquo; shows one hit <code>colorWithDeviceRed:green:blue:alpha:</code> that comes from AppKit&rsquo;s <code>NSColor</code> class. Search for &ldquo;yellow&rdquo; and other colors gives no results.</p>
 
@@ -222,7 +222,7 @@ Eventually, I left the questions open.</p>
 
 <p>The Hopper app has a beautiful feature: pseudo-code mode.</p>
 
-<p>It (almost) clearly shows what&rsquo;s happening inside of <code>setColorByIndex:</code> method:</p>
+<p>It (almost) clearly shows what happens inside of <code>setColorByIndex:</code> method:</p>
 
 <p><img src="/img/reverse-engineering-stickies/hopper_pseudo_code.png"
   style=" display: block;
@@ -233,11 +233,11 @@ Eventually, I left the questions open.</p>
 
 <p><code>r14</code> contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.</p>
 
-<p>What is important here: three consecutive values starting at <code>0x10000c790</code> moved to <code>xmm_</code> registers. I&rsquo;m not 100% sure, but I&rsquo;d assume that they used to pass parameters into <code>colorWithDeviceRed:green:blue:alpha:</code>.</p>
+<p>What is important here: three consecutive values starting at <code>0x10000c790</code> moved to <code>xmm_</code> registers. I&rsquo;m not 100% sure, but I&rsquo;d assume that they are used to pass parameters into <code>colorWithDeviceRed:green:blue:alpha:</code>.</p>
 
 <p>The method accepts color components as <code>double</code>s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a <code>double</code>.</p>
 
-<p>It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors used to colorize a sticky note view.</p>
+<p>It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.</p>
 
 <p>Let&rsquo;s use lldb to confirm the hypothesis.</p>
 
@@ -333,7 +333,7 @@ color4 <span style="color: #666666">=</span> rgb(r, g, b);
 5: 480
 </code></pre>
 
-<p>The step is 96: this number of bytes needed to store four colors.
+<p>The step is 96: this number of bytes is needed to store four colors.
 I don&rsquo;t know how the source code looked initially, but I can represent it using the following structures:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> {
   <span style="color: #B00040">double</span> red;
@@ -354,7 +354,7 @@ I don&rsquo;t know how the source code looked initially, but I can represent it 
 };
 </pre></div>
 
-<p>I know that four colors used, but I don&rsquo;t yet know what they are used for.
+<p>I know that four colors are used, but I don&rsquo;t yet know what they are used for.
 Patching them one by one gives the following result:</p>
 
 <p><img src="/img/reverse-engineering-stickies/colored_window.png"
@@ -404,14 +404,12 @@ Patching them one by one gives the following result:</p>
 
 <p>Reverse Engineering can be not as straightforward and easy as I described
 above. Indeed, I didn&rsquo;t describe some &lsquo;wrong&rsquo; paths I went through during this
-&lsquo;research.
+&lsquo;research&rsquo;.
 Here are few examples:</p>
 
 <ul>
-<li>I first was looking for integers instead doubles and could not make any sense out of it</li>
-<li>then I converted first double into hex, and it didn&rsquo;t match one in the
-binary. Few hours later I realized that there must be different endianness,
-which was the case</li>
+<li>I first was looking for integers instead doubles and could not make any sense out of it.</li>
+<li>I converted first double into hex, and it didn&rsquo;t match one in the binary. Few hours later I realized that there must be different endianness, which was the case.</li>
 <li>I didn&rsquo;t have to change the machine code. Otherwise, the process would be
 less pleasant - I would have to invalidate the whole Mach-O binary changing sizes of sections and offsets.</li>
 </ul>
@@ -422,7 +420,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
 
 <ul>
 <li>Work only with a copy of a program; it&rsquo;s very easy to break things.</li>
-<li>Put everything under version control, and make commit after each small change. It will be simpler to take another direction if you&rsquo;re stuck.</li>
+<li>Put everything under version control, and make commit after each small change. It will be easier to take another direction if you&rsquo;re stuck.</li>
 <li>Make sure you preserve a size and a length if you change something. Otherwise, it may break the whole thing.</li>
 </ul>
 
@@ -527,6 +525,22 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
 
       
 
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
       
         
           
@@ -943,11 +957,11 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -963,7 +977,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mach-o/" >mach-o (2)</a>
+          <a href="https://lowlevelbits.org/categories/mach-o/" >mach-o (3)</a>
         </li>
       
         <li>
@@ -971,19 +985,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
         <li>
@@ -991,15 +993,31 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
       </ul>
@@ -1020,6 +1038,10 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       <ul>
       
         <li>
+          <a href="https://lowlevelbits.org/reverse-engineering-stickies.app/"> Reverse Engineering Stickies.app</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/java-papers/"> Java Papers</a>
         </li>
       
@@ -1033,10 +1055,6 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       
         <li>
           <a href="https://lowlevelbits.org/system-under-test-freebsd/"> System Under Test: FreeBSD</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/system-under-test-llvm/"> System Under Test: LLVM</a>
         </li>
       
       </ul>
