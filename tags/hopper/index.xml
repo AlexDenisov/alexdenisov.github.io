@@ -31,6 +31,13 @@
           width: 60%;
           height: auto;&#34; /&gt;&lt;/p&gt;
 
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/colors.png&#34;
+  style=&#34; display: block;
+          margin-left: auto;
+          margin-right: auto;
+          width: 60%;
+          height: auto;&#34; /&gt;&lt;/p&gt;
+
 &lt;p&gt;The explanation is following.&lt;/p&gt;
 
 &lt;h3 id=&#34;reversing-ui&#34;&gt;Reversing UI&lt;/h3&gt;
