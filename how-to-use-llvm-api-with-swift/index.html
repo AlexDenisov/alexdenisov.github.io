@@ -124,15 +124,15 @@
 <p>Let’s grab fresh version of LLVM. It can be done using central SVN repository, or via official git mirror. I prefer latter option, since it’s, imho, a bit faster.</p>
 
 <p>For this particular example I will put everything into a directory inside of the home directory:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~ $ mkdir swift_llvm
-~ $ <span style="color: #008000">cd</span> swift_llvm
-~/swift_llvm $ git clone http://llvm.org/git/llvm.git
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~ <span style="color: #19177C">$ </span>mkdir swift_llvm
+~ <span style="color: #19177C">$ </span><span style="color: #008000">cd </span>swift_llvm
+~/swift_llvm <span style="color: #19177C">$ </span>git clone http://llvm.org/git/llvm.git
 </pre></div>
 
 <p>LLVM uses CMake as a build system. To make a build let’s create a separate directory near LLVM directory and generate build rules:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ mkdir build
-~/swift_llvm $ <span style="color: #008000">cd</span> build
-~/swift_llvm/build $ cmake  ../llvm
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>mkdir build
+~/swift_llvm <span style="color: #19177C">$ </span><span style="color: #008000">cd </span>build
+~/swift_llvm/build <span style="color: #19177C">$ </span>cmake  ../llvm
 </pre></div>
 
 <p>CMake could generate various output: makefiles, Xcode projects, VisualStudio solutions and more. If build system is not specified (like in the script above), then CMake takes default one, which is GNU/Make.</p>
@@ -142,7 +142,7 @@
 <p>The naive way of solving this problem is to build the program and resolve linker errors manually until they disappear. It will work, indeed, but it’s became boring after resolving 5-6 errors.</p>
 
 <p>Thank god, LLVM developers are thoughtful and provide a great tool <code>llvm-config</code>. Let’s build it and see what it does.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ make llvm-config -j4
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm/build <span style="color: #19177C">$ </span>make llvm-config -j4
 </pre></div>
 
 <p><em>Note: <code>-j4</code> says &lsquo;I have multi core/processor environment, run 4 jobs simultaneously&rsquo;</em></p>
@@ -152,24 +152,24 @@
 <p><em>Note: Run <code>llvm-config</code> without options to learn more.</em></p>
 
 <p>We’re particularly interested in interpreter. Let’s look what we need to build:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ ./bin/llvm-config --libs interpreter
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm/build <span style="color: #19177C">$ </span>./bin/llvm-config --libs interpreter
 -lLLVMInterpreter -lLLVMExecutionEngine -lLLVMRuntimeDyld -lLLVMObject -lLLVMMCParser -lLLVMCodeGen -lLLVMTarget -lLLVMScalarOpts -lLLVMInstCombine -lLLVMInstrumentation -lLLVMTransformUtils -lLLVMMC -lLLVMBitWriter -lLLVMBitReader -lLLVMAnalysis -lLLVMCore -lLLVMSupport
 </pre></div>
 
 <p>To make our little program working we need to build all these libraries. Again, there is naive way of doing this, but we will go with shell magic:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ ./bin/llvm-config --libs interpreter | sed <span style="color: #BA2121">&quot;s/-l//g&quot;</span> | xargs make -j4
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm/build <span style="color: #19177C">$ </span>./bin/llvm-config --libs interpreter | sed <span style="color: #BA2121">&quot;s/-l//g&quot;</span> | xargs make -j4
 </pre></div>
 
 <h3 id="hello-llvm">Hello LLVM</h3>
 
 <p>Since we have done and have everything in place it’s time to create our little Swift program:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm/build $ <span style="color: #008000">cd</span> ..
-~/swift_llvm $ touch hello_llvm.swift
-~/swift_llvm $ open hello_llvm.swift
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm/build <span style="color: #19177C">$ </span><span style="color: #008000">cd</span> ..
+~/swift_llvm <span style="color: #19177C">$ </span>touch hello_llvm.swift
+~/swift_llvm <span style="color: #19177C">$ </span>open hello_llvm.swift
 </pre></div>
 
 <p>To check that everything is working as we expect we will first create an empty module and dump it:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
 
 <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> = LLVMModuleCreateWithName(<span style="color: #BA2121">&quot;Hello&quot;</span>)
 
@@ -179,37 +179,37 @@ LLVMDisposeModule(module)
 </pre></div>
 
 <p>Building this small program requires passing numerous flags to compiler. We need to specify SDK, to set which module to link with, specify linker flags, set correct header search paths and probably provide some additional arguments:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
 </pre></div>
 
 <p>So many questions, so much magic.</p>
 
 <p>In fact specifying correct linker flags and libraries path is easy, thanks <code>llvm-config</code>:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -I??? ???
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -I??? ???
 </pre></div>
 
 <p>Situation with headers and additional parameters is a bit more trickier. Normally, if we use clang, we could just rely on <code>llvm-config --cflags</code>, though it does not work with swift compiler. Let’s examine the <code>--cflags</code> and see what we can do here:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ ./build/bin/llvm-config --cflags
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>./build/bin/llvm-config --cflags
 -I/Users/alexdenisov/swift_llvm/llvm/include -I/Users/alexdenisov/swift_llvm/build/include  -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wmissing-field-initializers -pedantic -Wno-long-long -Wcovered-switch-default -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 </pre></div>
 
 <p>The output contains a few parameters, we can easily omit all arguments except of headers search paths (<code>-I ...</code>) and macro definitions (<code>-D__...</code>). The problem is that swift compiler does not handle macro definitions the way as clang does, though we could bypass them directly to clang driver using <code>-Xcc</code> option:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
 </pre></div>
 
 <p>If you were eager enough and run the recent command, then you might see some errors: linker complains because it can’t find symbols from ncurses and STD C++ libraries. No worries, here is the correct command:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
 </pre></div>
 
 <p>Now we can run the program and see the beautiful LLVM IR:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ ./hello_llvm
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>./hello_llvm
 ; <span style="color: #19177C">ModuleID</span> <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;Hello&#39;</span>
 </pre></div>
 
 <p>Ok, it’s empty and doesn’t look cool. But there are good news&shy;: we are able to use LLVM C API from Swift. Isn’t this impressive?</p>
 
 <p>Let’s go further and create simple <code>sum</code> function that accepts two integers, sums them and returns result. Here is a C equivalent:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
   <span style="color: #008000; font-weight: bold">return</span> a <span style="color: #666666">+</span> b;
 }
 </pre></div>
@@ -217,7 +217,7 @@ LLVMDisposeModule(module)
 <p>To create a function we need to specify all types involved: return type and types of arguments.</p>
 
 <p>Types of arguments must be passed as an array. Since we interop with C API it’s a bit tricky, but still pretty straightforward:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
 
 <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> = LLVMModuleCreateWithName(<span style="color: #BA2121">&quot;Hello&quot;</span>)
 
@@ -241,11 +241,11 @@ LLVMDisposeModule(module)
 </pre></div>
 
 <p>Build it:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">~/swift_llvm <span style="color: #19177C">$ </span>xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C <span style="color: #BA2121">`</span>./build/bin/llvm-config --libs interpreter<span style="color: #BA2121">`</span> -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
 </pre></div>
 
 <p>And run:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
 <span style="color: #008000; font-weight: bold">declare</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>)
 </pre></div>
@@ -253,11 +253,11 @@ LLVMDisposeModule(module)
 <p>Here you go, function prototype is ready - next step is function body.</p>
 
 <p>Atomic particle of code is a <code>basic block</code>. Function or loop body, conditional branch (<code>if/else</code>, <code>switch/case</code>, etc.) these are basic blocks. Our simple function has one as well:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">entryBlock</span> = LLVMAppendBasicBlock(sumFunction, <span style="color: #BA2121">&quot;entry&quot;</span>)
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">entryBlock</span> = LLVMAppendBasicBlock(sumFunction, <span style="color: #BA2121">&quot;entry&quot;</span>)
 </pre></div>
 
 <p>This block could be filled in using builder. First we emit instructions to access function arguments. Next one - addition of the arguments with the <code>temp</code> variable holding the result. And the last instruction - return statement.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">builder</span> = LLVMCreateBuilder()
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">builder</span> = LLVMCreateBuilder()
 LLVMPositionBuilderAtEnd(builder, entryBlock)
 
 <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">a</span> = LLVMGetParam(sumFunction, <span style="color: #666666">0</span>)
@@ -269,7 +269,7 @@ LLVMBuildRet(builder, temp)
 <p><em>Put this code after <code>sumFunction</code> declaration, but before <code>LLVMDumpModule</code>. Or just keep reading, you will see the full code listing at the end of the article.</em></p>
 
 <p>Build and run, you will see the function body:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
 <span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>) {
 <span style="color: #A0A000">entry:</span>
@@ -285,7 +285,7 @@ LLVMBuildRet(builder, temp)
 <p><em>Note: To be honest I don’t really know exact difference between them, the only reason I use interpreter here - I got a few different errors when I tried to use MCJIT.</em></p>
 
 <p>Let’s create an execution engine:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
 <span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">error</span> =  <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">alignof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
 
 LLVMLinkInInterpreter()
@@ -300,7 +300,7 @@ LLVMLinkInInterpreter()
 <p>You can build and run it, just to ensure that everything is still working.</p>
 
 <p>Finally, let’s run our function and actually compute the sum. Here we do the same trick as with function type - API requires <code>UnsafeMutablePointer</code>. Keep in mind that you should deallocate this memory manually.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">x</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">10</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">x</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">10</span>
 <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">y</span>: <span style="color: #008000">UInt64</span> = <span style="color: #666666">25</span>
 
 <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">args</span> = [LLVMCreateGenericValueOfInt(int32, x, <span style="color: #666666">0</span>),
@@ -317,7 +317,7 @@ argsRef.dealloc(args.<span style="color: #008000">count</span>)
 </pre></div>
 
 <p>If you build and run the program - you will see the result:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
 <span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>) {
 <span style="color: #A0A000">entry:</span>
@@ -328,7 +328,7 @@ argsRef.dealloc(args.<span style="color: #008000">count</span>)
 </pre></div>
 
 <p>Here is the full code listing:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">import</span> <span style="color: #0000FF; font-weight: bold">LLVM_C</span>
 
 <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> = LLVMModuleCreateWithName(<span style="color: #BA2121">&quot;Hello&quot;</span>)
 
@@ -428,7 +428,7 @@ LLVMDisposeModule(module)
 
       <div>
 
-      
+      Page(&#34;How to use LLVM API with Swift&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=How%20to%20use%20LLVM%20API%20with%20Swift&amp;url=https%3a%2f%2flowlevelbits.org%2fhow-to-use-llvm-api-with-swift%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -914,6 +914,8 @@ LLVMDisposeModule(module)
           
         
       
+        
+      
 
       <ul>
       
@@ -930,15 +932,15 @@ LLVMDisposeModule(module)
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -954,11 +956,11 @@ LLVMDisposeModule(module)
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
         <li>
@@ -970,15 +972,11 @@ LLVMDisposeModule(module)
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -987,6 +985,10 @@ LLVMDisposeModule(module)
       
         <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
       </ul>

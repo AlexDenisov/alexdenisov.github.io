@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Iosdev on Low Level Bits</title>
     <link>https://lowlevelbits.org/categories/iosdev/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Iosdev on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/categories/iosdev/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Crash-free code with Fuzzer</title>
       <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
       <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
@@ -34,21 +32,21 @@ The best choice would be is to automate this process.&lt;/p&gt;
 &lt;p&gt;The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.&lt;/p&gt;
 
 &lt;p&gt;For instance, from this sample&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;we could get two mutants by using &lt;code&gt;ReplaceNode&lt;/code&gt; mutation, such as:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #666666&#34;&gt;42&lt;/span&gt;, &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;Mutation&lt;/span&gt;
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #666666&#34;&gt;42&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;Mutation&lt;/span&gt;
 }
@@ -63,7 +61,7 @@ But I’m pretty sure there is no domain model that accepts exceptions like &lt;
 The recommended way is to create another test target and put these verifications there.&lt;/p&gt;
 
 &lt;p&gt;Example:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
   &lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;sample &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @{
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;John Doe&amp;quot;&lt;/span&gt;,
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;age&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;@42&lt;/span&gt;
@@ -91,12 +89,12 @@ Lines like &lt;code&gt;user.name.length;&lt;/code&gt; may look weird, but it’s
 &lt;p&gt;Example looks pretty straightforward, but I’d like to highlight couple of things.&lt;/p&gt;
 
 &lt;p&gt;The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [engine &lt;span style=&#34;color: #A0A000&#34;&gt;runEngineOverMutants&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;mutant){ &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;…&lt;/span&gt; }];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [engine &lt;span style=&#34;color: #A0A000&#34;&gt;runEngineOverMutants&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;mutant){ &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;…&lt;/span&gt; }];
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The engine records only failures, so it’s enough to assert count of returned reports.
 One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (Report &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;report &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; reports) {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (Report &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;report &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; reports) {
   NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Thrown &amp;#39;%@&amp;#39; on &amp;#39;%@&amp;#39;&amp;quot;&lt;/span&gt;, report.exception, report.mutant);
 }
 &lt;/pre&gt;&lt;/div&gt;
@@ -108,20 +106,20 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;h4 id=&#34;delete-node-mutation&#34;&gt;Delete Node Mutation&lt;/h4&gt;
 
 &lt;p&gt;Returns sample without some node so that&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;becomes either&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;or&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
@@ -131,7 +129,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;p&gt;This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.&lt;/p&gt;
 
 &lt;p&gt;‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using &lt;code&gt;NodeReplacement&lt;/code&gt;, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;NodeReplacement &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;replacement &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [NodeReplacement &lt;span style=&#34;color: #A0A000&#34;&gt;replacementWithValue&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;whatever may &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;break&lt;/span&gt; your code&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;NodeReplacement &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;replacement &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [NodeReplacement &lt;span style=&#34;color: #A0A000&#34;&gt;replacementWithValue&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;whatever may &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;break&lt;/span&gt; your code&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;];
 &lt;span style=&#34;color: #B00040&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt; mutation &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [ReplaceNodeMutation &lt;span style=&#34;color: #A0A000&#34;&gt;mutationWithReplacement&lt;/span&gt;:replacement];
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -148,7 +146,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;p&gt;Let’s create a mutation that will return random value (using  &lt;code&gt;NodeReplacement&lt;/code&gt;) instead of changing a sample.&lt;/p&gt;
 
 &lt;p&gt;Simplest interface ever:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;lt;Fuzzer/Fuzzer.h&amp;gt;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;lt;Fuzzer/Fuzzer.h&amp;gt;&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;ReplaceSampleMutation&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
   &lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;
@@ -159,7 +157,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Implementation is not sophisticated as well:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;ReplaceSampleMutation&lt;/span&gt; ()
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;ReplaceSampleMutation&lt;/span&gt; ()
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@property&lt;/span&gt; NodeReplacement &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;replacement;
 
@@ -185,7 +183,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The usage is trivial:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
   &lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;sample &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @{
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;John Doe&amp;quot;&lt;/span&gt;,
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;age&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;@42&lt;/span&gt;
@@ -230,7 +228,7 @@ I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexD
       <title>Components: taking a step back from Dependency Management</title>
       <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
@@ -295,13 +293,13 @@ Any big enough system is built from different components, that are composed toge
 &lt;h5 id=&#34;driver&#34;&gt;Driver&lt;/h5&gt;
 
 &lt;p&gt;Driver is responsible for iterating over makefiles and runs particular rule (one of the specified above) against them. Here is couple of examples:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;./components.sh install                &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# installs every component in the components directory (COMPONENTS_MAKE_PATH)&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;./components.sh install                &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# installs every component in the components directory (COMPONENTS_MAKE_PATH)&lt;/span&gt;
 ./components.sh purge Cedar            &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# cleans and uninstalls Cedar library&lt;/span&gt;
 ./components.sh update BloodMagic      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# uninstalls current and installs new version of BloodMagic library&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;&lt;code&gt;GNU/Make&lt;/code&gt; has a feature called &amp;lsquo;dry-run&amp;rsquo; (&lt;code&gt;man make&lt;/code&gt; look for &amp;lsquo;&amp;ndash;dry-run&amp;rsquo;), that &amp;ldquo;prints the commands that would be executed, but do not execute them&amp;rdquo;. We have found it extremely useful and added to driver. To see what will happen during the installation of AFNetworking, simply run:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;$ ./components.sh explain install AFNetworking
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./components.sh explain install AFNetworking
 &lt;span style=&#34;color: #666666&#34;&gt;[&lt;/span&gt;install&lt;span style=&#34;color: #666666&#34;&gt;]&lt;/span&gt; AFNetworking:
 wget --no-use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
 unzip /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d /Users/alexdenisov/Library/Caches/Components/AFNetworking
@@ -324,7 +322,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h4 id=&#34;header&#34;&gt;Header&lt;/h4&gt;
 
 &lt;p&gt;Here is a typical header of a component&amp;rsquo;s makefile:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking
 &lt;span style=&#34;color: #19177C&#34;&gt;VERSION&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;2.6.3
 &lt;span style=&#34;color: #19177C&#34;&gt;GH_REPO&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking/AFNetworking
 &lt;/pre&gt;&lt;/div&gt;
@@ -334,12 +332,12 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h4 id=&#34;paths&#34;&gt;Paths&lt;/h4&gt;
 
 &lt;p&gt;Next step is to define paths for all directories that will be involved in the process of the installation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_BUILD_CACHE_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;HOME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/Library/Caches/Components
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_BUILD_CACHE_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;HOME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/Library/Caches/Components
 &lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_INSTALL_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; ./Components
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;These are so called &amp;lsquo;global&amp;rsquo; variables provided by the driver script. These variables have default values in case you want to run &lt;code&gt;make install&lt;/code&gt; without the driver being involved. The cache directory contains all components installed in the system and their corresponding files (such as zip archives, build artefacts and so on). &lt;code&gt;./Components&lt;/code&gt; is a directory where ready-for-use component will be stored.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking&lt;/span&gt;
 &lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_BUILD_CACHE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
 &lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -353,7 +351,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;p&gt;These are directories where we store intermediates for the component and where to put installed component.&lt;/p&gt;
 
 &lt;h4 id=&#34;urls&#34;&gt;URLs&lt;/h4&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_URL&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;https://github.com/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;GH_REPO&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/archive/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;.zip
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_URL&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;https://github.com/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;GH_REPO&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/archive/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;.zip
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;In case of AFNetworking, this URL will be resolved to &lt;code&gt;https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip&lt;/code&gt;.&lt;/p&gt;
@@ -363,7 +361,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h4 id=&#34;targets&#34;&gt;Targets&lt;/h4&gt;
 
 &lt;p&gt;There is a set of &amp;lsquo;rules&amp;rsquo; our makefile should conform to.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
 
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# install: ./Components/AFNetworking&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;install&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -386,20 +384,20 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;p&gt;Let&amp;rsquo;s take a closer look at each line.&lt;/p&gt;
 
 &lt;h5 id=&#34;phony-targets&#34;&gt;Phony targets&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The nature of makefile is to check if a file or directory with the name of target exists. If it doesn’t, it will run the commands necessary to create that file or directory. Sometimes you want to be able to run commands without that dependency on existing files. For that, you would use ‘control targets’, marked as such with &lt;code&gt;.PHONY&lt;/code&gt;. So, in this example, even if the file or directory named &lt;code&gt;install&lt;/code&gt; exists, the makefile will still evaluate the provided commands.&lt;/p&gt;
 
 &lt;h5 id=&#34;install&#34;&gt;install&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# install: ./Components/AFNetworking&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# install: ./Components/AFNetworking&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;install&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Target &lt;code&gt;install&lt;/code&gt; doesn&amp;rsquo;t have any commands to evaluate, though it says that it has a dependency that needs to be resolved first: &lt;code&gt;$(COMPONENT_INSTALL_PATH)&lt;/code&gt;, which resolves to &lt;code&gt;./Components/AFNetworking&lt;/code&gt;. This is exactly what we want: after running &lt;code&gt;make install&lt;/code&gt; we want to have AFNetworking installed to &lt;code&gt;./Components&lt;/code&gt; directory.&lt;/p&gt;
 
 &lt;h5 id=&#34;uninstall&#34;&gt;uninstall&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;uninstall&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;uninstall&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf ./Components/AFNetworking&lt;/span&gt;
   rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -407,13 +405,13 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;p&gt;&lt;code&gt;uninstall&lt;/code&gt; doesn&amp;rsquo;t have any dependencies, but it has one command which just removes installed AFNetworking from the &lt;code&gt;./Components&lt;/code&gt; directory.&lt;/p&gt;
 
 &lt;h5 id=&#34;update&#34;&gt;update&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;update&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall install
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;update&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall install
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;That’s basically all what update does. It assumes that you have downloaded the newer version of the component and that the old one needs to be replaced.&lt;/p&gt;
 
 &lt;h5 id=&#34;clean&#34;&gt;clean&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;clean&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;clean&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
   rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
@@ -423,7 +421,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;p&gt;So far clean is our biggest target. It has two simple commands - first one removes sources of AFNetworking (there might be some library/framework/whatnot for other project) and second one cleans up downloaded zip archive with sources. This target is needed only if you want to keep your system clean, though the easiest way to do it is to drop &lt;code&gt;$(HOME)/Library/Caches/Components/&lt;/code&gt; manually.&lt;/p&gt;
 
 &lt;h5 id=&#34;purge&#34;&gt;purge&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;purge&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall clean
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;purge&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall clean
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The last phony target we have here. It just cleans and uninstalls the component, nothing special.&lt;/p&gt;
@@ -431,7 +429,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h4 id=&#34;artefacts&#34;&gt;Artefacts&lt;/h4&gt;
 
 &lt;p&gt;Finally, the last section of the makefile consists of rules to create artefacts:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_INSTALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir ./Components/AFNetworking&lt;/span&gt;
   mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -463,7 +461,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h5 id=&#34;component-install-path&#34;&gt;COMPONENT_INSTALL_PATH&lt;/h5&gt;
 
 &lt;p&gt;We start off with &lt;code&gt;$(COMPONENT_INSTALL_PATH)&lt;/code&gt;, since this is what we actually want to get:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_INSTALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir ./Components/AFNetworking&lt;/span&gt;
   mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -481,7 +479,7 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 
 &lt;p&gt;The goal of this target is to provide sources.
 Again, this target has dependency and we assume that it&amp;rsquo;s resolved already.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_SOURCE_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
   unzip &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -494,7 +492,7 @@ Again, this target has dependency and we assume that it&amp;rsquo;s resolved alr
 &lt;p&gt;After extraction &lt;code&gt;unzip&lt;/code&gt; command will create &lt;code&gt;$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/code&gt; because of internal structure of the archive. We may expect that once we extracted data from archive we will not evaluate these commands again, but &lt;code&gt;GNU/Make&lt;/code&gt; and &lt;code&gt;unzip&lt;/code&gt; are smart. &lt;code&gt;unzip&lt;/code&gt; preserves timestamps of archived files and &lt;code&gt;make&lt;/code&gt; checks those timestamps: if it sees that directory exists, but it&amp;rsquo;s &amp;lsquo;old&amp;rsquo;, then it will still evaluate this step. To avoid this we have to cheat a bit by &lt;code&gt;touch&lt;/code&gt;&amp;lsquo;ing the directory with sources (&lt;code&gt;touch&lt;/code&gt; changes modification and access times of file or directory).&lt;/p&gt;
 
 &lt;h5 id=&#34;zipball-path&#34;&gt;ZIPBALL_PATH&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;$(ZIPBALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
   wget --no-use-server-timestamps &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -503,7 +501,7 @@ Again, this target has dependency and we assume that it&amp;rsquo;s resolved alr
 &lt;p&gt;This step is pretty similar to previous one: we also have to take care of access/modification times, but in this case we could avoid &lt;code&gt;touch&lt;/code&gt;&amp;lsquo;ing file, because &lt;code&gt;wget&lt;/code&gt; can do this for us.&lt;/p&gt;
 
 &lt;h5 id=&#34;component-build-path&#34;&gt;COMPONENT_BUILD_PATH&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
 &lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_BUILD_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
   mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
@@ -514,7 +512,7 @@ Again, this target has dependency and we assume that it&amp;rsquo;s resolved alr
 &lt;h4 id=&#34;whole-makefile-and-tips&#34;&gt;Whole Makefile and tips&lt;/h4&gt;
 
 &lt;p&gt;Please, take a look at resulting makefile. As you can see it&amp;rsquo;s not that big and scary at all:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking
 &lt;span style=&#34;color: #19177C&#34;&gt;VERSION&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;2.6.3
 &lt;span style=&#34;color: #19177C&#34;&gt;GH_REPO&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking/AFNetworking
 
@@ -575,10 +573,10 @@ Again, this target has dependency and we assume that it&amp;rsquo;s resolved alr
 &lt;p&gt;You can see what is going on when you run &lt;code&gt;make&lt;/code&gt; and how &lt;code&gt;make&lt;/code&gt; is reasoning about its decisions.&lt;/p&gt;
 
 &lt;p&gt;Just add two flags &lt;code&gt;-r&lt;/code&gt; and &lt;code&gt;-d&lt;/code&gt;. First one disables implicit rules (just to decrease output), second one actually prints debug information, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;$ make install -r -d
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;make install -r -d
 GNU Make 3.81
 Copyright &lt;span style=&#34;color: #666666&#34;&gt;(&lt;/span&gt;C&lt;span style=&#34;color: #666666&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;2006&lt;/span&gt;  Free Software Foundation, Inc.
-This is free software; see the &lt;span style=&#34;color: #008000&#34;&gt;source&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; copying conditions.
+This is free software; see the &lt;span style=&#34;color: #008000&#34;&gt;source &lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; copying conditions.
 There is NO warranty; not even &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.
 
@@ -629,7 +627,7 @@ Successfully remade target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;
 &lt;p&gt;Just use these two flags if you ever face any problems with makefiles.&lt;/p&gt;
 
 &lt;p&gt;Second tip is &lt;code&gt;make&lt;/code&gt; parameter &lt;code&gt;--warn-undefined-variables&lt;/code&gt;. It emits a warning if some variable does not exist. We have found it very helpful to avoid mistakes like &lt;code&gt;rm -rf $FOO/&lt;/code&gt; when &lt;code&gt;$FOO&lt;/code&gt; is not set. Also, the &lt;code&gt;components.sh&lt;/code&gt; driver has this flag enabled. It&amp;rsquo;s even more helpful when you run &lt;code&gt;explain&lt;/code&gt;, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;$ ./components.sh explain install
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./components.sh explain install
 &lt;span style=&#34;color: #666666&#34;&gt;[&lt;/span&gt;install&lt;span style=&#34;color: #666666&#34;&gt;]&lt;/span&gt; AFNetworking:
 /Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make:49: warning: undefined variable &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;#39;&lt;/span&gt;
 wget --no-use-server-timestamps  -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
@@ -737,7 +735,7 @@ Alex.
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -752,7 +750,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
 
 &lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
                                      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.frame);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Rect r = view.frame;&lt;/span&gt;
                                      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;r objCType:@encode(Rect)];&lt;/span&gt;
@@ -761,17 +759,17 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;!-- more --&gt;
 
 &lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) Point {
     &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; x, y;
 };
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Size {
     &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; width, height;
 } Size;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
 	Point origin;
   Size size;
 } Rect;
@@ -779,7 +777,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 Rect r;
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);       &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// error&lt;/span&gt;
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
 
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ok&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -787,8 +785,8 @@ Rect r;
 &lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
 
 &lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
-    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
 &lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; animation &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; &lt;span style=&#34;color: #A0A000&#34;&gt;animationWithKeyPath&lt;/span&gt;:&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;position&amp;quot;&lt;/span&gt;];
@@ -823,7 +821,7 @@ Rect r;
       <title>Getting Rid of Asynchronous Tests</title>
       <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
@@ -848,7 +846,7 @@ Rect r;
 &lt;p&gt;&lt;code&gt;Client&lt;/code&gt; - handles error/raw data from the &lt;code&gt;Loader&lt;/code&gt; and sends it to an end user&lt;/p&gt;
 
 &lt;p&gt;Here is the interface of the &lt;code&gt;Loader&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
 
 - (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadDataWithCompletion:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;) (&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error))&lt;span style=&#34;color: #19177C&#34;&gt;completion&lt;/span&gt;;
 
@@ -856,7 +854,7 @@ Rect r;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;the interface of the &lt;code&gt;Client&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;Callback) (&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;Callback) (&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt;;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
@@ -869,7 +867,7 @@ Rect r;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and it’s implementation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt;
 
 - (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt; {
   [&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.loader &lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
@@ -883,7 +881,7 @@ Rect r;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Our goal is to test that the client parses data and handles errors in a correct way:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
   Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
 
   it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
@@ -914,7 +912,7 @@ Rect r;
 &lt;p&gt;To test this we just need to replace the &lt;code&gt;client.loader&lt;/code&gt; with a fake object that is going to mimic the desired behavior.&lt;/p&gt;
 
 &lt;p&gt;Here is how it looks like with Cedar:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
 
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
 &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
@@ -938,7 +936,7 @@ loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;For those unfamiliar with &lt;a href=&#34;https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html&#34;&gt;&lt;code&gt;NSInvocation&lt;/code&gt;&lt;/a&gt; let me cite it&amp;rsquo;s documentation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;buffer:&lt;/span&gt;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.&lt;/span&gt;
 
@@ -950,7 +948,7 @@ loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;After putting these parts together you&amp;rsquo;ll have this cryptic code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeUsersLoader&lt;/span&gt;() {
   &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
@@ -1017,14 +1015,14 @@ describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&
       <title>&#39;if (self)&#39; and Sanity</title>
       <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;
 
 &lt;p&gt;I believe it was a hard task, but Apple managed to find that thing:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;super&lt;/span&gt; init];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;super&lt;/span&gt; init];
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;) { &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// &amp;lt;- this is silly&lt;/span&gt;
 }
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;;
@@ -1072,7 +1070,7 @@ return self;
 &lt;h4 id=&#34;nil-object-and-messaging&#34;&gt;Nil object and messaging&lt;/h4&gt;
 
 &lt;p&gt;In a first case an assignment expression just converts into a function call:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// converts into&lt;/span&gt;
 objc_msgSend(&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;setFoo&lt;/span&gt;:), &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;);
@@ -1085,7 +1083,7 @@ objc_msgSend(&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;, &lt;s
 &lt;h4 id=&#34;nil-object-and-pointers&#34;&gt;Nil object and pointers&lt;/h4&gt;
 
 &lt;p&gt;The second constructor also has a different final form:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
 _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// actually means&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;_foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
@@ -1115,7 +1113,7 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
@@ -1123,7 +1121,7 @@ _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#
 Our toolchain does not provide good solution for this problem, so we have to implement our own.&lt;/p&gt;
 
 &lt;p&gt;When I worked with Ruby On Rails I really loved its approach for database configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;development:
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;development:
   user: dev
   password: dev123
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
@@ -1151,7 +1149,7 @@ Both of them have serious disadvantages.&lt;/p&gt;
 &lt;h4 id=&#34;preprocessor-definition&#34;&gt;Preprocessor Definition&lt;/h4&gt;
 
 &lt;p&gt;You may saw and probably used this approach. It&amp;rsquo;s pretty easy and simple to use:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://staging.example.com&amp;quot;&lt;/span&gt;;
 &lt;span style=&#34;color: #BC7A00&#34;&gt;#else&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://example.com&amp;quot;&lt;/span&gt;;
@@ -1183,7 +1181,7 @@ Still you have to perform way too many actions for such a simple task.&lt;/p&gt;
 &lt;h5 id=&#34;here-is-how-it-looks-like&#34;&gt;Here is how it looks like:&lt;/h5&gt;
 
 &lt;p&gt;Configuration file:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Configuration
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;principalClass: Configuration
 
 Debug:
   serverAddress: https://staging.example.com
@@ -1195,7 +1193,7 @@ Release:
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;ObjC code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
 &lt;span style=&#34;color: #666666&#34;&gt;-&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)serverAddress;
 - (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;APIKey&lt;/span&gt;;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
@@ -1211,7 +1209,7 @@ NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/spa
 &lt;h4 id=&#34;installation-and-usage&#34;&gt;Installation and usage&lt;/h4&gt;
 
 &lt;p&gt;To install &lt;code&gt;xcconf&lt;/code&gt; you need to clone repo and run one command, it&amp;rsquo;ll build executable and install it into &lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; xcconf
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;xcconf
 make install
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -1228,7 +1226,7 @@ make install
   alt=&#34;New file&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Put there initial configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Config
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;principalClass: Config
 
 Debug:
   color: Green
@@ -1238,7 +1236,7 @@ Release:
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Prepare class interface for configuration. &lt;strong&gt;But do not create implementation&lt;/strong&gt;. Its name should be equal to &lt;code&gt;principalClass&lt;/code&gt; and it might contain getter methods for all available parameters, in this case it&amp;rsquo;s just &lt;code&gt;color&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
 - (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;color&lt;/span&gt;;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -1266,7 +1264,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
   alt=&#34;xcconf&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Now we&amp;rsquo;re ready to use it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
 
 &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; argv[]) {
     &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@autoreleasepool&lt;/span&gt; {
@@ -1301,7 +1299,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
       <title>Global variables in Swift are not variables</title>
       <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
       <pubDate>Wed, 11 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
       <description></description>
     </item>
@@ -1310,7 +1308,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
       <title>Dependency Injection in Objective-C with Blood and Magic</title>
       <link>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</link>
       <pubDate>Tue, 15 Oct 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</guid>
       <description></description>
     </item>
@@ -1319,7 +1317,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
       <title>Using Forward Declaration In Your Objective-C Projects</title>
       <link>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</link>
       <pubDate>Fri, 09 Aug 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</guid>
       <description></description>
     </item>

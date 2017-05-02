@@ -122,21 +122,21 @@ The best choice would be is to automate this process.</p>
 <p>The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.</p>
 
 <p>For instance, from this sample</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
   <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>,
   <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
 }
 </pre></div>
 
 <p>we could get two mutants by using <code>ReplaceNode</code> mutation, such as:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
   <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #666666">42</span>, <span style="border: 1px solid #FF0000">//</span> <span style="border: 1px solid #FF0000">&lt;-</span> <span style="border: 1px solid #FF0000">Mutation</span>
   <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
 }
 </pre></div>
 
 <p>and</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
   <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>,
   <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #666666">42</span> <span style="border: 1px solid #FF0000">//</span> <span style="border: 1px solid #FF0000">&lt;-</span> <span style="border: 1px solid #FF0000">Mutation</span>
 }
@@ -151,7 +151,7 @@ But I’m pretty sure there is no domain model that accepts exceptions like <cod
 The recommended way is to create another test target and put these verifications there.</p>
 
 <p>Example:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">test</span> {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">test</span> {
   <span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>sample <span style="color: #666666">=</span> @{
     <span style="color: #BA2121">@&quot;name&quot;</span> <span style="color: #666666">:</span> <span style="color: #BA2121">@&quot;John Doe&quot;</span>,
     <span style="color: #BA2121">@&quot;age&quot;</span> <span style="color: #666666">:</span> <span style="color: #666666">@42</span>
@@ -179,12 +179,12 @@ Lines like <code>user.name.length;</code> may look weird, but it’s the easiest
 <p>Example looks pretty straightforward, but I’d like to highlight couple of things.</p>
 
 <p>The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>reports <span style="color: #666666">=</span> [engine <span style="color: #A0A000">runEngineOverMutants</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>mutant){ <span style="border: 1px solid #FF0000">…</span> }];
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>reports <span style="color: #666666">=</span> [engine <span style="color: #A0A000">runEngineOverMutants</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>mutant){ <span style="border: 1px solid #FF0000">…</span> }];
 </pre></div>
 
 <p>The engine records only failures, so it’s enough to assert count of returned reports.
 One can easily examine what caused failure by looking at report, e.g.:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">for</span> (Report <span style="color: #666666">*</span>report <span style="color: #008000; font-weight: bold">in</span> reports) {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">for</span> (Report <span style="color: #666666">*</span>report <span style="color: #008000; font-weight: bold">in</span> reports) {
   NSLog(<span style="color: #BA2121">@&quot;Thrown &#39;%@&#39; on &#39;%@&#39;&quot;</span>, report.exception, report.mutant);
 }
 </pre></div>
@@ -196,20 +196,20 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 <h4 id="delete-node-mutation">Delete Node Mutation</h4>
 
 <p>Returns sample without some node so that</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
   <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>,
   <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
 }
 </pre></div>
 
 <p>becomes either</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
   <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>
 }
 </pre></div>
 
 <p>or</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
   <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
 }
 </pre></div>
@@ -219,7 +219,7 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 <p>This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.</p>
 
 <p>‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using <code>NodeReplacement</code>, e.g.:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>NodeReplacement <span style="color: #666666">*</span>replacement <span style="color: #666666">=</span> [NodeReplacement <span style="color: #A0A000">replacementWithValue</span>:<span style="color: #666666">&lt;</span><span style="border: 1px solid #FF0000">#</span>whatever may <span style="color: #008000; font-weight: bold">break</span> your code<span style="border: 1px solid #FF0000">#</span><span style="color: #666666">&gt;</span>];
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">NodeReplacement <span style="color: #666666">*</span>replacement <span style="color: #666666">=</span> [NodeReplacement <span style="color: #A0A000">replacementWithValue</span>:<span style="color: #666666">&lt;</span><span style="border: 1px solid #FF0000">#</span>whatever may <span style="color: #008000; font-weight: bold">break</span> your code<span style="border: 1px solid #FF0000">#</span><span style="color: #666666">&gt;</span>];
 <span style="color: #B00040">id</span><span style="color: #666666">&lt;</span>Mutation<span style="color: #666666">&gt;</span> mutation <span style="color: #666666">=</span> [ReplaceNodeMutation <span style="color: #A0A000">mutationWithReplacement</span>:replacement];
 </pre></div>
 
@@ -236,7 +236,7 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 <p>Let’s create a mutation that will return random value (using  <code>NodeReplacement</code>) instead of changing a sample.</p>
 
 <p>Simplest interface ever:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#import &lt;Fuzzer/Fuzzer.h&gt;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#import &lt;Fuzzer/Fuzzer.h&gt;</span>
 
 <span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">ReplaceSampleMutation</span> : <span style="color: #008000">NSObject</span>
   <span style="color: #666666">&lt;</span>Mutation<span style="color: #666666">&gt;</span>
@@ -247,7 +247,7 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 </pre></div>
 
 <p>Implementation is not sophisticated as well:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">ReplaceSampleMutation</span> ()
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">ReplaceSampleMutation</span> ()
 
 <span style="color: #008000; font-weight: bold">@property</span> NodeReplacement <span style="color: #666666">*</span>replacement;
 
@@ -273,7 +273,7 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 </pre></div>
 
 <p>The usage is trivial:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">test</span> {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">test</span> {
   <span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>sample <span style="color: #666666">=</span> @{
     <span style="color: #BA2121">@&quot;name&quot;</span> <span style="color: #666666">:</span> <span style="color: #BA2121">@&quot;John Doe&quot;</span>,
     <span style="color: #BA2121">@&quot;age&quot;</span> <span style="color: #666666">:</span> <span style="color: #666666">@42</span>
@@ -337,7 +337,7 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
 
       <div>
 
-      
+      Page(&#34;Crash-free code with Fuzzer&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Crash-free%20code%20with%20Fuzzer&amp;url=https%3a%2f%2flowlevelbits.org%2fcrash-free-code-with-fuzzer%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -823,6 +823,8 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
           
         
       
+        
+      
 
       <ul>
       
@@ -835,15 +837,15 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -863,7 +865,19 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
@@ -871,7 +885,7 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -883,19 +897,7 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
       </ul>

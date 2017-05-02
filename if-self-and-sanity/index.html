@@ -107,7 +107,7 @@
 <p>Imagine that there is a power in the universe that said to Apple: &ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&ldquo;.</p>
 
 <p>I believe it was a hard task, but Apple managed to find that thing:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">self</span> <span style="color: #666666">=</span> [<span style="color: #008000">super</span> init];
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">self</span> <span style="color: #666666">=</span> [<span style="color: #008000">super</span> init];
 <span style="color: #008000; font-weight: bold">if</span> (<span style="color: #008000">self</span>) { <span style="color: #408080; font-style: italic">// &lt;- this is silly</span>
 }
 <span style="color: #008000; font-weight: bold">return</span> <span style="color: #008000">self</span>;
@@ -155,7 +155,7 @@ return self;
 <h4 id="nil-object-and-messaging">Nil object and messaging</h4>
 
 <p>In a first case an assignment expression just converts into a function call:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">// note: &#39;self&#39; is nil</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// note: &#39;self&#39; is nil</span>
 <span style="color: #008000">self</span>.foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;Foo&quot;</span>;
 <span style="color: #408080; font-style: italic">// converts into</span>
 objc_msgSend(<span style="color: #008000">self</span>, <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">setFoo</span>:), <span style="color: #BA2121">@&quot;Foo&quot;</span>);
@@ -168,7 +168,7 @@ objc_msgSend(<span style="color: #008000">self</span>, <span style="color: #0080
 <h4 id="nil-object-and-pointers">Nil object and pointers</h4>
 
 <p>The second constructor also has a different final form:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">// note: &#39;self&#39; is nil</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// note: &#39;self&#39; is nil</span>
 _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;Foo&quot;</span>;
 <span style="color: #408080; font-style: italic">// actually means</span>
 <span style="color: #008000">self</span><span style="color: #666666">-&gt;</span>_foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;Foo&quot;</span>;
@@ -214,7 +214,7 @@ _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;F
 
       <div>
 
-      
+      Page(&#34;&#39;if (self)&#39; and Sanity&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=%27if%20%28self%29%27%20and%20Sanity&amp;url=https%3a%2f%2flowlevelbits.org%2fif-self-and-sanity%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -700,6 +700,8 @@ _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;F
           
         
       
+        
+      
 
       <ul>
       
@@ -712,11 +714,11 @@ _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;F
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -724,7 +726,7 @@ _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;F
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -740,6 +742,30 @@ _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;F
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
@@ -748,31 +774,7 @@ _foo <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;F
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
       </ul>

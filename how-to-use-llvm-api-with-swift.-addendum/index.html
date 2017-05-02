@@ -111,7 +111,7 @@
 <h3 id="mcjit-execution-engine">MCJIT Execution Engine</h3>
 
 <p>Here is the snippet used to create interpreter:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">engine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">alignof</span>(LLVMExecutionEngineRef))
 <span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">error</span> =  <span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;<span style="color: #666666">&gt;</span>.alloc(<span style="color: #008000">alignof</span>(<span style="color: #008000">UnsafeMutablePointer</span>&lt;<span style="color: #008000">Int8</span>&gt;))
 
 LLVMLinkInInterpreter()
@@ -134,7 +134,7 @@ LLVMLinkInInterpreter()
 <p><code>MCJIT</code> requires only information about a target and code generator for this specific target.</p>
 
 <p>Here is final snippet for the execution engine:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>LLVMLinkInMCJIT()
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">LLVMLinkInMCJIT()
 LLVMInitializeNativeTarget()
 LLVMInitializeNativeAsmPrinter()
 
@@ -153,7 +153,7 @@ LLVMLinkInInterpreter()
 <h3 id="function-main">Function <code>main</code></h3>
 
 <p>There is a small problem with <code>MCJIT</code>. Currently it can only run functions with signatures matching signatures of <code>main</code> C function, i.e. one of those:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>(<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">**</span>argv, <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">**</span>envp)
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">(<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">**</span>argv, <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">**</span>envp)
 (<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">**</span>argv)
 (<span style="color: #B00040">int</span> argc)
 ()
@@ -170,7 +170,7 @@ LLVMLinkInInterpreter()
 <p><em>Note: I put it into a function just to specify some scope</em></p>
 
 <p><em>Note2: I do not cleanup memory in this snippet just to save some space</em></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">func</span> <span style="color: #0000FF">runFunction</span>(a: <span style="color: #008000">Int</span>, <span style="color: #008000; font-weight: bold">_</span> b: <span style="color: #008000">Int</span>) -&gt; <span style="color: #008000">Int</span> {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">func</span> <span style="color: #0000FF">runFunction</span>(a: <span style="color: #008000">Int</span>, <span style="color: #008000; font-weight: bold">_</span> b: <span style="color: #008000">Int</span>) -&gt; <span style="color: #008000">Int</span> {
   <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">functionType</span> = LLVMFunctionType(returnType, <span style="color: #008000; font-weight: bold">nil</span>, <span style="color: #666666">0</span>, <span style="color: #666666">0</span>)
   <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">wrapperFunction</span> = LLVMAddFunction(module, <span style="color: #BA2121">&quot;&quot;</span>, functionType)
 
@@ -201,7 +201,7 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
 </pre></div>
 
 <p>Here is an output after executing this code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; ModuleID = &#39;Hello&#39;</span>
 
 <span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@sum</span>(<span style="color: #008000; font-weight: bold">i32</span>, <span style="color: #008000; font-weight: bold">i32</span>) {
 <span style="color: #A0A000">entry:</span>
@@ -219,7 +219,7 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
 <p>Our unnamed wrapper function has name <code>@0</code>. Since this function is just a helper we will need to remove it after we have done execution.</p>
 
 <p>The way to run the function is the same as it was using interpreter:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">func</span> <span style="color: #0000FF">runFunction</span>(a: <span style="color: #008000">Int</span>, <span style="color: #008000; font-weight: bold">_</span> b: <span style="color: #008000">Int</span>) -&gt; <span style="color: #008000">Int</span> {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">func</span> <span style="color: #0000FF">runFunction</span>(a: <span style="color: #008000">Int</span>, <span style="color: #008000; font-weight: bold">_</span> b: <span style="color: #008000">Int</span>) -&gt; <span style="color: #008000">Int</span> {
   <span style="color: #408080; font-style: italic">/// ...</span>
 
   <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">executionEngine</span> = <span style="color: #008000">UnsafeMutablePointer</span>&lt;LLVMExecutionEngineRef&gt;.alloc(<span style="color: #008000">strideof</span>(LLVMExecutionEngineRef))
@@ -288,7 +288,7 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
 
       <div>
 
-      
+      Page(&#34;How to use LLVM API with Swift. Addendum&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=How%20to%20use%20LLVM%20API%20with%20Swift.%20Addendum&amp;url=https%3a%2f%2flowlevelbits.org%2fhow-to-use-llvm-api-with-swift.-addendum%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -774,6 +774,8 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
           
         
       
+        
+      
 
       <ul>
       
@@ -818,11 +820,7 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
@@ -830,7 +828,15 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
@@ -842,11 +848,7 @@ runFunction(<span style="color: #666666">5</span>, <span style="color: #666666">
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
       </ul>

@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Blacklane on Low Level Bits</title>
     <link>https://lowlevelbits.org/categories/blacklane/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Blacklane on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/categories/blacklane/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Crash-free code with Fuzzer</title>
       <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
       <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
@@ -34,21 +32,21 @@ The best choice would be is to automate this process.&lt;/p&gt;
 &lt;p&gt;The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.&lt;/p&gt;
 
 &lt;p&gt;For instance, from this sample&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;we could get two mutants by using &lt;code&gt;ReplaceNode&lt;/code&gt; mutation, such as:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #666666&#34;&gt;42&lt;/span&gt;, &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;Mutation&lt;/span&gt;
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #666666&#34;&gt;42&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;Mutation&lt;/span&gt;
 }
@@ -63,7 +61,7 @@ But I’m pretty sure there is no domain model that accepts exceptions like &lt;
 The recommended way is to create another test target and put these verifications there.&lt;/p&gt;
 
 &lt;p&gt;Example:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
   &lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;sample &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @{
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;John Doe&amp;quot;&lt;/span&gt;,
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;age&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;@42&lt;/span&gt;
@@ -91,12 +89,12 @@ Lines like &lt;code&gt;user.name.length;&lt;/code&gt; may look weird, but it’s
 &lt;p&gt;Example looks pretty straightforward, but I’d like to highlight couple of things.&lt;/p&gt;
 
 &lt;p&gt;The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [engine &lt;span style=&#34;color: #A0A000&#34;&gt;runEngineOverMutants&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;mutant){ &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;…&lt;/span&gt; }];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [engine &lt;span style=&#34;color: #A0A000&#34;&gt;runEngineOverMutants&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;mutant){ &lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;…&lt;/span&gt; }];
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The engine records only failures, so it’s enough to assert count of returned reports.
 One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (Report &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;report &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; reports) {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (Report &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;report &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; reports) {
   NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Thrown &amp;#39;%@&amp;#39; on &amp;#39;%@&amp;#39;&amp;quot;&lt;/span&gt;, report.exception, report.mutant);
 }
 &lt;/pre&gt;&lt;/div&gt;
@@ -108,20 +106,20 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;h4 id=&#34;delete-node-mutation&#34;&gt;Delete Node Mutation&lt;/h4&gt;
 
 &lt;p&gt;Returns sample without some node so that&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;becomes either&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;firstname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;or&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;{
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;{
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;&amp;quot;lastname&amp;quot;&lt;/span&gt; : &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Doe&amp;quot;&lt;/span&gt;
 }
 &lt;/pre&gt;&lt;/div&gt;
@@ -131,7 +129,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;p&gt;This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.&lt;/p&gt;
 
 &lt;p&gt;‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using &lt;code&gt;NodeReplacement&lt;/code&gt;, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;NodeReplacement &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;replacement &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [NodeReplacement &lt;span style=&#34;color: #A0A000&#34;&gt;replacementWithValue&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;whatever may &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;break&lt;/span&gt; your code&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;NodeReplacement &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;replacement &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [NodeReplacement &lt;span style=&#34;color: #A0A000&#34;&gt;replacementWithValue&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;whatever may &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;break&lt;/span&gt; your code&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;#&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;];
 &lt;span style=&#34;color: #B00040&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt; mutation &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [ReplaceNodeMutation &lt;span style=&#34;color: #A0A000&#34;&gt;mutationWithReplacement&lt;/span&gt;:replacement];
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -148,7 +146,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;p&gt;Let’s create a mutation that will return random value (using  &lt;code&gt;NodeReplacement&lt;/code&gt;) instead of changing a sample.&lt;/p&gt;
 
 &lt;p&gt;Simplest interface ever:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;lt;Fuzzer/Fuzzer.h&amp;gt;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;lt;Fuzzer/Fuzzer.h&amp;gt;&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;ReplaceSampleMutation&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
   &lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;
@@ -159,7 +157,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Implementation is not sophisticated as well:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;ReplaceSampleMutation&lt;/span&gt; ()
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;ReplaceSampleMutation&lt;/span&gt; ()
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@property&lt;/span&gt; NodeReplacement &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;replacement;
 
@@ -185,7 +183,7 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The usage is trivial:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;test&lt;/span&gt; {
   &lt;span style=&#34;color: #008000&#34;&gt;NSDictionary&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;sample &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @{
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;name&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;John Doe&amp;quot;&lt;/span&gt;,
     &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;age&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;@42&lt;/span&gt;

@@ -132,7 +132,7 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 <p>Consider the following situation: you have a test case which covers implementation of a function <code>sum</code>. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.</p>
 
 <p>Here is the test:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>test_result <span style="color: #0000FF">test_sum</span>() {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">test_result <span style="color: #0000FF">test_sum</span>() {
   <span style="color: #B00040">int</span> result <span style="color: #666666">=</span> sum(<span style="color: #666666">9</span>, <span style="color: #666666">5</span>);
   <span style="color: #008000; font-weight: bold">if</span> (result <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span>) {
     <span style="color: #008000; font-weight: bold">return</span> success;
@@ -143,7 +143,7 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 </pre></div>
 
 <p>Implementation of the <code>sum</code> function is rather simple. But, since you missed your morning coffee you write a wrong operator there:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
   <span style="color: #008000; font-weight: bold">return</span> a <span style="color: #666666">*</span> b;
 }
 </pre></div>
@@ -163,7 +163,7 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 <p>Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.</p>
 
 <p>Here is one potential mutation:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span> int sum(int a, int b) {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"> int sum(int a, int b) {
 <span style="color: #A00000">-  return a * b;</span>
 <span style="color: #00A000">+  return a + b;</span>
  }
@@ -204,7 +204,7 @@ However, this proof of concept inspires me to start working on a real system, de
 
 <p>Below you can see a high level overview of an algorithm I have in my head.
 It is a swift-like pseudocode. Please, follow the comments!</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">/*</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">/*</span>
 
 <span style="color: #408080; font-style: italic">    Classes used within the algorithm</span>
 
@@ -391,7 +391,7 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
 
       <div>
 
-      
+      Page(&#34;LLVM-based Mutation Testing System. Request For Comments&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=LLVM-based%20Mutation%20Testing%20System.%20Request%20For%20Comments&amp;url=https%3a%2f%2flowlevelbits.org%2fllvm-based-mutation-testing-system.-request-for-comments%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -877,6 +877,8 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
           
         
       
+        
+      
 
       <ul>
       
@@ -889,11 +891,11 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -917,27 +919,7 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
         <li>
@@ -945,11 +927,31 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
       </ul>

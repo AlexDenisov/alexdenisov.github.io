@@ -2,11 +2,6 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
-    <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://lowlevelbits.org/reverse-engineering-stickies.app/</loc>
     <lastmod>2017-02-13T11:23:48+01:00</lastmod>
   </url>
@@ -159,6 +154,706 @@
   <url>
     <loc>https://lowlevelbits.org/using-forward-declaration-in-your-objective-c-projects/</loc>
     <lastmod>2013-08-09T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/api/</loc>
+    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/app-thinning/</loc>
+    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/apple-swift/</loc>
+    <lastmod>2014-06-11T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/assembler/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/asyncronous-tests/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/bdd/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/bitcode/</loc>
+    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/blacklane/</loc>
+    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/blood-magic/</loc>
+    <lastmod>2013-10-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/bloodmagic/</loc>
+    <lastmod>2013-10-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/boxed-expressions/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/carthage/</loc>
+    <lastmod>2015-11-23T17:05:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/cedar/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/circular-containers/</loc>
+    <lastmod>2015-04-13T22:44:26+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/clang/</loc>
+    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/clang/</loc>
+    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/clang-plugin/</loc>
+    <lastmod>2014-02-28T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/cmake/</loc>
+    <lastmod>2013-08-09T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/cocoa/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/cocoapods/</loc>
+    <lastmod>2015-11-23T17:05:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/cocoatouch/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/compilation-time/</loc>
+    <lastmod>2013-08-09T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/compiler/</loc>
+    <lastmod>2014-02-28T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/components/</loc>
+    <lastmod>2015-11-23T17:05:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/components/</loc>
+    <lastmod>2015-11-23T17:05:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/configuration/</loc>
+    <lastmod>2015-02-06T00:43:11+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/crash-free/</loc>
+    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/creating-clang-plugin/</loc>
+    <lastmod>2014-02-28T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/defensive-programming/</loc>
+    <lastmod>2015-05-05T23:08:13+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dependency-injection/</loc>
+    <lastmod>2013-10-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dependency-management/</loc>
+    <lastmod>2015-11-23T17:05:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/determinism/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/di/</loc>
+    <lastmod>2013-10-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/di/</loc>
+    <lastmod>2013-10-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/disassembler/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/draft/</loc>
+    <lastmod>2016-11-16T07:02:36+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/environment/</loc>
+    <lastmod>2015-02-06T00:43:11+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/forward-declaration/</loc>
+    <lastmod>2013-08-09T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/framework/</loc>
+    <lastmod>2014-06-26T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/freebsd/</loc>
+    <lastmod>2016-03-31T17:22:59+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/freebsd/</loc>
+    <lastmod>2016-03-31T17:22:59+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/fuzz-testing/</loc>
+    <lastmod>2016-03-24T23:18:29+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/global-variables/</loc>
+    <lastmod>2014-06-11T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/hacking/</loc>
+    <lastmod>2014-06-11T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/hacking-on-clang/</loc>
+    <lastmod>2014-02-28T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/hopper/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/hopperapp/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/howto/</loc>
+    <lastmod>2014-12-27T23:03:50+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/incremental-build/</loc>
+    <lastmod>2013-08-09T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/interpreter/</loc>
+    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/ios/</loc>
+    <lastmod>2013-10-15T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/iosdev/</loc>
+    <lastmod>2015-11-23T17:05:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/iosdev/</loc>
+    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/java/</loc>
+    <lastmod>2016-11-23T11:18:07+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/java/</loc>
+    <lastmod>2016-11-23T11:18:07+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/jit/</loc>
+    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/linker/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/lldb/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/llvm/</loc>
+    <lastmod>2016-11-16T07:02:36+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/llvm/</loc>
+    <lastmod>2016-11-16T07:02:36+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/mach-o/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/mach-o/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/mach-o-memory-layout/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/macho/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/make/</loc>
+    <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/make/</loc>
+    <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/makefile/</loc>
+    <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/mcjit/</loc>
+    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/memory-layout/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/module/</loc>
+    <lastmod>2014-06-26T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/modules/</loc>
+    <lastmod>2014-06-26T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/mutation-testing/</loc>
+    <lastmod>2016-04-14T10:00:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/mutation-testing/</loc>
+    <lastmod>2016-04-14T10:00:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/nocilla/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/nsarray/</loc>
+    <lastmod>2015-04-13T22:44:26+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/objc/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/objc/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/objc_boxable/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/objc_boxed_nsvalue_expressions/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/object-code/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/objective-c/</loc>
+    <lastmod>2015-06-26T09:22:57+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/ocmock/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/ocmockito/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/ohhttpstubs/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/osx/</loc>
+    <lastmod>2013-08-09T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/osxdev/</loc>
+    <lastmod>2014-06-11T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/parse-mach-o/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/parse-object-files/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/performance-testing/</loc>
+    <lastmod>2016-03-24T23:18:29+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/postgresql/</loc>
+    <lastmod>2016-03-24T23:03:35+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/post/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/railsware/</loc>
+    <lastmod>2014-06-26T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/regression-testing/</loc>
+    <lastmod>2016-03-24T23:18:29+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/reverse-engineering/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/reverse-engineering/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/scientific-papers/</loc>
+    <lastmod>2016-11-23T11:18:07+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/scientific-papers/</loc>
+    <lastmod>2016-11-23T11:18:07+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/security/</loc>
+    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/self/</loc>
+    <lastmod>2015-05-05T23:08:13+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/shared-libraries/</loc>
+    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/swift/</loc>
+    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/swift/</loc>
+    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/swift-module/</loc>
+    <lastmod>2014-06-26T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/system-under-test/</loc>
+    <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/tap/</loc>
+    <lastmod>2016-03-31T17:22:59+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/tdd/</loc>
+    <lastmod>2015-06-17T12:31:15+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/testing/</loc>
+    <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/testing/</loc>
+    <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/tests/</loc>
+    <lastmod>2016-03-24T23:18:29+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/unit-testing/</loc>
+    <lastmod>2016-03-24T23:18:29+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/xcconf/</loc>
+    <lastmod>2015-02-06T00:43:11+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/xcode/</loc>
+    <lastmod>2014-12-27T23:03:50+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/xxd/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/yaml/</loc>
+    <lastmod>2015-02-06T00:43:11+01:00</lastmod>
+    <priority>0</priority>
   </url>
   
 </urlset>

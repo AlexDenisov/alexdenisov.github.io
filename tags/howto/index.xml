@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Howto on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/howto/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Howto on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/howto/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Getting Started With LLVM/Clang on OS X</title>
       <link>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
       <pubDate>Sat, 27 Dec 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
       <description>
 
@@ -40,7 +38,7 @@ The following topics are covered:&lt;/p&gt;
 &lt;p&gt;To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.&lt;/p&gt;
 
 &lt;p&gt;Let’s grab the latest sources:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;mkdir ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;mkdir ~/Projects/clang_dev
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
 git clone http://llvm.org/git/llvm.git
 git clone http://llvm.org/git/clang.git llvm/tools/clang
@@ -49,9 +47,9 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;You can checkout particular branch if you&amp;rsquo;re interested in a particular version (e.g. 3.4)&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;mkdir ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;mkdir ~/Projects/clang_dev
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
-&lt;span style=&#34;color: #008000&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;BRANCH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;release_34
+&lt;span style=&#34;color: #008000&#34;&gt;export &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;BRANCH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;release_34
 git clone http://llvm.org/git/llvm.git -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
 git clone http://llvm.org/git/clang.git llvm/tools/clang -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
 git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
@@ -59,7 +57,7 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;s
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;From to time to time you have to update the sources if you use &lt;code&gt;HEAD&lt;/code&gt;. If you don’t want to do it manually, just put the script into &lt;code&gt;clang_dev&lt;/code&gt; directory:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#!/bin/env sh&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#!/bin/env sh&lt;/span&gt;
 &lt;span style=&#34;color: #19177C&#34;&gt;root&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/tools/clang &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
@@ -68,7 +66,7 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;s
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and make it executable&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;chmod +x update.sh
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;chmod +x update.sh
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;h3 id=&#34;setting-up-ide-and-compiling&#34;&gt;Setting up IDE and compiling&lt;/h3&gt;
@@ -76,14 +74,14 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;s
 &lt;p&gt;LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.&lt;/p&gt;
 
 &lt;p&gt;Let’s create the project for Xcode&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
 mkdir build
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; build
+&lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;build
 cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Debug&amp;quot;&lt;/span&gt; ../llvm
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;open it&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;open LLVM.xcodeproj
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;open LLVM.xcodeproj
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and find something to do (it’s not about ‘make tea’, but about ‘go for a party&amp;rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.&lt;/p&gt;
@@ -166,7 +164,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 &lt;p&gt;In this example we’re going to debug a parser and semantic analysis phase of clang.&lt;/p&gt;
 
 &lt;p&gt;Create a file &lt;code&gt;/tmp/sum.c&lt;/code&gt; which contains the following code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
      &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; b;
 }
 &lt;/pre&gt;&lt;/div&gt;

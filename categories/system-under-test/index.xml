@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>System Under Test on Low Level Bits</title>
     <link>https://lowlevelbits.org/categories/system-under-test/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in System Under Test on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/categories/system-under-test/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: GNU Make</title>
       <link>http://systemundertest.org/gnu-make/</link>
       <pubDate>Sun, 12 Jun 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://systemundertest.org/gnu-make/</guid>
       <description>
 
@@ -463,7 +461,7 @@ can impact future tests.&lt;/p&gt;
       <title>System Under Test: FreeBSD</title>
       <link>http://systemundertest.org/freebsd/</link>
       <pubDate>Thu, 31 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://systemundertest.org/freebsd/</guid>
       <description>
 
@@ -490,7 +488,7 @@ can impact future tests.&lt;/p&gt;
 
 &lt;p&gt;If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
 Fortunately, it is very easy:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;WITH_TESTS=YES&amp;quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;WITH_TESTS=YES&amp;quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/src
 make buildworld
 make installworld
@@ -503,12 +501,12 @@ make installworld
 &lt;p&gt;Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.&lt;/p&gt;
 
 &lt;p&gt;To run tests you need to point &lt;code&gt;kyua&lt;/code&gt; to a &lt;code&gt;Kyuafile&lt;/code&gt;.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/tests
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/tests
 kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;when it’s done you may request report:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;kyua report
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;kyua report
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
@@ -540,7 +538,7 @@ tap_test_program{name=&#39;some_tap_test’}
 &lt;p&gt;ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.&lt;/p&gt;
 
 &lt;p&gt;Here is a part of an ATF test written in shell:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;test5678901234567&amp;quot;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;test5678901234567&amp;quot;&lt;/span&gt;
 
 atf_test_case longname cleanup
 
@@ -551,7 +549,7 @@ longname_head&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span
 &lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
 
 longname_body&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
-  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw useradd &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
+  atf_check -s &lt;span style=&#34;color: #008000&#34;&gt;exit&lt;/span&gt;:0 -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw useradd &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
 &lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
 
 longname_cleanup&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
@@ -567,7 +565,7 @@ atf_init_test_cases&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &l
 The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the &lt;code&gt;/usr/tests&lt;/code&gt;.
 For example, if you want to see tests for libc’ stdio, then you need to look at &lt;code&gt;/usr/src/lib/libc/tests/stdio&lt;/code&gt;.
 At the moment there is one test, here is part of it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
 ATF_TC_BODY(test_append_binary_pos, tc)
 {
   &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
@@ -617,7 +615,7 @@ get any answer so far.&lt;/p&gt;
       <title>System Under Test: LLVM</title>
       <link>http://systemundertest.org/llvm/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://systemundertest.org/llvm/</guid>
       <description>
 
@@ -657,7 +655,7 @@ However there are still parts that do not change very often, that is they are go
 These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
 
 &lt;p&gt;They can be run using &lt;code&gt;make&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;make check-llvm-unit
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;make check-llvm-unit
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Showing this beautiful output:&lt;/p&gt;
@@ -674,7 +672,7 @@ These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
 
 &lt;p&gt;Unit Tests are written using &lt;a href=&#34;https://github.com/google/googletest&#34;&gt;Google Test&lt;/a&gt; framework.
 Here is an example of a simple test:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// unittests/Support/YAMLParserTest.cpp&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// unittests/Support/YAMLParserTest.cpp&lt;/span&gt;
 TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
   SourceMgr SM;
   yaml&lt;span style=&#34;color: #666666&#34;&gt;::&lt;/span&gt;Stream Stream(&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;[&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;, &lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\&amp;quot;&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;]&amp;quot;&lt;/span&gt;, SM);
@@ -700,7 +698,7 @@ Let&amp;rsquo;s move forward and look at another, more interesting group of test
 This test suite located in &lt;code&gt;test&lt;/code&gt; directory.
 It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
 It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;make check-llvm
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;make check-llvm
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
@@ -715,7 +713,7 @@ It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
 
 &lt;p&gt;Regression Tests (unlike Unit Tests) are using custom tools such as &lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;lit (LLVM Integrated Tester)&lt;/a&gt; and &lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;.
 Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; RUN: %lli %s | FileCheck %s&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; RUN: %lli %s | FileCheck %s&lt;/span&gt;
 
 &lt;span style=&#34;color: #19177C&#34;&gt;@flt&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;internal&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;global&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;12.0e+0&lt;/span&gt;
 &lt;span style=&#34;color: #19177C&#34;&gt;@str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;internal&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Double value: %f\0A\00&amp;quot;&lt;/span&gt;
@@ -738,11 +736,11 @@ Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
 &lt;p&gt;This test can be split into three parts:&lt;/p&gt;
 
 &lt;p&gt;Run command (the top line):&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; RUN: %lli %s | FileCheck %s&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; RUN: %lli %s | FileCheck %s&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Expectations (the bottom line):&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; CHECK: Double value: 2.0&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; CHECK: Double value: 2.0&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The rest (LLVM IR in the middle) is the body.&lt;/p&gt;
@@ -757,12 +755,12 @@ Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
 &lt;p&gt;Configurable substitutions however are taken from &lt;code&gt;lit.cfg&lt;/code&gt; file, which is basically a Python script.&lt;/p&gt;
 
 &lt;p&gt;For example, this config says that &lt;code&gt;%lli&lt;/code&gt; is to be replaced with &lt;code&gt;/usr/local/bin/lli&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;lli &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;/usr/local/bin/lli&amp;#39;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;lli &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;/usr/local/bin/lli&amp;#39;&lt;/span&gt;
 config&lt;span style=&#34;color: #666666&#34;&gt;.&lt;/span&gt;substitutions&lt;span style=&#34;color: #666666&#34;&gt;.&lt;/span&gt;append( (&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;%lli&amp;#39;&lt;/span&gt;, lli ) )
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Having these parameters in place &lt;code&gt;lit&lt;/code&gt; will run the test using this command:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Which will interpret &lt;code&gt;frem.ll&lt;/code&gt; using LLVM Interpreter (&lt;code&gt;lli&lt;/code&gt;) and pass the output to the &lt;code&gt;FileCheck&lt;/code&gt;. &lt;code&gt;FileCheck&lt;/code&gt; in turn takes two arguments: filename with expectations and input that needs to be examined.&lt;/p&gt;
@@ -796,7 +794,7 @@ As Daniel Dunbar &lt;a href=&#34;https://twitter.com/daniel_dunbar/status/745285
 The tool is so great that it is also used by &lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html#trophies&#34;&gt;other software&lt;/a&gt; such as Python, PCRE, OpenSSL, SQLite, and other.&lt;/p&gt;
 
 &lt;p&gt;Here is an example of a fuzz test:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp&lt;/span&gt;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;C&amp;quot;&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; LLVMFuzzerTestOneInput(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;Data, &lt;span style=&#34;color: #B00040&#34;&gt;size_t&lt;/span&gt; Size) {
 
   &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Allocate space for locals before setjmp so that memory can be collected&lt;/span&gt;
@@ -863,7 +861,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       <title>System Under Test</title>
       <link>https://lowlevelbits.org/system-under-test/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/system-under-test/</guid>
       <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; After a while we made decision to convert the series of posts into an independent project: &lt;a href=&#34;http://systemundertest.org&#34;&gt;System Under Test&lt;/a&gt;. For updates please subscribe for &lt;a href=&#34;http://systemundertest.org/index.xml&#34;&gt;RSS&lt;/a&gt; or follow us on twitter: &lt;a href=&#34;https://twitter.com/systemundertest&#34;&gt;@systemundertest&lt;/a&gt;.&lt;/p&gt;
 

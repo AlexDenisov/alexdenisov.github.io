@@ -126,7 +126,7 @@ The following topics are covered:</p>
 <p>To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.</p>
 
 <p>Let’s grab the latest sources:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>mkdir ~/Projects/clang_dev
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">mkdir ~/Projects/clang_dev
 <span style="color: #008000">cd</span> ~/Projects/clang_dev
 git clone http://llvm.org/git/llvm.git
 git clone http://llvm.org/git/clang.git llvm/tools/clang
@@ -135,9 +135,9 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
 </pre></div>
 
 <p>You can checkout particular branch if you&rsquo;re interested in a particular version (e.g. 3.4)</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>mkdir ~/Projects/clang_dev
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">mkdir ~/Projects/clang_dev
 <span style="color: #008000">cd</span> ~/Projects/clang_dev
-<span style="color: #008000">export</span> <span style="color: #19177C">BRANCH</span><span style="color: #666666">=</span>release_34
+<span style="color: #008000">export </span><span style="color: #19177C">BRANCH</span><span style="color: #666666">=</span>release_34
 git clone http://llvm.org/git/llvm.git -b <span style="color: #19177C">$BRANCH</span>
 git clone http://llvm.org/git/clang.git llvm/tools/clang -b <span style="color: #19177C">$BRANCH</span>
 git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b <span style="color: #19177C">$BRANCH</span>
@@ -145,7 +145,7 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b <span
 </pre></div>
 
 <p>From to time to time you have to update the sources if you use <code>HEAD</code>. If you don’t want to do it manually, just put the script into <code>clang_dev</code> directory:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">#!/bin/env sh</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">#!/bin/env sh</span>
 <span style="color: #19177C">root</span><span style="color: #666666">=</span><span style="color: #BA2121">`</span>~/Projects/clang_dev<span style="color: #BA2121">`</span>
 <span style="color: #008000">cd</span> <span style="color: #19177C">$root</span>/llvm <span style="color: #666666">&amp;&amp;</span> git pull origin master
 <span style="color: #008000">cd</span> <span style="color: #19177C">$root</span>/llvm/tools/clang <span style="color: #666666">&amp;&amp;</span> git pull origin master
@@ -154,7 +154,7 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b <span
 </pre></div>
 
 <p>and make it executable</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>chmod +x update.sh
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">chmod +x update.sh
 </pre></div>
 
 <h3 id="setting-up-ide-and-compiling">Setting up IDE and compiling</h3>
@@ -162,14 +162,14 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b <span
 <p>LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.</p>
 
 <p>Let’s create the project for Xcode</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">cd</span> ~/Projects/clang_dev
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">cd</span> ~/Projects/clang_dev
 mkdir build
-<span style="color: #008000">cd</span> build
+<span style="color: #008000">cd </span>build
 cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="color: #666666">=</span><span style="color: #BA2121">&quot;Debug&quot;</span> ../llvm
 </pre></div>
 
 <p>open it</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>open LLVM.xcodeproj
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">open LLVM.xcodeproj
 </pre></div>
 
 <p>and find something to do (it’s not about ‘make tea’, but about ‘go for a party&rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.</p>
@@ -252,7 +252,7 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
 <p>In this example we’re going to debug a parser and semantic analysis phase of clang.</p>
 
 <p>Create a file <code>/tmp/sum.c</code> which contains the following code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
      <span style="color: #008000; font-weight: bold">return</span> a <span style="color: #666666">+</span> b;
 }
 </pre></div>
@@ -331,7 +331,7 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
 
       <div>
 
-      
+      Page(&#34;Getting Started With LLVM/Clang on OS X&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Getting%20Started%20With%20LLVM%2fClang%20on%20OS%20X&amp;url=https%3a%2f%2flowlevelbits.org%2fgetting-started-with-llvm%2fclang-on-os-x%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -817,6 +817,8 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
           
         
       
+        
+      
 
       <ul>
       
@@ -829,11 +831,7 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -841,7 +839,11 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -857,31 +859,11 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
@@ -889,7 +871,27 @@ cmake -G Xcode <span style="color: #19177C">CMAKE_BUILD_TYPE</span><span style="
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
       </ul>

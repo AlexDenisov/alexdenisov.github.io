@@ -1,25 +1,23 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Circular Containers on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/circular-containers/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Circular Containers on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/circular-containers/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
     XCCEnvironment &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] &lt;span style=&#34;color: #A0A000&#34;&gt;initWithName&lt;/span&gt;:key
                                                             &lt;span style=&#34;color: #A0A000&#34;&gt;parameters&lt;/span&gt;:dictionary[key]];
@@ -42,7 +40,7 @@
 &lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
 [environments &lt;span style=&#34;color: #A0A000&#34;&gt;addObject&lt;/span&gt;:environments];

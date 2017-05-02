@@ -115,7 +115,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 <h3 id="boxed-expressions-and-structures">Boxed Expressions and Structures</h3>
 
 <p>Boxed expressions got limited support of NSValue:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">NSValue</span> <span style="color: #666666">*</span>center <span style="color: #666666">=</span> @(view.center);    <span style="color: #408080; font-style: italic">// Point p = view.center;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">NSValue</span> <span style="color: #666666">*</span>center <span style="color: #666666">=</span> @(view.center);    <span style="color: #408080; font-style: italic">// Point p = view.center;</span>
                                      <span style="color: #408080; font-style: italic">// [NSValue valueWithBytes:&amp;p objCType:@encode(Point)];</span>
 <span style="color: #008000">NSValue</span> <span style="color: #666666">*</span>frame <span style="color: #666666">=</span> @(view.frame);      <span style="color: #408080; font-style: italic">// Rect r = view.frame;</span>
                                      <span style="color: #408080; font-style: italic">// [NSValue valueWithBytes:&amp;r objCType:@encode(Rect)];</span>
@@ -124,17 +124,17 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 <!-- more -->
 
 <p>To use boxed expressions on a C struct or union you&rsquo;ve defined, mark it as <code>objc_boxable</code> first:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">struct</span> <span style="color: #0000FF">__attribute__</span>((objc_boxable)) Point {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">struct</span> __attribute__((objc_boxable)) Point {
     <span style="color: #B00040">int</span> x, y;
 };
 
-<span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> <span style="color: #0000FF">__attribute__</span>((objc_boxable)) _Size {
+<span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> __attribute__((objc_boxable)) _Size {
     <span style="color: #B00040">int</span> width, height;
 } Size;
 </pre></div>
 
 <p>For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> _Rect {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> _Rect {
 	Point origin;
   Size size;
 } Rect;
@@ -142,7 +142,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 Rect r;
 <span style="color: #008000">NSValue</span> <span style="color: #666666">*</span>bad_rect <span style="color: #666666">=</span> @(r);       <span style="color: #408080; font-style: italic">// error</span>
 
-<span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> <span style="color: #0000FF">__attribute__</span>((objc_boxable)) _Rect Rect;
+<span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> __attribute__((objc_boxable)) _Rect Rect;
 
 <span style="color: #008000">NSValue</span> <span style="color: #666666">*</span>good_rect <span style="color: #666666">=</span> @(r);      <span style="color: #408080; font-style: italic">// ok</span>
 </pre></div>
@@ -150,8 +150,8 @@ Rect r;
 <h3 id="availability">Availability</h3>
 
 <p>To write backward compatible code you need to check for attribute and feature availability:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#if __has_attribute(objc_boxable)</span>
-    <span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> <span style="color: #0000FF">__attribute__</span>((objc_boxable)) _Rect Rect;
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#if __has_attribute(objc_boxable)</span>
+    <span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> __attribute__((objc_boxable)) _Rect Rect;
 <span style="color: #BC7A00">#endif</span>
 
 <span style="color: #008000">CABasicAnimation</span> animation <span style="color: #666666">=</span> [<span style="color: #008000">CABasicAnimation</span> <span style="color: #A0A000">animationWithKeyPath</span>:<span style="color: #BA2121">@&quot;position&quot;</span>];
@@ -205,7 +205,7 @@ Rect r;
 
       <div>
 
-      
+      Page(&#34;NSValue and Boxed Expressions&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=NSValue%20and%20Boxed%20Expressions&amp;url=https%3a%2f%2flowlevelbits.org%2fnsvalue-and-boxed-expressions%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -691,6 +691,8 @@ Rect r;
           
         
       
+        
+      
 
       <ul>
       
@@ -703,11 +705,7 @@ Rect r;
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -715,7 +713,11 @@ Rect r;
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -735,15 +737,11 @@ Rect r;
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
@@ -751,15 +749,19 @@ Rect r;
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
         <li>

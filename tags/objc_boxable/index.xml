@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Objc_boxable on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/objc_boxable/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Objc_boxable on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/objc_boxable/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -29,7 +27,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
 
 &lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
                                      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.frame);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Rect r = view.frame;&lt;/span&gt;
                                      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;r objCType:@encode(Rect)];&lt;/span&gt;
@@ -38,17 +36,17 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;!-- more --&gt;
 
 &lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) Point {
     &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; x, y;
 };
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Size {
     &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; width, height;
 } Size;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
 	Point origin;
   Size size;
 } Rect;
@@ -56,7 +54,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 Rect r;
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);       &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// error&lt;/span&gt;
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
 
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ok&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -64,8 +62,8 @@ Rect r;
 &lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
 
 &lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
-    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
 &lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; animation &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; &lt;span style=&#34;color: #A0A000&#34;&gt;animationWithKeyPath&lt;/span&gt;:&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;position&amp;quot;&lt;/span&gt;];

@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Assembler on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/assembler/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Assembler on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/assembler/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Reverse Engineering Stickies.app</title>
       <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
       <pubDate>Mon, 13 Feb 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
       <description>
 
@@ -56,7 +54,7 @@
 &lt;p&gt;The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&amp;rsquo;s used. Maybe then I will get another hint.&lt;/p&gt;
 
 &lt;p&gt;Localizations are stored within the app&amp;rsquo;s bundle, at &lt;code&gt;Contents/Resources&lt;/code&gt; folder. I am particularly interested in &lt;code&gt;Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;. By default, strings are Binary Plists. One can use &lt;code&gt;plutil&lt;/code&gt; to convert them into human-readable XML:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The &lt;code&gt;Localizable.strings&lt;/code&gt; contains many things, but colors are not there.&lt;/p&gt;
@@ -80,7 +78,7 @@
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Unlikely that I can find something useful inside, but let&amp;rsquo;s see.
@@ -132,7 +130,7 @@ What&amp;rsquo;s left? The binary itself!&lt;/p&gt;
 &lt;p&gt;It feels like a dead end.&lt;/p&gt;
 
 &lt;p&gt;Instead of searching for other words hoping that I will find something useful I can ask &lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt; for help.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Shallow look at &lt;code&gt;Stickies.h&lt;/code&gt; shows that class &lt;code&gt;StickiesWindow&lt;/code&gt; has a method &lt;code&gt;setColorByIndex:&lt;/code&gt;.&lt;/p&gt;
@@ -238,7 +236,7 @@ The base address can be obtained via LLDB as well.&lt;/p&gt;
 &lt;p&gt;Now I can pick value I want to use and start writing them one by one starting at &lt;code&gt;0xc790&lt;/code&gt;. But I have a better idea.&lt;/p&gt;
 
 &lt;p&gt;Let&amp;rsquo;s recall and rewrite a pseudo-code from Hopper:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;base &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0xc790&lt;/span&gt;;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;base &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0xc790&lt;/span&gt;;
 r &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
 g &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;8&lt;/span&gt;;
 b &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;16&lt;/span&gt;;
@@ -260,7 +258,7 @@ color4 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
 &lt;p&gt;This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.&lt;/p&gt;
 
 &lt;p&gt;Here where the color index comes into play:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;base &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; (colorIndex &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; (colorIndex &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0x2&lt;/span&gt;)) &lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0x5&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;base &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; (colorIndex &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; (colorIndex &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0x2&lt;/span&gt;)) &lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0x5&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Depending on the value of &lt;code&gt;colorIndex&lt;/code&gt; it will give the following numbers:&lt;/p&gt;
@@ -275,7 +273,7 @@ color4 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
 
 &lt;p&gt;The step is 96: this number of bytes is needed to store four colors.
 I don&amp;rsquo;t know how the source code looked initially, but I can represent it using the following structures:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
   &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; red;
   &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; green;
   &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; blue;
@@ -305,7 +303,7 @@ Patching them one by one gives the following result:&lt;/p&gt;
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;I can now rename field name to be more descriptive.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
   color background_color;
   color border_color;
   color window_title_color;
@@ -314,7 +312,7 @@ Patching them one by one gives the following result:&lt;/p&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Once I have this in place changing the colors becomes a trivial task:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;color &lt;span style=&#34;color: #0000FF&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b);
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;color &lt;span style=&#34;color: #0000FF&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b);
 &lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;changeColor&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; colorIndex, &lt;span style=&#34;color: #B00040&#34;&gt;FILE&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;binary) {
   theme t;
 

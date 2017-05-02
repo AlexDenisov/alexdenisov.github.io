@@ -186,7 +186,7 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 <h3 id="llvm-ir">LLVM IR</h3>
 
 <p>Let&rsquo;s write some code to see LLVM IR in action.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">// main.c</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// main.c</span>
 <span style="color: #008000; font-weight: bold">extern</span> <span style="color: #B00040">int</span> <span style="color: #0000FF">printf</span>(<span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span>fmt, ...);
 
 <span style="color: #B00040">int</span> <span style="color: #0000FF">main</span>() {
@@ -196,11 +196,11 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 </pre></div>
 
 <p>Run the following:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>clang -S -emit-llvm main.c
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">clang -S -emit-llvm main.c
 </pre></div>
 
 <p>And you&rsquo;ll have <code>main.ll</code> containing IR:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #19177C">@.str</span> = <span style="color: #008000; font-weight: bold">private</span> <span style="color: #008000; font-weight: bold">unnamed_addr</span> <span style="color: #008000; font-weight: bold">constant</span> [<span style="color: #666666">13</span> <span style="color: #008000; font-weight: bold">x</span> <span style="color: #008000; font-weight: bold">i8</span>] <span style="color: #008000; font-weight: bold">c</span><span style="color: #BA2121">&quot;Hello World\0A\00&quot;</span>, <span style="color: #008000; font-weight: bold">align</span> <span style="color: #666666">1</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #19177C">@.str</span> = <span style="color: #008000; font-weight: bold">private</span> <span style="color: #008000; font-weight: bold">unnamed_addr</span> <span style="color: #008000; font-weight: bold">constant</span> [<span style="color: #666666">13</span> <span style="color: #008000; font-weight: bold">x</span> <span style="color: #008000; font-weight: bold">i8</span>] <span style="color: #008000; font-weight: bold">c</span><span style="color: #BA2121">&quot;Hello World\0A\00&quot;</span>, <span style="color: #008000; font-weight: bold">align</span> <span style="color: #666666">1</span>
 
 <span style="color: #408080; font-style: italic">; Function Attrs: nounwind ssp uwtable</span>
 <span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@main</span>() <span style="color: #19177C">#0</span> {
@@ -227,14 +227,14 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
           height: auto;" /></p>
 
 <p>It&rsquo;s really easy to retrieve it automatically, here I wrote simple C program that does just that: <a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a>. The workflow is pretty straightforward. Let&rsquo;s assume that <code>some_binary</code> is a Mach-O file that contains object code for two CPUs (<code>arm</code> and <code>x86_64</code>) and each object code is built using two source files:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>$ bitcode_retriever some_binary
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #19177C">$ </span>bitcode_retriever some_binary
 arm.xar
 x86_64.xar
-$ xar -xvf arm.xar
+<span style="color: #19177C">$ </span>xar -xvf arm.xar
 1
 2
-$ llvm-dis <span style="color: #666666">1</span> <span style="color: #408080; font-style: italic"># outputs 1.ll</span>
-$ llvm-dis <span style="color: #666666">2</span> <span style="color: #408080; font-style: italic"># outputs 2.ll</span>
+<span style="color: #19177C">$ </span>llvm-dis <span style="color: #666666">1</span> <span style="color: #408080; font-style: italic"># outputs 1.ll</span>
+<span style="color: #19177C">$ </span>llvm-dis <span style="color: #666666">2</span> <span style="color: #408080; font-style: italic"># outputs 2.ll</span>
 </pre></div>
 
 <p>Bitcode doesn&rsquo;t store any information about original filenames, but uses numbers instead (<code>1</code>, <code>2</code>, <code>3</code>, etc.).
@@ -292,7 +292,7 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
 
       <div>
 
-      
+      Page(&#34;Bitcode Demystified&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Bitcode%20Demystified&amp;url=https%3a%2f%2flowlevelbits.org%2fbitcode-demystified%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -778,6 +778,8 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
           
         
       
+        
+      
 
       <ul>
       
@@ -790,7 +792,7 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -798,11 +800,11 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -818,11 +820,19 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
@@ -834,11 +844,7 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -846,11 +852,7 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
       </ul>

@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Tap on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/tap/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Tap on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/tap/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: FreeBSD</title>
       <link>http://systemundertest.org/freebsd/</link>
       <pubDate>Thu, 31 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://systemundertest.org/freebsd/</guid>
       <description>
 
@@ -41,7 +39,7 @@
 
 &lt;p&gt;If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
 Fortunately, it is very easy:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;WITH_TESTS=YES&amp;quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;WITH_TESTS=YES&amp;quot;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/src
 make buildworld
 make installworld
@@ -54,12 +52,12 @@ make installworld
 &lt;p&gt;Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.&lt;/p&gt;
 
 &lt;p&gt;To run tests you need to point &lt;code&gt;kyua&lt;/code&gt; to a &lt;code&gt;Kyuafile&lt;/code&gt;.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/tests
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; /usr/tests
 kyua &lt;span style=&#34;color: #008000&#34;&gt;test&lt;/span&gt; -k ./Kyuafile
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;when it’s done you may request report:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;kyua report
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;kyua report
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
@@ -91,7 +89,7 @@ tap_test_program{name=&#39;some_tap_test’}
 &lt;p&gt;ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.&lt;/p&gt;
 
 &lt;p&gt;Here is a part of an ATF test written in shell:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;test5678901234567&amp;quot;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;username&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;test5678901234567&amp;quot;&lt;/span&gt;
 
 atf_test_case longname cleanup
 
@@ -102,7 +100,7 @@ longname_head&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span
 &lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
 
 longname_body&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
-  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw useradd &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
+  atf_check -s &lt;span style=&#34;color: #008000&#34;&gt;exit&lt;/span&gt;:0 -o ignore -e ignore -x &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;pw useradd &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$username&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;
 &lt;span style=&#34;color: #666666&#34;&gt;}&lt;/span&gt;
 
 longname_cleanup&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;{&lt;/span&gt;
@@ -118,7 +116,7 @@ atf_init_test_cases&lt;span style=&#34;color: #666666&#34;&gt;()&lt;/span&gt; &l
 The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the &lt;code&gt;/usr/tests&lt;/code&gt;.
 For example, if you want to see tests for libc’ stdio, then you need to look at &lt;code&gt;/usr/src/lib/libc/tests/stdio&lt;/code&gt;.
 At the moment there is one test, here is part of it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
 ATF_TC_BODY(test_append_binary_pos, tc)
 {
   &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;

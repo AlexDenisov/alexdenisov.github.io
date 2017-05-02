@@ -142,7 +142,7 @@ However there are still parts that do not change very often, that is they are go
 These tests are located in &lsquo;unittests&rsquo; directory.</p>
 
 <p>They can be run using <code>make</code>:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>make check-llvm-unit
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">make check-llvm-unit
 </pre></div>
 
 <p>Showing this beautiful output:</p>
@@ -159,7 +159,7 @@ These tests are located in &lsquo;unittests&rsquo; directory.</p>
 
 <p>Unit Tests are written using <a href="https://github.com/google/googletest">Google Test</a> framework.
 Here is an example of a simple test:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">// unittests/Support/YAMLParserTest.cpp</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// unittests/Support/YAMLParserTest.cpp</span>
 TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
   SourceMgr SM;
   yaml<span style="color: #666666">::</span>Stream Stream(<span style="color: #BA2121">&quot;[</span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">1</span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">, </span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">2</span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">]&quot;</span>, SM);
@@ -185,7 +185,7 @@ Let&rsquo;s move forward and look at another, more interesting group of tests.</
 This test suite located in <code>test</code> directory.
 It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
 It takes about 4 minutes to run on my machine using 4 threads.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>make check-llvm
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">make check-llvm
 </pre></div>
 
 <p>The output is pretty similar to one above:</p>
@@ -200,7 +200,7 @@ It takes about 4 minutes to run on my machine using 4 threads.</p>
 
 <p>Regression Tests (unlike Unit Tests) are using custom tools such as <a href="http://llvm.org/docs/CommandGuide/lit.html">lit (LLVM Integrated Tester)</a> and <a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a>.
 Let&rsquo;s look at simple test to illustrate how it works:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; RUN: %lli %s | FileCheck %s</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; RUN: %lli %s | FileCheck %s</span>
 
 <span style="color: #19177C">@flt</span> = <span style="color: #008000; font-weight: bold">internal</span> <span style="color: #008000; font-weight: bold">global</span> <span style="color: #B00040">float</span> <span style="color: #666666">12.0e+0</span>
 <span style="color: #19177C">@str</span> = <span style="color: #008000; font-weight: bold">internal</span> <span style="color: #008000; font-weight: bold">constant</span> [<span style="color: #666666">18</span> <span style="color: #008000; font-weight: bold">x</span> <span style="color: #008000; font-weight: bold">i8</span>] <span style="color: #008000; font-weight: bold">c</span><span style="color: #BA2121">&quot;Double value: %f\0A\00&quot;</span>
@@ -223,11 +223,11 @@ Let&rsquo;s look at simple test to illustrate how it works:</p>
 <p>This test can be split into three parts:</p>
 
 <p>Run command (the top line):</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; RUN: %lli %s | FileCheck %s</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; RUN: %lli %s | FileCheck %s</span>
 </pre></div>
 
 <p>Expectations (the bottom line):</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">; CHECK: Double value: 2.0</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; CHECK: Double value: 2.0</span>
 </pre></div>
 
 <p>The rest (LLVM IR in the middle) is the body.</p>
@@ -242,12 +242,12 @@ Let&rsquo;s look at simple test to illustrate how it works:</p>
 <p>Configurable substitutions however are taken from <code>lit.cfg</code> file, which is basically a Python script.</p>
 
 <p>For example, this config says that <code>%lli</code> is to be replaced with <code>/usr/local/bin/lli</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>lli <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;/usr/local/bin/lli&#39;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">lli <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;/usr/local/bin/lli&#39;</span>
 config<span style="color: #666666">.</span>substitutions<span style="color: #666666">.</span>append( (<span style="color: #BA2121">&#39;%lli&#39;</span>, lli ) )
 </pre></div>
 
 <p>Having these parameters in place <code>lit</code> will run the test using this command:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
 </pre></div>
 
 <p>Which will interpret <code>frem.ll</code> using LLVM Interpreter (<code>lli</code>) and pass the output to the <code>FileCheck</code>. <code>FileCheck</code> in turn takes two arguments: filename with expectations and input that needs to be examined.</p>
@@ -281,7 +281,7 @@ As Daniel Dunbar <a href="https://twitter.com/daniel_dunbar/status/7452856606264
 The tool is so great that it is also used by <a href="http://llvm.org/docs/LibFuzzer.html#trophies">other software</a> such as Python, PCRE, OpenSSL, SQLite, and other.</p>
 
 <p>Here is an example of a fuzz test:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp</span>
 <span style="color: #008000; font-weight: bold">extern</span> <span style="color: #BA2121">&quot;C&quot;</span> <span style="color: #B00040">int</span> LLVMFuzzerTestOneInput(<span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">uint8_t</span> <span style="color: #666666">*</span>Data, <span style="color: #B00040">size_t</span> Size) {
 
   <span style="color: #408080; font-style: italic">// Allocate space for locals before setjmp so that memory can be collected</span>
@@ -364,7 +364,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
 
       <div>
 
-      
+      Page(&#34;System Under Test: LLVM&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=System%20Under%20Test%3a%20LLVM&amp;url=https%3a%2f%2flowlevelbits.org%2fsystem-under-test-llvm%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -850,6 +850,8 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
           
         
       
+        
+      
 
       <ul>
       
@@ -862,6 +864,10 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
@@ -871,10 +877,6 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       
         <li>
           <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -898,18 +900,6 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
@@ -918,11 +908,23 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
       </ul>

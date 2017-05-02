@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Modules on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/modules/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Modules on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/modules/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Creation of pure Swift module</title>
       <link>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</link>
       <pubDate>Thu, 26 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</guid>
       <description></description>
     </item>

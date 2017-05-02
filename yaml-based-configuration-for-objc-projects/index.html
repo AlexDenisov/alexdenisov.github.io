@@ -108,7 +108,7 @@
 Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
 
 <p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>development:
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">development:
   user: dev
   password: dev123
 <span style="color: #408080; font-style: italic"># ...</span>
@@ -136,7 +136,7 @@ Both of them have serious disadvantages.</p>
 <h4 id="preprocessor-definition">Preprocessor Definition</h4>
 
 <p>You may saw and probably used this approach. It&rsquo;s pretty easy and simple to use:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#ifdef DEBUG</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#ifdef DEBUG</span>
 <span style="color: #008000">NSString</span> <span style="color: #666666">*</span><span style="color: #008000; font-weight: bold">const</span> kServerAddress <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;https://staging.example.com&quot;</span>;
 <span style="color: #BC7A00">#else</span>
 <span style="color: #008000">NSString</span> <span style="color: #666666">*</span><span style="color: #008000; font-weight: bold">const</span> kServerAddress <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;https://example.com&quot;</span>;
@@ -168,7 +168,7 @@ Still you have to perform way too many actions for such a simple task.</p>
 <h5 id="here-is-how-it-looks-like">Here is how it looks like:</h5>
 
 <p>Configuration file:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>principalClass: Configuration
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">principalClass: Configuration
 
 Debug:
   serverAddress: https://staging.example.com
@@ -180,7 +180,7 @@ Release:
 </pre></div>
 
 <p>ObjC code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>@Interface <span style="color: #A0A000">Configuration</span> : <span style="color: #008000">NSObject</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">@Interface <span style="color: #A0A000">Configuration</span> : <span style="color: #008000">NSObject</span>
 <span style="color: #666666">-</span> (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)serverAddress;
 - (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">APIKey</span>;
 <span style="color: #008000; font-weight: bold">@end</span>
@@ -196,7 +196,7 @@ NSLog(<span style="color: #BA2121">@&quot;%@&quot;</span>, config.serverAddress)
 <h4 id="installation-and-usage">Installation and usage</h4>
 
 <p>To install <code>xcconf</code> you need to clone repo and run one command, it&rsquo;ll build executable and install it into <code>/usr/local/bin</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>git clone git@github.com:AlexDenisov/xcconf.git <span style="color: #666666">&amp;&amp;</span> <span style="color: #008000">cd</span> xcconf
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">git clone git@github.com:AlexDenisov/xcconf.git <span style="color: #666666">&amp;&amp;</span> <span style="color: #008000">cd </span>xcconf
 make install
 </pre></div>
 
@@ -213,7 +213,7 @@ make install
   alt="New file" /></p>
 
 <p>Put there initial configuration:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>principalClass: Config
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">principalClass: Config
 
 Debug:
   color: Green
@@ -223,7 +223,7 @@ Release:
 </pre></div>
 
 <p>Prepare class interface for configuration. <strong>But do not create implementation</strong>. Its name should be equal to <code>principalClass</code> and it might contain getter methods for all available parameters, in this case it&rsquo;s just <code>color</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Config</span> : <span style="color: #008000">NSObject</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Config</span> : <span style="color: #008000">NSObject</span>
 - (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">color</span>;
 <span style="color: #008000; font-weight: bold">@end</span>
 </pre></div>
@@ -251,7 +251,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
   alt="xcconf" /></p>
 
 <p>Now we&rsquo;re ready to use it:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #BC7A00">#import &quot;Config.h&quot;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#import &quot;Config.h&quot;</span>
 
 <span style="color: #B00040">int</span> <span style="color: #0000FF">main</span>(<span style="color: #B00040">int</span> argc, <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span> argv[]) {
     <span style="color: #008000; font-weight: bold">@autoreleasepool</span> {
@@ -302,7 +302,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
 
       <div>
 
-      
+      Page(&#34;YAML-based Configuration for ObjC Projects&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=YAML-based%20Configuration%20for%20ObjC%20Projects&amp;url=https%3a%2f%2flowlevelbits.org%2fyaml-based-configuration-for-objc-projects%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -788,6 +788,8 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
           
         
       
+        
+      
 
       <ul>
       
@@ -800,11 +802,11 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -812,7 +814,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -828,6 +830,18 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
@@ -836,11 +850,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
         <li>
@@ -848,15 +858,7 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
         <li>

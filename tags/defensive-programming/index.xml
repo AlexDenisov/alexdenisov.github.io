@@ -1,27 +1,25 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Defensive Programming on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/defensive-programming/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Defensive Programming on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/defensive-programming/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>&#39;if (self)&#39; and Sanity</title>
       <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;
 
 &lt;p&gt;I believe it was a hard task, but Apple managed to find that thing:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;super&lt;/span&gt; init];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;super&lt;/span&gt; init];
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;) { &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// &amp;lt;- this is silly&lt;/span&gt;
 }
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;;
@@ -69,7 +67,7 @@ return self;
 &lt;h4 id=&#34;nil-object-and-messaging&#34;&gt;Nil object and messaging&lt;/h4&gt;
 
 &lt;p&gt;In a first case an assignment expression just converts into a function call:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// converts into&lt;/span&gt;
 objc_msgSend(&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;setFoo&lt;/span&gt;:), &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;);
@@ -82,7 +80,7 @@ objc_msgSend(&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;, &lt;s
 &lt;h4 id=&#34;nil-object-and-pointers&#34;&gt;Nil object and pointers&lt;/h4&gt;
 
 &lt;p&gt;The second constructor also has a different final form:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// note: &amp;#39;self&amp;#39; is nil&lt;/span&gt;
 _foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// actually means&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;-&amp;gt;&lt;/span&gt;_foo &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Foo&amp;quot;&lt;/span&gt;;

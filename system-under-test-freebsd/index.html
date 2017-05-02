@@ -129,7 +129,7 @@
 
 <p>If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
 Fortunately, it is very easy:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">echo</span> <span style="color: #BA2121">&quot;WITH_TESTS=YES&quot;</span> &gt;&gt; /etc/src.conf
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">echo</span> <span style="color: #BA2121">&quot;WITH_TESTS=YES&quot;</span> &gt;&gt; /etc/src.conf
 <span style="color: #008000">cd</span> /usr/src
 make buildworld
 make installworld
@@ -142,12 +142,12 @@ make installworld
 <p>Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.</p>
 
 <p>To run tests you need to point <code>kyua</code> to a <code>Kyuafile</code>.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">cd</span> /usr/tests
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">cd</span> /usr/tests
 kyua <span style="color: #008000">test</span> -k ./Kyuafile
 </pre></div>
 
 <p>when it’s done you may request report:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>kyua report
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">kyua report
 </pre></div>
 
 <p>which shows brief information for all non-succeeded test and a summary, such as this one:</p>
@@ -179,7 +179,7 @@ tap_test_program{name='some_tap_test’}
 <p>ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.</p>
 
 <p>Here is a part of an ATF test written in shell:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #19177C">username</span><span style="color: #666666">=</span><span style="color: #BA2121">&quot;test5678901234567&quot;</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #19177C">username</span><span style="color: #666666">=</span><span style="color: #BA2121">&quot;test5678901234567&quot;</span>
 
 atf_test_case longname cleanup
 
@@ -190,7 +190,7 @@ longname_head<span style="color: #666666">()</span> <span style="color: #666666"
 <span style="color: #666666">}</span>
 
 longname_body<span style="color: #666666">()</span> <span style="color: #666666">{</span>
-  atf_check -s exit:0 -o ignore -e ignore -x <span style="color: #BA2121">&quot;pw useradd </span><span style="color: #19177C">$username</span><span style="color: #BA2121">&quot;</span>
+  atf_check -s <span style="color: #008000">exit</span>:0 -o ignore -e ignore -x <span style="color: #BA2121">&quot;pw useradd </span><span style="color: #19177C">$username</span><span style="color: #BA2121">&quot;</span>
 <span style="color: #666666">}</span>
 
 longname_cleanup<span style="color: #666666">()</span> <span style="color: #666666">{</span>
@@ -206,7 +206,7 @@ atf_init_test_cases<span style="color: #666666">()</span> <span style="color: #6
 The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the <code>/usr/tests</code>.
 For example, if you want to see tests for libc’ stdio, then you need to look at <code>/usr/src/lib/libc/tests/stdio</code>.
 At the moment there is one test, here is part of it:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
 ATF_TC_BODY(test_append_binary_pos, tc)
 {
   <span style="color: #408080; font-style: italic">/*</span>
@@ -272,7 +272,7 @@ get any answer so far.</p>
 
       <div>
 
-      
+      Page(&#34;System Under Test: FreeBSD&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=System%20Under%20Test%3a%20FreeBSD&amp;url=https%3a%2f%2flowlevelbits.org%2fsystem-under-test-freebsd%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -758,6 +758,8 @@ get any answer so far.</p>
           
         
       
+        
+      
 
       <ul>
       
@@ -802,6 +804,10 @@ get any answer so far.</p>
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
@@ -810,19 +816,11 @@ get any answer so far.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
         <li>
@@ -830,7 +828,11 @@ get any answer so far.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
       </ul>

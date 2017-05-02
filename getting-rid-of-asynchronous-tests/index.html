@@ -125,7 +125,7 @@
 <p><code>Client</code> - handles error/raw data from the <code>Loader</code> and sends it to an end user</p>
 
 <p>Here is the interface of the <code>Loader</code>:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Loader</span> : <span style="color: #008000">NSObject</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Loader</span> : <span style="color: #008000">NSObject</span>
 
 - (<span style="color: #B00040">void</span>)<span style="color: #0000FF">loadDataWithCompletion:</span>(<span style="color: #B00040">void</span> (<span style="color: #666666">^</span>) (<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error))<span style="color: #19177C">completion</span>;
 
@@ -133,7 +133,7 @@
 </pre></div>
 
 <p>the interface of the <code>Client</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>Callback) (<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>Callback) (<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
 <span style="color: #008000; font-weight: bold">@class</span> <span style="color: #0000FF; font-weight: bold">Loader</span>;
 
 <span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Client</span> : <span style="color: #008000">NSObject</span>
@@ -146,7 +146,7 @@
 </pre></div>
 
 <p>and it’s implementation:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">@implementation</span> <span style="color: #0000FF; font-weight: bold">Client</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@implementation</span> <span style="color: #0000FF; font-weight: bold">Client</span>
 
 - (<span style="color: #B00040">void</span>)<span style="color: #0000FF">loadUsersWithCallback:</span>(Callback)<span style="color: #19177C">callback</span> {
   [<span style="color: #008000">self</span>.loader <span style="color: #A0A000">loadDataWithCompletion</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error) {
@@ -160,7 +160,7 @@
 </pre></div>
 
 <p>Our goal is to test that the client parses data and handles errors in a correct way:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="color: #666666">^</span>{
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="color: #666666">^</span>{
   Client <span style="color: #666666">*</span>client <span style="color: #666666">=</span> [Client new];
 
   it(<span style="color: #BA2121">@&quot;should parse data&quot;</span>, <span style="color: #666666">^</span>{
@@ -191,7 +191,7 @@
 <p>To test this we just need to replace the <code>client.loader</code> with a fake object that is going to mimic the desired behavior.</p>
 
 <p>Here is how it looks like with Cedar:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>LoaderCallback)(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>LoaderCallback)(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
 
 <span style="color: #408080; font-style: italic">// parse data</span>
 <span style="color: #B00040">SEL</span> sel <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">loadDataWithCompletion</span>:);
@@ -215,7 +215,7 @@ loader <span style="color: #0000FF">stub_method</span>(sel).and_do(<span style="
 </pre></div>
 
 <p>For those unfamiliar with <a href="https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html"><code>NSInvocation</code></a> let me cite it&rsquo;s documentation:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">/*</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">/*</span>
 <span style="color: #408080; font-style: italic">buffer:</span>
 <span style="color: #408080; font-style: italic">  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.</span>
 
@@ -227,7 +227,7 @@ loader <span style="color: #0000FF">stub_method</span>(sel).and_do(<span style="
 </pre></div>
 
 <p>After putting these parts together you&rsquo;ll have this cryptic code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>LoaderCallback)(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>LoaderCallback)(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
 
 <span style="color: #008000; font-weight: bold">static</span> Loader <span style="color: #666666">*</span><span style="color: #0000FF">fakeUsersLoader</span>() {
   <span style="color: #B00040">SEL</span> sel <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">loadDataWithCompletion</span>:);
@@ -307,7 +307,7 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
 
       <div>
 
-      
+      Page(&#34;Getting Rid of Asynchronous Tests&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Getting%20Rid%20of%20Asynchronous%20Tests&amp;url=https%3a%2f%2flowlevelbits.org%2fgetting-rid-of-asynchronous-tests%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -793,6 +793,8 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
           
         
       
+        
+      
 
       <ul>
       
@@ -805,19 +807,19 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -833,23 +835,11 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -861,11 +851,23 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
       </ul>

@@ -142,7 +142,7 @@
 <p>The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&rsquo;s used. Maybe then I will get another hint.</p>
 
 <p>Localizations are stored within the app&rsquo;s bundle, at <code>Contents/Resources</code> folder. I am particularly interested in <code>Contents/Resources/English.lproj/Localizable.strings</code>. By default, strings are Binary Plists. One can use <code>plutil</code> to convert them into human-readable XML:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
 </pre></div>
 
 <p>The <code>Localizable.strings</code> contains many things, but colors are not there.</p>
@@ -166,7 +166,7 @@
           height: auto;" /></p>
 
 <p>As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
 </pre></div>
 
 <p>Unlikely that I can find something useful inside, but let&rsquo;s see.
@@ -218,7 +218,7 @@ What&rsquo;s left? The binary itself!</p>
 <p>It feels like a dead end.</p>
 
 <p>Instead of searching for other words hoping that I will find something useful I can ask <a href="https://github.com/nygard/class-dump">class-dump</a> for help.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>class-dump Contents/MacOS/Stickies &gt; Stickies.h
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">class-dump Contents/MacOS/Stickies &gt; Stickies.h
 </pre></div>
 
 <p>Shallow look at <code>Stickies.h</code> shows that class <code>StickiesWindow</code> has a method <code>setColorByIndex:</code>.</p>
@@ -324,7 +324,7 @@ The base address can be obtained via LLDB as well.</p>
 <p>Now I can pick value I want to use and start writing them one by one starting at <code>0xc790</code>. But I have a better idea.</p>
 
 <p>Let&rsquo;s recall and rewrite a pseudo-code from Hopper:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>base <span style="color: #666666">=</span> <span style="color: #666666">0xc790</span>;
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">base <span style="color: #666666">=</span> <span style="color: #666666">0xc790</span>;
 r <span style="color: #666666">=</span> base <span style="color: #666666">+</span> <span style="color: #666666">0</span>;
 g <span style="color: #666666">=</span> base <span style="color: #666666">+</span> <span style="color: #666666">8</span>;
 b <span style="color: #666666">=</span> base <span style="color: #666666">+</span> <span style="color: #666666">16</span>;
@@ -346,7 +346,7 @@ color4 <span style="color: #666666">=</span> rgb(r, g, b);
 <p>This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.</p>
 
 <p>Here where the color index comes into play:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>base <span style="color: #666666">=</span> (colorIndex <span style="color: #666666">+</span> (colorIndex <span style="color: #666666">*</span> <span style="color: #666666">0x2</span>)) <span style="color: #666666">&lt;&lt;</span> <span style="color: #666666">0x5</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">base <span style="color: #666666">=</span> (colorIndex <span style="color: #666666">+</span> (colorIndex <span style="color: #666666">*</span> <span style="color: #666666">0x2</span>)) <span style="color: #666666">&lt;&lt;</span> <span style="color: #666666">0x5</span>
 </pre></div>
 
 <p>Depending on the value of <code>colorIndex</code> it will give the following numbers:</p>
@@ -361,7 +361,7 @@ color4 <span style="color: #666666">=</span> rgb(r, g, b);
 
 <p>The step is 96: this number of bytes is needed to store four colors.
 I don&rsquo;t know how the source code looked initially, but I can represent it using the following structures:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> {
   <span style="color: #B00040">double</span> red;
   <span style="color: #B00040">double</span> green;
   <span style="color: #B00040">double</span> blue;
@@ -391,7 +391,7 @@ Patching them one by one gives the following result:</p>
           height: auto;" /></p>
 
 <p>I can now rename field name to be more descriptive.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> {
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #008000; font-weight: bold">struct</span> {
   color background_color;
   color border_color;
   color window_title_color;
@@ -400,7 +400,7 @@ Patching them one by one gives the following result:</p>
 </pre></div>
 
 <p>Once I have this in place changing the colors becomes a trivial task:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span>color <span style="color: #0000FF">rgb</span>(<span style="color: #B00040">int</span> r, <span style="color: #B00040">int</span> g, <span style="color: #B00040">int</span> b);
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">color <span style="color: #0000FF">rgb</span>(<span style="color: #B00040">int</span> r, <span style="color: #B00040">int</span> g, <span style="color: #B00040">int</span> b);
 <span style="color: #B00040">void</span> <span style="color: #0000FF">changeColor</span>(<span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">int</span> colorIndex, <span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>binary) {
   theme t;
 
@@ -485,7 +485,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
 
       <div>
 
-      
+      Page(&#34;Reverse Engineering Stickies.app&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Reverse%20Engineering%20Stickies.app&amp;url=https%3a%2f%2flowlevelbits.org%2freverse-engineering-stickies.app%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -971,6 +971,8 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
           
         
       
+        
+      
 
       <ul>
       
@@ -987,15 +989,15 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -1011,31 +1013,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -1043,7 +1021,31 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
       </ul>

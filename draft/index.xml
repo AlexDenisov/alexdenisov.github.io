@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Draft-rsses on Low Level Bits</title>
+    <title>Drafts on Low Level Bits</title>
     <link>https://lowlevelbits.org/draft/index.xml</link>
-    <description>Recent content in Draft-rsses on Low Level Bits</description>
+    <description>Recent content in Drafts on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Wed, 16 Nov 2016 07:02:36 +0100</lastBuildDate>
     <atom:link href="/draft/index.xml" rel="self" type="application/rss+xml" />
     

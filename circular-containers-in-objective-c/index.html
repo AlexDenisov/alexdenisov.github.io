@@ -105,7 +105,7 @@
           
 
 <p>Some time ago I accidentally wrote this code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #008000">NSMutableArray</span> <span style="color: #666666">*</span>environments <span style="color: #666666">=</span> [<span style="color: #008000">NSMutableArray</span> new];
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">NSMutableArray</span> <span style="color: #666666">*</span>environments <span style="color: #666666">=</span> [<span style="color: #008000">NSMutableArray</span> new];
 <span style="color: #008000; font-weight: bold">for</span> (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>key <span style="color: #008000; font-weight: bold">in</span> [dictionary allKeys]) {
     XCCEnvironment <span style="color: #666666">*</span>environment <span style="color: #666666">=</span> [[XCCEnvironment alloc] <span style="color: #A0A000">initWithName</span>:key
                                                             <span style="color: #A0A000">parameters</span>:dictionary[key]];
@@ -128,7 +128,7 @@
 <p>Consumer of <code>environments</code> expected to get <code>XCCEnvironment</code>, but got <code>NSMutableArray</code>.</p>
 
 <p>At the beginning it wasn&rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span></span><span style="color: #408080; font-style: italic">// ...</span>
+<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// ...</span>
 <span style="color: #008000">NSMutableArray</span> <span style="color: #666666">*</span>environments <span style="color: #666666">=</span> [<span style="color: #008000">NSMutableArray</span> new];
 <span style="color: #408080; font-style: italic">// ...</span>
 [environments <span style="color: #A0A000">addObject</span>:environments];
@@ -202,7 +202,7 @@
 
       <div>
 
-      
+      Page(&#34;Circular Containers in Objective-C&#34;)
 
 
 <a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Circular%20Containers%20in%20Objective-C&amp;url=https%3a%2f%2flowlevelbits.org%2fcircular-containers-in-objective-c%2f&amp;via=1101_debian" target="_blank" aria-label="">
@@ -688,6 +688,8 @@
           
         
       
+        
+      
 
       <ul>
       
@@ -700,19 +702,19 @@
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -728,7 +730,7 @@
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
         <li>
@@ -736,15 +738,11 @@
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
         <li>
@@ -752,15 +750,19 @@
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (1)</a>
         </li>
       
       </ul>

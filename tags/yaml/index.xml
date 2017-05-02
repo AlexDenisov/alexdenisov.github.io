@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Yaml on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/yaml/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Yaml on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/yaml/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
@@ -22,7 +20,7 @@
 Our toolchain does not provide good solution for this problem, so we have to implement our own.&lt;/p&gt;
 
 &lt;p&gt;When I worked with Ruby On Rails I really loved its approach for database configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;development:
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;development:
   user: dev
   password: dev123
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
@@ -50,7 +48,7 @@ Both of them have serious disadvantages.&lt;/p&gt;
 &lt;h4 id=&#34;preprocessor-definition&#34;&gt;Preprocessor Definition&lt;/h4&gt;
 
 &lt;p&gt;You may saw and probably used this approach. It&amp;rsquo;s pretty easy and simple to use:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://staging.example.com&amp;quot;&lt;/span&gt;;
 &lt;span style=&#34;color: #BC7A00&#34;&gt;#else&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://example.com&amp;quot;&lt;/span&gt;;
@@ -82,7 +80,7 @@ Still you have to perform way too many actions for such a simple task.&lt;/p&gt;
 &lt;h5 id=&#34;here-is-how-it-looks-like&#34;&gt;Here is how it looks like:&lt;/h5&gt;
 
 &lt;p&gt;Configuration file:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Configuration
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;principalClass: Configuration
 
 Debug:
   serverAddress: https://staging.example.com
@@ -94,7 +92,7 @@ Release:
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;ObjC code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
 &lt;span style=&#34;color: #666666&#34;&gt;-&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)serverAddress;
 - (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;APIKey&lt;/span&gt;;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
@@ -110,7 +108,7 @@ NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/spa
 &lt;h4 id=&#34;installation-and-usage&#34;&gt;Installation and usage&lt;/h4&gt;
 
 &lt;p&gt;To install &lt;code&gt;xcconf&lt;/code&gt; you need to clone repo and run one command, it&amp;rsquo;ll build executable and install it into &lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; xcconf
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;xcconf
 make install
 &lt;/pre&gt;&lt;/div&gt;
 
@@ -127,7 +125,7 @@ make install
   alt=&#34;New file&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Put there initial configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;principalClass: Config
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;principalClass: Config
 
 Debug:
   color: Green
@@ -137,7 +135,7 @@ Release:
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Prepare class interface for configuration. &lt;strong&gt;But do not create implementation&lt;/strong&gt;. Its name should be equal to &lt;code&gt;principalClass&lt;/code&gt; and it might contain getter methods for all available parameters, in this case it&amp;rsquo;s just &lt;code&gt;color&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
 - (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;color&lt;/span&gt;;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -165,7 +163,7 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
   alt=&#34;xcconf&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Now we&amp;rsquo;re ready to use it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
 
 &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; argv[]) {
     &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@autoreleasepool&lt;/span&gt; {

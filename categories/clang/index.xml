@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Clang on Low Level Bits</title>
     <link>https://lowlevelbits.org/categories/clang/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Clang on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/categories/clang/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
@@ -100,7 +98,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
 
 &lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// main.c&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// main.c&lt;/span&gt;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;fmt, ...);
 
 &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;() {
@@ -110,11 +108,11 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Run the following:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;clang -S -emit-llvm main.c
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;clang -S -emit-llvm main.c
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;@.str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello World\0A\00&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;@.str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello World\0A\00&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt;
 
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; Function Attrs: nounwind ssp uwtable&lt;/span&gt;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@main&lt;/span&gt;() &lt;span style=&#34;color: #19177C&#34;&gt;#0&lt;/span&gt; {
@@ -141,14 +139,14 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;It&amp;rsquo;s really easy to retrieve it automatically, here I wrote simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;) and each object code is built using two source files:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;$ bitcode_retriever some_binary
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;bitcode_retriever some_binary
 arm.xar
 x86_64.xar
-$ xar -xvf arm.xar
+&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xar -xvf arm.xar
 1
 2
-$ llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 1.ll&lt;/span&gt;
-$ llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 2.ll&lt;/span&gt;
+&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 1.ll&lt;/span&gt;
+&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 2.ll&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Bitcode doesn&amp;rsquo;t store any information about original filenames, but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
@@ -184,7 +182,7 @@ Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -199,7 +197,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
 
 &lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.center);    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Point p = view.center;&lt;/span&gt;
                                      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(view.frame);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// Rect r = view.frame;&lt;/span&gt;
                                      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// [NSValue valueWithBytes:&amp;amp;r objCType:@encode(Rect)];&lt;/span&gt;
@@ -208,17 +206,17 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;!-- more --&gt;
 
 &lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) Point {
     &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; x, y;
 };
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Size {
     &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; width, height;
 } Size;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; _Rect {
 	Point origin;
   Size size;
 } Rect;
@@ -226,7 +224,7 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 Rect r;
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);       &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// error&lt;/span&gt;
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
 
 &lt;span style=&#34;color: #008000&#34;&gt;NSValue&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; @(r);      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ok&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
@@ -234,8 +232,8 @@ Rect r;
 &lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
 
 &lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
-    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#if __has_attribute(objc_boxable)&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
 &lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; animation &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;CABasicAnimation&lt;/span&gt; &lt;span style=&#34;color: #A0A000&#34;&gt;animationWithKeyPath&lt;/span&gt;:&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;position&amp;quot;&lt;/span&gt;];
@@ -270,12 +268,12 @@ Rect r;
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
     XCCEnvironment &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] &lt;span style=&#34;color: #A0A000&#34;&gt;initWithName&lt;/span&gt;:key
                                                             &lt;span style=&#34;color: #A0A000&#34;&gt;parameters&lt;/span&gt;:dictionary[key]];
@@ -298,7 +296,7 @@ Rect r;
 &lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
 [environments &lt;span style=&#34;color: #A0A000&#34;&gt;addObject&lt;/span&gt;:environments];
@@ -356,7 +354,7 @@ Rect r;
       <title>Getting Started With LLVM/Clang on OS X</title>
       <link>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
       <pubDate>Sat, 27 Dec 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
       <description>
 
@@ -382,7 +380,7 @@ The following topics are covered:&lt;/p&gt;
 &lt;p&gt;To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.&lt;/p&gt;
 
 &lt;p&gt;Let’s grab the latest sources:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;mkdir ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;mkdir ~/Projects/clang_dev
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
 git clone http://llvm.org/git/llvm.git
 git clone http://llvm.org/git/clang.git llvm/tools/clang
@@ -391,9 +389,9 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;You can checkout particular branch if you&amp;rsquo;re interested in a particular version (e.g. 3.4)&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;mkdir ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;mkdir ~/Projects/clang_dev
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
-&lt;span style=&#34;color: #008000&#34;&gt;export&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;BRANCH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;release_34
+&lt;span style=&#34;color: #008000&#34;&gt;export &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;BRANCH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;release_34
 git clone http://llvm.org/git/llvm.git -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
 git clone http://llvm.org/git/clang.git llvm/tools/clang -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
 git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
@@ -401,7 +399,7 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;s
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;From to time to time you have to update the sources if you use &lt;code&gt;HEAD&lt;/code&gt;. If you don’t want to do it manually, just put the script into &lt;code&gt;clang_dev&lt;/code&gt; directory:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#!/bin/env sh&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#!/bin/env sh&lt;/span&gt;
 &lt;span style=&#34;color: #19177C&#34;&gt;root&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
 &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/tools/clang &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
@@ -410,7 +408,7 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;s
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and make it executable&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;chmod +x update.sh
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;chmod +x update.sh
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;h3 id=&#34;setting-up-ide-and-compiling&#34;&gt;Setting up IDE and compiling&lt;/h3&gt;
@@ -418,14 +416,14 @@ git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;s
 &lt;p&gt;LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.&lt;/p&gt;
 
 &lt;p&gt;Let’s create the project for Xcode&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
 mkdir build
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; build
+&lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;build
 cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Debug&amp;quot;&lt;/span&gt; ../llvm
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;open it&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;open LLVM.xcodeproj
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;open LLVM.xcodeproj
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;and find something to do (it’s not about ‘make tea’, but about ‘go for a party&amp;rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.&lt;/p&gt;
@@ -508,7 +506,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 &lt;p&gt;In this example we’re going to debug a parser and semantic analysis phase of clang.&lt;/p&gt;
 
 &lt;p&gt;Create a file &lt;code&gt;/tmp/sum.c&lt;/code&gt; which contains the following code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
      &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; b;
 }
 &lt;/pre&gt;&lt;/div&gt;
@@ -574,7 +572,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
       <title>Creating and using Clang plugin with Xcode</title>
       <link>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</link>
       <pubDate>Fri, 28 Feb 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</guid>
       <description></description>
     </item>

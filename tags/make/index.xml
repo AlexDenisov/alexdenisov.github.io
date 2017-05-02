@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Make on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/make/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Make on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/make/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: GNU Make</title>
       <link>http://systemundertest.org/gnu-make/</link>
       <pubDate>Sun, 12 Jun 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://systemundertest.org/gnu-make/</guid>
       <description>
 

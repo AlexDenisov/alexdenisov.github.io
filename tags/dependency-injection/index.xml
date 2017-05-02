@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Dependency Injection on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/dependency-injection/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Dependency Injection on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/dependency-injection/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Dependency Injection in Objective-C with Blood and Magic</title>
       <link>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</link>
       <pubDate>Tue, 15 Oct 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</guid>
       <description></description>
     </item>

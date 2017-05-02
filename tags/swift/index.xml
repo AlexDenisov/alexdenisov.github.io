@@ -1,20 +1,18 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Low Level Bits</title>
+    <title>Swift on Low Level Bits</title>
     <link>https://lowlevelbits.org/tags/swift/index.xml</link>
-    <description>Recent content on Low Level Bits</description>
+    <description>Recent content in Swift on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <atom:link href="/tags/swift/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
       <title>How to use LLVM API with Swift. Addendum</title>
       <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
       <pubDate>Wed, 27 Jan 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
       <description>
 
@@ -25,7 +23,7 @@
 &lt;h3 id=&#34;mcjit-execution-engine&#34;&gt;MCJIT Execution Engine&lt;/h3&gt;
 
 &lt;p&gt;Here is the snippet used to create interpreter:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;engine&lt;/span&gt; = &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;LLVMExecutionEngineRef&amp;gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;alignof&lt;/span&gt;(LLVMExecutionEngineRef))
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;engine&lt;/span&gt; = &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;LLVMExecutionEngineRef&amp;gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;alignof&lt;/span&gt;(LLVMExecutionEngineRef))
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;error&lt;/span&gt; =  &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;&lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;&lt;span style=&#34;color: #008000&#34;&gt;Int8&lt;/span&gt;&amp;gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;alignof&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;&lt;span style=&#34;color: #008000&#34;&gt;Int8&lt;/span&gt;&amp;gt;))
 
 LLVMLinkInInterpreter()
@@ -48,7 +46,7 @@ LLVMLinkInInterpreter()
 &lt;p&gt;&lt;code&gt;MCJIT&lt;/code&gt; requires only information about a target and code generator for this specific target.&lt;/p&gt;
 
 &lt;p&gt;Here is final snippet for the execution engine:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;LLVMLinkInMCJIT()
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;LLVMLinkInMCJIT()
 LLVMInitializeNativeTarget()
 LLVMInitializeNativeAsmPrinter()
 
@@ -67,7 +65,7 @@ LLVMLinkInInterpreter()
 &lt;h3 id=&#34;function-main&#34;&gt;Function &lt;code&gt;main&lt;/code&gt;&lt;/h3&gt;
 
 &lt;p&gt;There is a small problem with &lt;code&gt;MCJIT&lt;/code&gt;. Currently it can only run functions with signatures matching signatures of &lt;code&gt;main&lt;/code&gt; C function, i.e. one of those:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;**&lt;/span&gt;argv, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;**&lt;/span&gt;envp)
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;**&lt;/span&gt;argv, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;**&lt;/span&gt;envp)
 (&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;**&lt;/span&gt;argv)
 (&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc)
 ()
@@ -84,7 +82,7 @@ LLVMLinkInInterpreter()
 &lt;p&gt;&lt;em&gt;Note: I put it into a function just to specify some scope&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;em&gt;Note2: I do not cleanup memory in this snippet just to save some space&lt;/em&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;runFunction&lt;/span&gt;(a: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;_&lt;/span&gt; b: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;runFunction&lt;/span&gt;(a: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;_&lt;/span&gt; b: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt; {
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;functionType&lt;/span&gt; = LLVMFunctionType(returnType, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;nil&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;)
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;wrapperFunction&lt;/span&gt; = LLVMAddFunction(module, &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, functionType)
 
@@ -115,7 +113,7 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Here is an output after executing this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@sum&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;) {
 &lt;span style=&#34;color: #A0A000&#34;&gt;entry:&lt;/span&gt;
@@ -133,7 +131,7 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
 &lt;p&gt;Our unnamed wrapper function has name &lt;code&gt;@0&lt;/code&gt;. Since this function is just a helper we will need to remove it after we have done execution.&lt;/p&gt;
 
 &lt;p&gt;The way to run the function is the same as it was using interpreter:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;runFunction&lt;/span&gt;(a: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;_&lt;/span&gt; b: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;runFunction&lt;/span&gt;(a: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;_&lt;/span&gt; b: &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt;) -&amp;gt; &lt;span style=&#34;color: #008000&#34;&gt;Int&lt;/span&gt; {
   &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// ...&lt;/span&gt;
 
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;executionEngine&lt;/span&gt; = &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;LLVMExecutionEngineRef&amp;gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;strideof&lt;/span&gt;(LLVMExecutionEngineRef))
@@ -186,7 +184,7 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
       <title>How to use LLVM API with Swift</title>
       <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
       <pubDate>Mon, 30 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
       <description>
 
@@ -210,15 +208,15 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
 &lt;p&gt;Let’s grab fresh version of LLVM. It can be done using central SVN repository, or via official git mirror. I prefer latter option, since it’s, imho, a bit faster.&lt;/p&gt;
 
 &lt;p&gt;For this particular example I will put everything into a directory inside of the home directory:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~ $ mkdir swift_llvm
-~ $ &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; swift_llvm
-~/swift_llvm $ git clone http://llvm.org/git/llvm.git
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~ &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;mkdir swift_llvm
+~ &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;swift_llvm
+~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;git clone http://llvm.org/git/llvm.git
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;LLVM uses CMake as a build system. To make a build let’s create a separate directory near LLVM directory and generate build rules:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ mkdir build
-~/swift_llvm $ &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; build
-~/swift_llvm/build $ cmake  ../llvm
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;mkdir build
+~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;build
+~/swift_llvm/build &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;cmake  ../llvm
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;CMake could generate various output: makefiles, Xcode projects, VisualStudio solutions and more. If build system is not specified (like in the script above), then CMake takes default one, which is GNU/Make.&lt;/p&gt;
@@ -228,7 +226,7 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
 &lt;p&gt;The naive way of solving this problem is to build the program and resolve linker errors manually until they disappear. It will work, indeed, but it’s became boring after resolving 5-6 errors.&lt;/p&gt;
 
 &lt;p&gt;Thank god, LLVM developers are thoughtful and provide a great tool &lt;code&gt;llvm-config&lt;/code&gt;. Let’s build it and see what it does.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm/build $ make llvm-config -j4
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm/build &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;make llvm-config -j4
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;&lt;em&gt;Note: &lt;code&gt;-j4&lt;/code&gt; says &amp;lsquo;I have multi core/processor environment, run 4 jobs simultaneously&amp;rsquo;&lt;/em&gt;&lt;/p&gt;
@@ -238,24 +236,24 @@ runFunction(&lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;, &lt;span 
 &lt;p&gt;&lt;em&gt;Note: Run &lt;code&gt;llvm-config&lt;/code&gt; without options to learn more.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;We’re particularly interested in interpreter. Let’s look what we need to build:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm/build $ ./bin/llvm-config --libs interpreter
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm/build &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./bin/llvm-config --libs interpreter
 -lLLVMInterpreter -lLLVMExecutionEngine -lLLVMRuntimeDyld -lLLVMObject -lLLVMMCParser -lLLVMCodeGen -lLLVMTarget -lLLVMScalarOpts -lLLVMInstCombine -lLLVMInstrumentation -lLLVMTransformUtils -lLLVMMC -lLLVMBitWriter -lLLVMBitReader -lLLVMAnalysis -lLLVMCore -lLLVMSupport
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;To make our little program working we need to build all these libraries. Again, there is naive way of doing this, but we will go with shell magic:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm/build $ ./bin/llvm-config --libs interpreter | sed &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;s/-l//g&amp;quot;&lt;/span&gt; | xargs make -j4
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm/build &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./bin/llvm-config --libs interpreter | sed &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;s/-l//g&amp;quot;&lt;/span&gt; | xargs make -j4
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;h3 id=&#34;hello-llvm&#34;&gt;Hello LLVM&lt;/h3&gt;
 
 &lt;p&gt;Since we have done and have everything in place it’s time to create our little Swift program:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm/build $ &lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ..
-~/swift_llvm $ touch hello_llvm.swift
-~/swift_llvm $ open hello_llvm.swift
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm/build &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ..
+~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;touch hello_llvm.swift
+~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;open hello_llvm.swift
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;To check that everything is working as we expect we will first create an empty module and dump it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;LLVM_C&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;LLVM_C&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;module&lt;/span&gt; = LLVMModuleCreateWithName(&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;)
 
@@ -265,37 +263,37 @@ LLVMDisposeModule(module)
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Building this small program requires passing numerous flags to compiler. We need to specify SDK, to set which module to link with, specify linker flags, set correct header search paths and probably provide some additional arguments:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C -L??? -lLLVM??? -I??? ???
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;So many questions, so much magic.&lt;/p&gt;
 
 &lt;p&gt;In fact specifying correct linker flags and libraries path is easy, thanks &lt;code&gt;llvm-config&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -I??? ???
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -I??? ???
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Situation with headers and additional parameters is a bit more trickier. Normally, if we use clang, we could just rely on &lt;code&gt;llvm-config --cflags&lt;/code&gt;, though it does not work with swift compiler. Let’s examine the &lt;code&gt;--cflags&lt;/code&gt; and see what we can do here:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ ./build/bin/llvm-config --cflags
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./build/bin/llvm-config --cflags
 -I/Users/alexdenisov/swift_llvm/llvm/include -I/Users/alexdenisov/swift_llvm/build/include  -fPIC -Wall -W -Wno-unused-parameter -Wwrite-strings -Wmissing-field-initializers -pedantic -Wno-long-long -Wcovered-switch-default -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;The output contains a few parameters, we can easily omit all arguments except of headers search paths (&lt;code&gt;-I ...&lt;/code&gt;) and macro definitions (&lt;code&gt;-D__...&lt;/code&gt;). The problem is that swift compiler does not handle macro definitions the way as clang does, though we could bypass them directly to clang driver using &lt;code&gt;-Xcc&lt;/code&gt; option:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;If you were eager enough and run the recent command, then you might see some errors: linker complains because it can’t find symbols from ncurses and STD C++ libraries. No worries, here is the correct command:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Now we can run the program and see the beautiful LLVM IR:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ ./hello_llvm
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./hello_llvm
 ; &lt;span style=&#34;color: #19177C&#34;&gt;ModuleID&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;Hello&amp;#39;&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Ok, it’s empty and doesn’t look cool. But there are good news&amp;shy;: we are able to use LLVM C API from Swift. Isn’t this impressive?&lt;/p&gt;
 
 &lt;p&gt;Let’s go further and create simple &lt;code&gt;sum&lt;/code&gt; function that accepts two integers, sums them and returns result. Here is a C equivalent:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; b;
 }
 &lt;/pre&gt;&lt;/div&gt;
@@ -303,7 +301,7 @@ LLVMDisposeModule(module)
 &lt;p&gt;To create a function we need to specify all types involved: return type and types of arguments.&lt;/p&gt;
 
 &lt;p&gt;Types of arguments must be passed as an array. Since we interop with C API it’s a bit tricky, but still pretty straightforward:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;LLVM_C&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;LLVM_C&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;module&lt;/span&gt; = LLVMModuleCreateWithName(&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;)
 
@@ -327,11 +325,11 @@ LLVMDisposeModule(module)
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Build it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;~/swift_llvm $ xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;~/swift_llvm &lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xcrun -sdk macosx swiftc hello_llvm.swift -module-link-name LLVM_C &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;./build/bin/llvm-config --libs interpreter&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt; -L ./build/lib -lc++ -lcurses -I ./llvm/include -I ./build/include -Xcc -D__STDC_CONSTANT_MACROS -Xcc -D__STDC_LIMIT_MACROS -Xcc -D__STDC_FORMAT_MACROS
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;And run:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@sum&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;)
 &lt;/pre&gt;&lt;/div&gt;
@@ -339,11 +337,11 @@ LLVMDisposeModule(module)
 &lt;p&gt;Here you go, function prototype is ready - next step is function body.&lt;/p&gt;
 
 &lt;p&gt;Atomic particle of code is a &lt;code&gt;basic block&lt;/code&gt;. Function or loop body, conditional branch (&lt;code&gt;if/else&lt;/code&gt;, &lt;code&gt;switch/case&lt;/code&gt;, etc.) these are basic blocks. Our simple function has one as well:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;entryBlock&lt;/span&gt; = LLVMAppendBasicBlock(sumFunction, &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;entry&amp;quot;&lt;/span&gt;)
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;entryBlock&lt;/span&gt; = LLVMAppendBasicBlock(sumFunction, &lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;entry&amp;quot;&lt;/span&gt;)
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;This block could be filled in using builder. First we emit instructions to access function arguments. Next one - addition of the arguments with the &lt;code&gt;temp&lt;/code&gt; variable holding the result. And the last instruction - return statement.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;builder&lt;/span&gt; = LLVMCreateBuilder()
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;builder&lt;/span&gt; = LLVMCreateBuilder()
 LLVMPositionBuilderAtEnd(builder, entryBlock)
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;a&lt;/span&gt; = LLVMGetParam(sumFunction, &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;)
@@ -355,7 +353,7 @@ LLVMBuildRet(builder, temp)
 &lt;p&gt;&lt;em&gt;Put this code after &lt;code&gt;sumFunction&lt;/code&gt; declaration, but before &lt;code&gt;LLVMDumpModule&lt;/code&gt;. Or just keep reading, you will see the full code listing at the end of the article.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;Build and run, you will see the function body:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@sum&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;) {
 &lt;span style=&#34;color: #A0A000&#34;&gt;entry:&lt;/span&gt;
@@ -371,7 +369,7 @@ LLVMBuildRet(builder, temp)
 &lt;p&gt;&lt;em&gt;Note: To be honest I don’t really know exact difference between them, the only reason I use interpreter here - I got a few different errors when I tried to use MCJIT.&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;Let’s create an execution engine:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;engine&lt;/span&gt; = &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;LLVMExecutionEngineRef&amp;gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;alignof&lt;/span&gt;(LLVMExecutionEngineRef))
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;engine&lt;/span&gt; = &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;LLVMExecutionEngineRef&amp;gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;alignof&lt;/span&gt;(LLVMExecutionEngineRef))
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;var&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;error&lt;/span&gt; =  &lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;&lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;&lt;span style=&#34;color: #008000&#34;&gt;Int8&lt;/span&gt;&amp;gt;&lt;span style=&#34;color: #666666&#34;&gt;&amp;gt;&lt;/span&gt;.alloc(&lt;span style=&#34;color: #008000&#34;&gt;alignof&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;UnsafeMutablePointer&lt;/span&gt;&amp;lt;&lt;span style=&#34;color: #008000&#34;&gt;Int8&lt;/span&gt;&amp;gt;))
 
 LLVMLinkInInterpreter()
@@ -386,7 +384,7 @@ LLVMLinkInInterpreter()
 &lt;p&gt;You can build and run it, just to ensure that everything is still working.&lt;/p&gt;
 
 &lt;p&gt;Finally, let’s run our function and actually compute the sum. Here we do the same trick as with function type - API requires &lt;code&gt;UnsafeMutablePointer&lt;/code&gt;. Keep in mind that you should deallocate this memory manually.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;x&lt;/span&gt;: &lt;span style=&#34;color: #008000&#34;&gt;UInt64&lt;/span&gt; = &lt;span style=&#34;color: #666666&#34;&gt;10&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;x&lt;/span&gt;: &lt;span style=&#34;color: #008000&#34;&gt;UInt64&lt;/span&gt; = &lt;span style=&#34;color: #666666&#34;&gt;10&lt;/span&gt;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;y&lt;/span&gt;: &lt;span style=&#34;color: #008000&#34;&gt;UInt64&lt;/span&gt; = &lt;span style=&#34;color: #666666&#34;&gt;25&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;args&lt;/span&gt; = [LLVMCreateGenericValueOfInt(int32, x, &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;),
@@ -403,7 +401,7 @@ argsRef.dealloc(args.&lt;span style=&#34;color: #008000&#34;&gt;count&lt;/span&g
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;If you build and run the program - you will see the result:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; ModuleID = &amp;#39;Hello&amp;#39;&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@sum&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;) {
 &lt;span style=&#34;color: #A0A000&#34;&gt;entry:&lt;/span&gt;
@@ -414,7 +412,7 @@ argsRef.dealloc(args.&lt;span style=&#34;color: #008000&#34;&gt;count&lt;/span&g
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Here is the full code listing:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;LLVM_C&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;LLVM_C&lt;/span&gt;
 
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;module&lt;/span&gt; = LLVMModuleCreateWithName(&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello&amp;quot;&lt;/span&gt;)
 
@@ -498,7 +496,7 @@ LLVMDisposeModule(module)
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
@@ -584,7 +582,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
 
 &lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// main.c&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// main.c&lt;/span&gt;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;fmt, ...);
 
 &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;() {
@@ -594,11 +592,11 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Run the following:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;clang -S -emit-llvm main.c
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;clang -S -emit-llvm main.c
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;@.str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello World\0A\00&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;@.str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello World\0A\00&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt;
 
 &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; Function Attrs: nounwind ssp uwtable&lt;/span&gt;
 &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@main&lt;/span&gt;() &lt;span style=&#34;color: #19177C&#34;&gt;#0&lt;/span&gt; {
@@ -625,14 +623,14 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;It&amp;rsquo;s really easy to retrieve it automatically, here I wrote simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;) and each object code is built using two source files:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span&gt;&lt;/span&gt;$ bitcode_retriever some_binary
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;bitcode_retriever some_binary
 arm.xar
 x86_64.xar
-$ xar -xvf arm.xar
+&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xar -xvf arm.xar
 1
 2
-$ llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 1.ll&lt;/span&gt;
-$ llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 2.ll&lt;/span&gt;
+&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 1.ll&lt;/span&gt;
+&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 2.ll&lt;/span&gt;
 &lt;/pre&gt;&lt;/div&gt;
 
 &lt;p&gt;Bitcode doesn&amp;rsquo;t store any information about original filenames, but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
@@ -668,7 +666,7 @@ Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built
       <title>Creation of pure Swift module</title>
       <link>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</link>
       <pubDate>Thu, 26 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</guid>
       <description></description>
     </item>
@@ -677,7 +675,7 @@ Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built
       <title>Global variables in Swift are not variables</title>
       <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
       <pubDate>Wed, 11 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      
       <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
       <description></description>
     </item>
