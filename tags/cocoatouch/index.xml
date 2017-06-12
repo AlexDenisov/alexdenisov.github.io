@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Cocoatouch on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/cocoatouch/index.xml</link>
+    <link>https://lowlevelbits.org/tags/cocoatouch/</link>
     <description>Recent content in Cocoatouch on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/cocoatouch/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 26 Jun 2015 09:22:57 +0200</lastBuildDate>
+    <atom:link href="/tags/cocoatouch/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>NSValue and Boxed Expressions</title>

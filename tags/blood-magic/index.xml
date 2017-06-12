@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Blood Magic on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/blood-magic/index.xml</link>
+    <link>https://lowlevelbits.org/tags/blood-magic/</link>
     <description>Recent content in Blood Magic on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/blood-magic/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 15 Oct 2013 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/tags/blood-magic/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Dependency Injection in Objective-C with Blood and Magic</title>

@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Carthage on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/carthage/index.xml</link>
+    <link>https://lowlevelbits.org/tags/carthage/</link>
     <description>Recent content in Carthage on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/carthage/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 23 Nov 2015 17:05:00 +0000</lastBuildDate>
+    <atom:link href="/tags/carthage/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Components: taking a step back from Dependency Management</title>

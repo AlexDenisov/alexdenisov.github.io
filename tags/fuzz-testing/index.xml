@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Fuzz Testing on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/fuzz-testing/index.xml</link>
+    <link>https://lowlevelbits.org/tags/fuzz-testing/</link>
     <description>Recent content in Fuzz Testing on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/fuzz-testing/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 24 Mar 2016 23:18:29 +0100</lastBuildDate>
+    <atom:link href="/tags/fuzz-testing/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: LLVM</title>

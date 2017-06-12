@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Yaml on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/yaml/index.xml</link>
+    <link>https://lowlevelbits.org/tags/yaml/</link>
     <description>Recent content in Yaml on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/yaml/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 06 Feb 2015 00:43:11 +0100</lastBuildDate>
+    <atom:link href="/tags/yaml/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>YAML-based Configuration for ObjC Projects</title>

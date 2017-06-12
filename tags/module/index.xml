@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Module on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/module/index.xml</link>
+    <link>https://lowlevelbits.org/tags/module/</link>
     <description>Recent content in Module on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/module/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 26 Jun 2014 00:00:00 +0000</lastBuildDate>
+    <atom:link href="/tags/module/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Creation of pure Swift module</title>

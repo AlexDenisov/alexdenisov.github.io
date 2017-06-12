@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Xcode on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/xcode/index.xml</link>
+    <link>https://lowlevelbits.org/tags/xcode/</link>
     <description>Recent content in Xcode on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/xcode/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 27 Dec 2014 23:03:50 +0100</lastBuildDate>
+    <atom:link href="/tags/xcode/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Getting Started With LLVM/Clang on OS X</title>

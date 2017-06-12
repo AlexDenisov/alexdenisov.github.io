@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Swift on Low Level Bits</title>
-    <link>https://lowlevelbits.org/categories/swift/index.xml</link>
+    <link>https://lowlevelbits.org/categories/swift/</link>
     <description>Recent content in Swift on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/categories/swift/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 27 Jan 2016 21:33:12 +0100</lastBuildDate>
+    <atom:link href="/categories/swift/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>How to use LLVM API with Swift. Addendum</title>

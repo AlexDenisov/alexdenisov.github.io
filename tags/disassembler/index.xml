@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Disassembler on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/disassembler/index.xml</link>
+    <link>https://lowlevelbits.org/tags/disassembler/</link>
     <description>Recent content in Disassembler on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/disassembler/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
+    <atom:link href="/tags/disassembler/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Reverse Engineering Stickies.app</title>

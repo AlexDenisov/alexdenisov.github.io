@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Postgresql on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/postgresql/index.xml</link>
+    <link>https://lowlevelbits.org/tags/postgresql/</link>
     <description>Recent content in Postgresql on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/postgresql/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Thu, 24 Mar 2016 23:03:35 +0100</lastBuildDate>
+    <atom:link href="/tags/postgresql/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test</title>

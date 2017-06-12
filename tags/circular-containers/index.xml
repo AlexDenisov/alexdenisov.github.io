@@ -2,11 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Circular Containers on Low Level Bits</title>
-    <link>https://lowlevelbits.org/tags/circular-containers/index.xml</link>
+    <link>https://lowlevelbits.org/tags/circular-containers/</link>
     <description>Recent content in Circular Containers on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <atom:link href="/tags/circular-containers/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 13 Apr 2015 22:44:26 +0200</lastBuildDate>
+    <atom:link href="/tags/circular-containers/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Circular Containers in Objective-C</title>
