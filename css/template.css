@@ -948,3 +948,27 @@ pre {
   padding: 8px;
 }
 
+body.modal-open #wrap{
+  -webkit-filter: blur(7px);
+  -moz-filter: blur(15px);
+  -o-filter: blur(15px);
+  -ms-filter: blur(15px);
+  filter: blur(15px);
+}
+
+.modal-backdrop {background: #f7f7f7;}
+
+.close {
+  font-size: 50px;
+  display:block;
+}
+
+div.content-upgrade {
+  font-size: 16px;
+  font-style: italic;
+  background-color: rgb(219, 248, 248);
+  margin: 12px;
+  border-radius: 5px;
+  border: 1px solid rgba(74, 86, 89, 0.4);
+}
+
