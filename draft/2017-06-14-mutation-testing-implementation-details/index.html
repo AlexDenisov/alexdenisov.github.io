@@ -242,12 +242,19 @@ Below I describe the algorithm using pseudo code</p>
 
 <p>It is important to notice that each test run is done in a child process because mutation could lead to crash or an infinite loop.</p>
 
+<p>The current implementation of the scheduling is not elegant and not efficient. We fork a process (watchdog), the watchdog forks two other processes: timer and worker. The timer does nothing but sleeps for N milliseconds. The worker executes the test or mutant. The watchdog is waiting for either process to finish. If the timer finishes first, then the worker timed out, we kill it and report timeout. If the worker stops first, then we terminate the timer and proceed. To report the result, we must check whether the worker process crashed, and if not what is the exit status.</p>
+
+<p>Besides that, it is important to be able to get the output (stdout/stderr) from
+the worker process.</p>
+
+<p>We would need to come up with another solution that would allow us to parallelize the execution efficiently.</p>
+
 <p>There are few things that I omit in the algorithm, but I will cover them in the next section.</p>
 
 <h2 id="optimizations">Optimizations</h2>
 
 <p>No matter how fast machine is, the execution may take a lot of time.
-The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control amount of mutations.
+The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control the number of mutations.
 First place is <code>findTests</code>: you could configure a program to run the only subset of tests. It is very convenient during analysis of a program under test.
 Another place is <code>findMutationPoints</code>. Currently, our approach here is different from the one Pitest has. We do not use code coverage to find places where to add mutations. Instead, we use static analysis to build a call graph. For example:</p>
 <div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">void</span> <span style="color: #0000FF">test_foo</span>() {
@@ -280,6 +287,28 @@ Using this information we can ask the system to not look for mutation points far
 By using these two filters, you can significantly improve feedback time.</p>
 
 <p>Another trick we did: we have an option called &lsquo;Dry Run.&rsquo; In this mode, the system does whatever it normally does, except that it doesn&rsquo;t apply any mutations and it doesn&rsquo;t run the mutants. Instead, it reports each mutation result status as DryRun, including its distance from a test and estimated duration as it&rsquo;s timeout. Using this information you could decide which distance is optimal for this very particular project. We also found it useful to run as a first on an unknown project, just to get understanding what kind of a beast we are working with.</p>
+
+<h2 id="reporting">Reporting</h2>
+
+<p>Reporting is one of the trickiest parts, in my opinion. We are still trying to find a nice way to present results to an end user. So far we come up with the following solution.</p>
+
+<p>At the very end of execution, the system spits out SQLite file with information
+about mutations points, tests, execution results, and so on.</p>
+
+<p>Next, one could feed this SQLite file into our <a href="https://github.com/mull-project/mull-reporter-sqlite">reporter</a>, that would generate nice HTML page like <a href="https://lowlevelbits.org/IRTests/">this one</a>(Warning: Heavy page!).</p>
+
+<p>Having an SQLite file is very handy: we could do different analysis of the same
+program without restarting potentially long running process.</p>
+
+<h2 id="nearest-plans">Nearest Plans</h2>
+
+<ul>
+<li>add more test frameworks for C++</li>
+<li>optimize algorithms to speed up the system</li>
+<li>find a nice way to present reports</li>
+<li>add more mutation operators</li>
+<li><del>add Linux support</del> done!</li>
+</ul>
 
 <h2 id="that-s-it">That&rsquo;s it</h2>
 
@@ -802,7 +831,11 @@ By using these two filters, you can significantly improve feedback time.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -810,11 +843,7 @@ By using these two filters, you can significantly improve feedback time.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -834,11 +863,7 @@ By using these two filters, you can significantly improve feedback time.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
         <li>
@@ -854,15 +879,19 @@ By using these two filters, you can significantly improve feedback time.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
       </ul>
