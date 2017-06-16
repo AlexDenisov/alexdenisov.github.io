@@ -6,8 +6,228 @@
     <description>Recent content in Posts on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
+    <lastBuildDate>Wed, 14 Jun 2017 23:18:59 +0200</lastBuildDate>
     <atom:link href="/post/" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Mutation Testing: implementation details</title>
+      <link>https://lowlevelbits.org/mutation-testing-implementation-details/</link>
+      <pubDate>Wed, 14 Jun 2017</pubDate>
+      
+      <guid>https://lowlevelbits.org/mutation-testing-implementation-details/</guid>
+      <description>
+
+&lt;p&gt;Last week we had a discussion with guys who want to build a mutation testing system for .NET. If you want to join, please talk to them here: &lt;a href=&#34;https://gitter.im/dot-NET-mutation-testing/Lobby&#34;&gt;https://gitter.im/dot-NET-mutation-testing/Lobby&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Few people already shared their experience in a written form:
+&lt;a href=&#34;https://gist.github.com/hcoles/36bd67d8927a205c480576f4632f9289&#34;&gt;https://gist.github.com/hcoles/36bd67d8927a205c480576f4632f9289&lt;/a&gt;
+&lt;a href=&#34;https://gist.github.com/jameswiseman76/7400896ab2f0eb6ecf33c414173e995d&#34;&gt;https://gist.github.com/jameswiseman76/7400896ab2f0eb6ecf33c414173e995d&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;I decided to do the same.
+I tried to organize my thoughts nicely but failed miserably.
+Sorry for that.&lt;/p&gt;
+
+&lt;h2 id=&#34;ast-vs-bitcode&#34;&gt;AST vs. Bitcode&lt;/h2&gt;
+
+&lt;p&gt;Mutations can be done either at a high level (source code) or a lower level (bitcode). We decided to pick the latter one. The main reason: we could bring mutation testing for any LLVM-based language.
+Later we learned that this approach has significant advantages but also serious disadvantages.&lt;/p&gt;
+
+&lt;p&gt;I will outline them below.&lt;/p&gt;
+
+&lt;h3 id=&#34;cons&#34;&gt;Cons&lt;/h3&gt;
+
+&lt;h4 id=&#34;build-tools&#34;&gt;Build Tools&lt;/h4&gt;
+
+&lt;p&gt;So far we tried to add support for five languages: C, C++, Objective-C, Rust, and Swift.&lt;/p&gt;
+
+&lt;p&gt;To make it work, we must compile source code into bitcode.
+It is super straightforward if you want to compile one file: each compiler has an option to emit LLVM bitcode.
+However, it is a pain when it comes to a real-world project where you normally have many files.
+Rust and Swift both have some standard way of building things, despite that there is no option to emit bitcode for the whole project (I will talk about LTO later).
+As for C family, there is the whole zoo of build tools: shell scripts, makefiles, ninja, CMakeLists, Visual Studio, Xcode, etc.&lt;/p&gt;
+
+&lt;p&gt;We had to make some workarounds to overcome these problems. Fortunately, we found a semi-elegant way of handling this at least for C and C++ (should work for Swift and Rust as well though). We could use Link-Time Optimization, this way compiler would produce not object files, but files that contain bitcode. It works perfectly on OS X, but I see a problem on Linux: for some reason, linker (&lt;code&gt;ld.gold&lt;/code&gt;) could not link bitcode files together which make build system to fail. To avoid this problem, we had to ask ninja to fail only after 1000 errors (&lt;code&gt;ninja -k 1000&lt;/code&gt;).&lt;/p&gt;
+
+&lt;h4 id=&#34;mapping-bitcode-back-to-source-code&#34;&gt;Mapping bitcode back to source code&lt;/h4&gt;
+
+&lt;p&gt;First I thought that it would be a trivial task since everything in the original code should have a corresponding instruction in the bitcode. But, for instance, this line of C++ code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;some_vector.push_back(make_pair(foo, bar));
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Will be expanded into several hundred (!) of instructions, if one of those instructions crashes than a good IDE should show a corresponding line of code. Hence, all those hundreds of instructions are mapped to the same place in the original code.
+Another problem that all the following pieces of code have the same representation on the IR level:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;x &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt;  &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// sadd %x,  1&lt;/span&gt;
+x &lt;span style=&#34;color: #666666&#34;&gt;-&lt;/span&gt;  &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// sadd %x, -1&lt;/span&gt;
+x &lt;span style=&#34;color: #666666&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// sadd %x,  1&lt;/span&gt;
+x&lt;span style=&#34;color: #666666&#34;&gt;++&lt;/span&gt;    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// sadd %x,  1&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Another problem: syntactic sugar.
+For instance:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;a &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; b &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; c;
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;If &lt;code&gt;b&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt; are simple types, then this is an addition, but, if these are objects then this a function call.
+An end user might be a bit confused why some function related mutation was applied at the addition.&lt;/p&gt;
+
+&lt;h4 id=&#34;applying-mutations&#34;&gt;Applying mutations&lt;/h4&gt;
+
+&lt;p&gt;The first naive approach was to iterate over instructions and check whether we can apply mutation on this instruction or not.
+If we can apply a mutation, then we just replace this instruction (or remove it) with another.
+This approach generates lots of junk mutations &amp;copy; @hcoles.
+Now we learned that looking at single instruction is not enough: we must look at patterns and instructions around.
+Simple addition in C compiles into a single instruction, while in Rust we get several of them: one for addition, one for overflow check, one to report an error if it overflows, and so on.
+We may end up having several implementations of the same mutation: one for C/C++, one for Rust, etc.&lt;/p&gt;
+
+&lt;h3 id=&#34;pros&#34;&gt;Pros&lt;/h3&gt;
+
+&lt;h4 id=&#34;build-tools-1&#34;&gt;Build Tools&lt;/h4&gt;
+
+&lt;p&gt;As far as I know, the AST of Clang is not designed to be mutable.  Even though it has a thing called AST Rewriters, it might be super slow since a rewriter outputs rewritten AST on disk.
+Taking this into account mutation on the bitcode level is a reasonable solution, especially given that everything is happening in memory.
+We didn&amp;rsquo;t investigate whether ASTs of Rust or Swift are mutable or not, but this is not required since current approach is language agnostic.&lt;/p&gt;
+
+&lt;h4 id=&#34;applying-mutations-1&#34;&gt;Applying mutations&lt;/h4&gt;
+
+&lt;p&gt;Mutations are very similar at the bitcode level. We don&amp;rsquo;t have to replicate each compiler to make a mutation and to build the source code into executable code - everything is covered by LLVM.
+This process is quite fast since everything is happening in memory and we have a common ground for any language: we feed JIT engine with bitcode (original or mutated) and ask it to run the program, no I/O involved.&lt;/p&gt;
+
+&lt;h2 id=&#34;program-execution&#34;&gt;Program Execution&lt;/h2&gt;
+
+&lt;p&gt;One of the biggest advantages is that the algorithm for program execution is the same for each language/test framework.
+Below I describe the algorithm using pseudo code&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Result&lt;/span&gt; {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;status&lt;/span&gt;   &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// failed, passed, timed out, etc&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;duration&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// how much time it took to run a program&lt;/span&gt;
+}
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;MutationPoint&lt;/span&gt; {
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;module&lt;/span&gt;    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// where the mutation is located&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;metadata&lt;/span&gt;  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// some utility data&lt;/span&gt;
+}
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// we give N seconds for original test to complete&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;Timeout&lt;/span&gt; = N
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Program under test is represented as a&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// set of bitcode modules&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;modules&lt;/span&gt; = loadModules()
+
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// First we find tests. Each language + test framework&lt;/span&gt;
+&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// has custom implementation of a Test Finder&lt;/span&gt;
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;tests&lt;/span&gt; = findTests(modules)
+
+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; tests {
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Then for each test we find places where we can&lt;/span&gt;
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// apply mutation - Mutation Point&lt;/span&gt;
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Each language may have it&amp;#39;s own set of Mutation Operators&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;mutationPoints&lt;/span&gt; = findMutationPoints(test, modules)
+
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Given we know what we want to mutate&lt;/span&gt;
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// We can start execution of each mutant&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;originalResult&lt;/span&gt; = runTest(test, modules, Timeout)
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;if&lt;/span&gt; originalResult &lt;span style=&#34;color: #666666&#34;&gt;!=&lt;/span&gt; Passed {
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Report an error and skip this test&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// One could also fail early, but we decided not to&lt;/span&gt;
+  }
+
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Now it&amp;#39;s time to run a test against each mutant&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; mutationPoints {
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Mutant is a copy of original module&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// within the mutation&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;mutant&lt;/span&gt; = applyMutation(point)
+
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// To run the test against mutant we need&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// to replace the original module in the&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// set of modules&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;mutatedModules&lt;/span&gt; = modules.replace(point.module, mutant)
+
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Mutant should not take X times more time than&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// the original test&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// Otherwise we consider it as a timed out&lt;/span&gt;
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;timeout&lt;/span&gt; = originalResult &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; X
+    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;let&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;mutationResult&lt;/span&gt; = runTest(test, mutatedModules, timeout)
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// The mutationResult can be now reported&lt;/span&gt;
+    &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// We are done here, taking the next mutant&lt;/span&gt;
+  }
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;It is important to notice that each test run is done in a child process because mutation could lead to crash or an infinite loop.&lt;/p&gt;
+
+&lt;p&gt;The current implementation of the scheduling is not elegant and not efficient. We fork a process (watchdog), the watchdog forks two other processes: timer and worker. The timer does nothing but sleeps for N milliseconds. The worker executes the test or mutant. The watchdog is waiting for either process to finish. If the timer finishes first, then the worker timed out, we kill it and report timeout. If the worker stops first, then we terminate the timer and proceed. To report the result, we must check whether the worker process crashed, and if not what is the exit status.&lt;/p&gt;
+
+&lt;p&gt;Besides that, it is important to be able to get the output (stdout/stderr) from
+the worker process.&lt;/p&gt;
+
+&lt;p&gt;We would need to come up with another solution that would allow us to parallelize the execution efficiently.&lt;/p&gt;
+
+&lt;p&gt;There are few things that I omit in the algorithm, but I will cover them in the next section.&lt;/p&gt;
+
+&lt;h2 id=&#34;optimizations&#34;&gt;Optimizations&lt;/h2&gt;
+
+&lt;p&gt;No matter how fast machine is, the execution may take a lot of time.
+The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control the number of mutations.
+First place is &lt;code&gt;findTests&lt;/code&gt;: you could configure a program to run the only subset of tests. It is very convenient during analysis of a program under test.
+Another place is &lt;code&gt;findMutationPoints&lt;/code&gt;. Currently, our approach here is different from the one Pitest has. We do not use code coverage to find places where to add mutations. Instead, we use static analysis to build a call graph. For example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;test_foo&lt;/span&gt;() {
+  assert(foo() &lt;span style=&#34;color: #666666&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;5&lt;/span&gt;);
+}
+
+&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;foo&lt;/span&gt;() {
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// ...&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; bar();
+}
+
+&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;bar&lt;/span&gt;() {
+   &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// ...&lt;/span&gt;
+   &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; buzz();
+}
+
+&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;buzz&lt;/span&gt;() {
+  &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// ...&lt;/span&gt;
+  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; x;
+}
+&lt;/pre&gt;&lt;/div&gt;
+
+&lt;p&gt;Here we have the following call &amp;lsquo;graph&amp;rsquo;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;test_foo -&amp;gt; foo -&amp;gt; bar -&amp;gt; buzz
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If we look at this list from left to right, then we might see that each function is at some distance from the test.
+Using this information we can ask the system to not look for mutation points farther than two hops from a test.
+By using these two filters, you can significantly improve feedback time.&lt;/p&gt;
+
+&lt;p&gt;Another trick we did: we have an option called &amp;lsquo;Dry Run.&amp;rsquo; In this mode, the system does whatever it normally does, except that it doesn&amp;rsquo;t apply any mutations and it doesn&amp;rsquo;t run the mutants. Instead, it reports each mutation result status as DryRun, including its distance from a test and estimated duration as it&amp;rsquo;s timeout. Using this information you could decide which distance is optimal for this very particular project. We also found it useful to run as a first on an unknown project, just to get understanding what kind of a beast we are working with.&lt;/p&gt;
+
+&lt;h2 id=&#34;reporting&#34;&gt;Reporting&lt;/h2&gt;
+
+&lt;p&gt;Reporting is one of the trickiest parts, in my opinion. We are still trying to find a nice way to present results to an end user. So far we come up with the following solution.&lt;/p&gt;
+
+&lt;p&gt;At the very end of execution, the system spits out SQLite file with information
+about mutations points, tests, execution results, and so on.&lt;/p&gt;
+
+&lt;p&gt;Next, one could feed this SQLite file into our &lt;a href=&#34;https://github.com/mull-project/mull-reporter-sqlite&#34;&gt;reporter&lt;/a&gt;, that would generate nice HTML page like &lt;a href=&#34;https://lowlevelbits.org/IRTests/&#34;&gt;this one&lt;/a&gt;(Warning: Heavy page!).&lt;/p&gt;
+
+&lt;p&gt;Having an SQLite file is very handy: we could do different analysis of the same
+program without restarting potentially long running process.&lt;/p&gt;
+
+&lt;h2 id=&#34;nearest-plans&#34;&gt;Nearest Plans&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;add more test frameworks for C++&lt;/li&gt;
+&lt;li&gt;optimize algorithms to speed up the system&lt;/li&gt;
+&lt;li&gt;find a nice way to present reports&lt;/li&gt;
+&lt;li&gt;add more mutation operators&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;add Linux support&lt;/del&gt; done!&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;that-s-it&#34;&gt;That&amp;rsquo;s it&lt;/h2&gt;
+
+&lt;p&gt;Feel free to ask questions. There are must be many things I missed about the topic.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Reverse Engineering Stickies.app</title>
@@ -3573,200 +3793,6 @@ Rect r;
 &lt;h3 id=&#34;that-s-it&#34;&gt;That&amp;rsquo;s it&lt;/h3&gt;
 
 &lt;p&gt;It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Getting Rid of Asynchronous Tests</title>
-      <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
-      <pubDate>Wed, 17 Jun 2015</pubDate>
-      
-      <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
-      <description>
-
-&lt;h3 id=&#34;asynchronous-tests-are-not-reliable&#34;&gt;Asynchronous tests are not reliable&lt;/h3&gt;
-
-&lt;p&gt;So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like &lt;a href=&#34;https://github.com/luisobo/Nocilla&#34;&gt;Nocilla&lt;/a&gt; and &lt;a href=&#34;https://github.com/AliSoftware/OHHTTPStubs&#34;&gt;OHHTTPStubs&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: &lt;strong&gt;asynchronous tests are unreliable&lt;/strong&gt;.&lt;/p&gt;
-
-&lt;h3 id=&#34;getting-rid-of-asynchrony&#34;&gt;Getting rid of asynchrony&lt;/h3&gt;
-
-&lt;!-- more --&gt;
-
-&lt;p&gt;To make those tests reliable we need to get rid of asynchrony. There are a few frameworks that simplify this task, like: &lt;a href=&#34;http://ocmock.org&#34;&gt;OCMock&lt;/a&gt;, &lt;a href=&#34;https://github.com/jonreid/OCMockito&#34;&gt;OCMockito&lt;/a&gt; or &lt;a href=&#34;https://github.com/pivotal/cedar&#34;&gt;Cedar&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;As big fan of ObjC++, I’ll go with Cedar, but any one of the above can get the job done.&lt;/p&gt;
-
-&lt;p&gt;Let’s first consider the components of a system under test:&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;Loader&lt;/code&gt; - loads raw &lt;code&gt;NSData&lt;/code&gt; from the network or returns an error&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;Client&lt;/code&gt; - handles error/raw data from the &lt;code&gt;Loader&lt;/code&gt; and sends it to an end user&lt;/p&gt;
-
-&lt;p&gt;Here is the interface of the &lt;code&gt;Loader&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
-
-- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadDataWithCompletion:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;) (&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error))&lt;span style=&#34;color: #19177C&#34;&gt;completion&lt;/span&gt;;
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;the interface of the &lt;code&gt;Client&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;Callback) (&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@class&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Loader&lt;/span&gt;;
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@property&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader;
-
-- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt;;
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;and it’s implementation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Client&lt;/span&gt;
-
-- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)&lt;span style=&#34;color: #19177C&#34;&gt;callback&lt;/span&gt; {
-  [&lt;span style=&#34;color: #008000&#34;&gt;self&lt;/span&gt;.loader &lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
-    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; parseUsers(data);
-    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;finalError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; processError(error);
-    callback(users, finalError);
-  }];
-}
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;Our goal is to test that the client parses data and handles errors in a correct way:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
-  Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
-
-  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
-    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonUsers();
-    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-
-    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
-      actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; users;
-    }];
-
-    actualUsers should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedUsers);
-  });
-
-  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should process error&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
-    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonError();
-    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-
-    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
-      actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; error;
-    }];
-
-    actualError should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedError);
-  });
-
-});
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;To test this we just need to replace the &lt;code&gt;client.loader&lt;/code&gt; with a fake object that is going to mimic the desired behavior.&lt;/p&gt;
-
-&lt;p&gt;Here is how it looks like with Cedar:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
-
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
-&lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
-Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
-loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
-  LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-  &lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getUsersData();
-  [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
-  callback(data, &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;);
-});
-
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// parse data&lt;/span&gt;
-&lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
-Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
-loader &lt;span style=&#34;color: #0000FF&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
-  LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-  &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getError();
-  [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
-  callback(&lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;, error);
-});
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;For those unfamiliar with &lt;a href=&#34;https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html&#34;&gt;&lt;code&gt;NSInvocation&lt;/code&gt;&lt;/a&gt; let me cite it&amp;rsquo;s documentation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/*&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;buffer:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.&lt;/span&gt;
-
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;index:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  An integer specifying the index of the argument to get.&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;*/&lt;/span&gt;
-- (&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;getArgument:&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; nonnull)&lt;span style=&#34;color: #19177C&#34;&gt;buffer&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;atIndex:&lt;/span&gt;(NSInteger)&lt;span style=&#34;color: #19177C&#34;&gt;index&lt;/span&gt;;
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;p&gt;After putting these parts together you&amp;rsquo;ll have this cryptic code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;LoaderCallback)(&lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error);
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeUsersLoader&lt;/span&gt;() {
-  &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
-  Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
-  loader stub_method(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
-    LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-    &lt;span style=&#34;color: #008000&#34;&gt;NSData&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getUsersData();
-    [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
-    callback(data, &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;);
-  });
-}
-
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;fakeErrorLoader&lt;/span&gt;() {
-  &lt;span style=&#34;color: #B00040&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@selector&lt;/span&gt;(&lt;span style=&#34;color: #A0A000&#34;&gt;loadDataWithCompletion&lt;/span&gt;:);
-  Loader &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;class&lt;/span&gt;);
-  loader stub_method(sel).and_do(&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSInvocation&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;invocation) {
-    LoaderCallback callback &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; getError();
-    [invocation &lt;span style=&#34;color: #A0A000&#34;&gt;getArgument&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;callback &lt;span style=&#34;color: #A0A000&#34;&gt;atIndex&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt;];
-    callback(&lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;, error);
-  });
-}
-
-describe(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;Client&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
-  Client &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Client new];
-
-  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should parse data&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
-    client.loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fakeUsersLoader();
-
-    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonUsers();
-    &lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-
-    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
-      actualUsers &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; users;
-    }];
-
-    actualUsers should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedUsers);
-  });
-
-  it(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;should process error&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;{
-    client.loader &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; fakeErrorLoader();
-
-    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ethalonError();
-    &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;nil&lt;/span&gt;;
-
-    [client &lt;span style=&#34;color: #A0A000&#34;&gt;loadUsersWithCallback&lt;/span&gt;:&lt;span style=&#34;color: #666666&#34;&gt;^&lt;/span&gt;(&lt;span style=&#34;color: #008000&#34;&gt;NSArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;users, &lt;span style=&#34;color: #008000&#34;&gt;NSError&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;error) {
-      actualError &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; error;
-    }];
-
-    actualError should &lt;span style=&#34;color: #0000FF&#34;&gt;equal&lt;/span&gt;(expectedError);
-  });
-});
-&lt;/pre&gt;&lt;/div&gt;
-
-&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
-
-&lt;p&gt;One of our modules had lots of asynchronous network tests which were failing randomly. As you might imagine, that’s not an optimal situation to find yourself in. By getting rid of asynchrony, we didn’t only get rid of random failures, but also decreased execution time from ~2.5s to ~0.01s.&lt;/p&gt;
-
-&lt;p&gt;Have fun writing those reliable, deterministic tests!&lt;/p&gt;
 </description>
     </item>
     
