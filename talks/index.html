@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+  
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MGGGP5W');</script>
+  
+
+  <meta charset="UTF-8">
+
+  
+
+
+  
+    <title>Talks - Low Level Bits</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+    <meta name="keywords" content="clang,llvm,compilers,ios development,developer tools,mutation testing" />
+  
+
+  
+    <meta name="description" content="Compilers, developer tools, low-level hacking" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/share_buttons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+    
+
+  
+
+
+
+</head>
+
+
+<body>
+
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MGGGP5W"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+
+<div class="container">
+
+    <div class="masthead clearfix">
+
+    
+
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+      <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+        <li><a href="https://lowlevelbits.org/talks">Talks</a></li>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Subscribe</a>
+          <ul class="dropdown-menu">
+            <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+            <li><a href="https://lowlevelbits.org/subscribe">Email</a></li>
+          </ul>
+        </li>
+
+        <li><a href="https://twitter.com/1101_debian" target="_blank">Follow</a></li>
+        <li><a href="https://lowlevelbits.org/about">About</a></li>
+      </ul>
+
+  </div>
+
+
+
+  <hr>
+
+  <div class="row main-content">
+    <div class="offset3 span7 zone-content">
+      <article>
+        <h1>Talks</h1>
+
+        <div>
+          <table class="table table-striped">
+  <tr>
+    <th><i class="fa fa-language" aria-hidden="true"></i></th>
+    <th>Event</th>
+    <th>Title</th>
+    <th>Links</th>
+  </tr>
+  <tr>
+    <td>ru</td>
+    <td>
+      <a href="https://mobiusconf.com/en/">Mobius 2017</a>
+    </td>
+    <td>
+      Mutation Testing: how good your tests are
+    </td>
+    <td>
+      <a href="https://2017.mobiusconf.com/en/talks/mutation-testing-how-good-your-tests-are/">Abstract</a> <br />
+      <a href="https://www.youtube.com/watch?v=U8pKSQxaZLQ">Recording</a> <br />
+      <a href="/slides/mobius_2017.pdf">Slides [en]</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>ru</td>
+    <td>
+      <a href="https://soundcloud.com/podlodka">Podlodka Podcast</a>
+    </td>
+    <td>
+      Mutation Testing
+    </td>
+    <td>
+      <a href="https://soundcloud.com/podlodka/podlodka-4-mutatsionnoe-testirovanie">Soundcloud</a> <br />
+      <a href="http://apple.co/2onzBg3">iTunes</a> <br />
+      <a href="http://telegra.ph/Podlodka-4---Mutacionnoe-testirovanie-03-27">Notes</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>en</td>
+    <td>
+      <a href="https://archive.fosdem.org/2017/">FOSDEM 2017</a>
+    </td>
+    <td>
+      Mutation Testing: Leaving the stone age
+    </td>
+    <td>
+      <a href="https://archive.fosdem.org/2017/schedule/event/mutation_testing/">Abstract</a> <br />
+      <a href="https://www.youtube.com/watch?v=YEgiyiICkpQ">Recording</a> <br />
+      <a href="/slides/fosdem_2017.pdf">Slides</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>ru</td>
+    <td>
+      <a href="http://ritfest.ru">RIT++ 2016</a>
+    </td>
+    <td>
+      Getting started with LLVM using Swift
+    </td>
+    <td>
+      <a href="http://appsconf.ru/2016/abstracts/2165">Abstract</a> <br />
+      <a href="https://www.youtube.com/watch?v=0Q04MEGSzwc">Recording</a> <br />
+      <a href="/slides/rit_2016.pdf">Slides [en]</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>en</td>
+    <td>
+      <a href="https://archive.fosdem.org/2016">FOSDEM 2016</a>
+    </td>
+    <td>
+      How to use LLVM C API with Swift
+    </td>
+    <td>
+      <a href="https://archive.fosdem.org/2016/schedule/event/llvm_c_swift/">Abstract</a> <br />
+      <a href="/slides/fosdem_2016.pdf">Slides</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>en</td>
+    <td>
+      <a href="http://mobile-warsaw.pl">Mobile Warsaw</a>
+    </td>
+    <td>
+      Magic Behind Xcode: compilation
+    </td>
+    <td>
+      <a href="http://mobile-warsaw.pl/meetup_027.html">Event</a> <br />
+      <a href="https://www.youtube.com/watch?v=w3jKBWkspNI">Recording</a> <br />
+      <a href="/slides/mobile_warsaw_2015.pdf">Slides</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>en</td>
+    <td>
+      <a href="https://www.meetup.com/Cocoaheads-Berlin">CocoaHeads Berlin</a>
+    </td>
+    <td>
+      Compilation Process. How a program is born
+    </td>
+    <td>
+      <a href="https://www.meetup.com/Cocoaheads-Berlin/events/219618832/">Event</a> <br />
+      <a href="/slides/cocoaheads_2015.pdf">Slides</a> <br />
+    </td>
+  </tr>
+  <tr>
+    <td>en</td>
+    <td>
+      <a href="https://www.meetup.com/Cocoaheads-Berlin">CocoaHeads Berlin</a>
+    </td>
+    <td>
+      BloodMagic: custom property attributes for Obj-C
+    </td>
+    <td>
+      <a href="https://www.meetup.com/Cocoaheads-Berlin/events/200901902/">Event</a> <br />
+      <a href="/slides/cocoaheads_2014.pdf">Slides</a> <br />
+    </td>
+  </tr>
+</table>
+
+        </div>
+      </article>
+
+    </div>
+
+  </div>
+
+  <hr>
+
+  <div class="row triple-row">
+
+    <div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
+      
+
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/system-under-test/" >system under test (4)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mach-o/" >mach-o (3)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+      </ul>
+</article>
+</div>
+
+
+    </div>
+
+    <div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="https://lowlevelbits.org/mutation-testing-implementation-details/"> Mutation Testing: implementation details</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/reverse-engineering-stickies.app/"> Reverse Engineering Stickies.app</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/java-papers/"> Java Papers</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/system-under-test-gnu-make/"> System Under Test: GNU Make</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+      </ul>
+
+</article>
+</div>
+
+
+
+    </div>
+
+    <div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+    <div>
+    <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscribe</button></div>
+    </div>
+</form>
+</div>
+
+
+
+
+</article>
+</div>
+
+
+    </div>
+  </div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2017 - Alex Denisov</div>
+</div>
+
+
+
+</div>  
+
+
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+<script src="https://lowlevelbits.org/js/aws-sdk-2.65.0.min.js"></script>
+
+
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+
+
+<script src="https://use.fontawesome.com/b106f6862a.js"></script>
+
+</body>
+</html>
+
+
+

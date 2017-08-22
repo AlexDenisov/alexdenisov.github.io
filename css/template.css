@@ -972,3 +972,7 @@ div.content-upgrade {
   border: 1px solid rgba(74, 86, 89, 0.4);
 }
 
+ul.talks-list {
+  list-style-type: none;
+}
+
