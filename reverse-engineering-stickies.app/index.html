@@ -154,7 +154,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <p>The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&rsquo;s used. Maybe then I will get another hint.</p>
 
 <p>Localizations are stored within the app&rsquo;s bundle, at <code>Contents/Resources</code> folder. I am particularly interested in <code>Contents/Resources/English.lproj/Localizable.strings</code>. By default, strings are Binary Plists. One can use <code>plutil</code> to convert them into human-readable XML:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings</code></pre></div>
 <p>The <code>Localizable.strings</code> contains many things, but colors are not there.</p>
 
 <p><img src="/img/reverse-engineering-stickies/localizable_strings.png"
@@ -176,7 +176,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           height: auto;" /></p>
 
 <p>As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib</code></pre></div>
 <p>Unlikely that I can find something useful inside, but let&rsquo;s see.
 The <code>MainMenu</code> contains 20k lines. Also, it is quite cryptic:</p>
 
@@ -226,7 +226,7 @@ What&rsquo;s left? The binary itself!</p>
 <p>It feels like a dead end.</p>
 
 <p>Instead of searching for other words hoping that I will find something useful I can ask <a href="https://github.com/nygard/class-dump">class-dump</a> for help.</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">class-dump Contents/MacOS/Stickies &gt; Stickies.h</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">class-dump Contents/MacOS/Stickies &gt; Stickies.h</code></pre></div>
 <p>Shallow look at <code>Stickies.h</code> shows that class <code>StickiesWindow</code> has a method <code>setColorByIndex:</code>.</p>
 
 <p><img src="/img/reverse-engineering-stickies/stickies_window.png"
@@ -330,27 +330,27 @@ The base address can be obtained via LLDB as well.</p>
 <p>Now I can pick value I want to use and start writing them one by one starting at <code>0xc790</code>. But I have a better idea.</p>
 
 <p>Let&rsquo;s recall and rewrite a pseudo-code from Hopper:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">base = <span style="color:#ff0;font-weight:bold">0xc790</span>;
-r = base + <span style="color:#ff0;font-weight:bold">0</span>;
-g = base + <span style="color:#ff0;font-weight:bold">8</span>;
-b = base + <span style="color:#ff0;font-weight:bold">16</span>;
-color1 = rgb(r, g, b);
-r = base + <span style="color:#ff0;font-weight:bold">24</span>;
-g = base + <span style="color:#ff0;font-weight:bold">32</span>;
-b = base + <span style="color:#ff0;font-weight:bold">40</span>;
-color2 = rgb(r, g, b);
-r = base + <span style="color:#ff0;font-weight:bold">48</span>;
-g = base + <span style="color:#ff0;font-weight:bold">56</span>;
-b = base + <span style="color:#ff0;font-weight:bold">64</span>;
-color3 = rgb(r, g, b);
-r = base + <span style="color:#ff0;font-weight:bold">72</span>;
-g = base + <span style="color:#ff0;font-weight:bold">80</span>;
-b = base + <span style="color:#ff0;font-weight:bold">88</span>;
-color4 = rgb(r, g, b);</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">base <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc790</span>;
+r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">0</span>;
+g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">8</span>;
+b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">16</span>;
+color1 <span style="color:#f92672">=</span> rgb(r, g, b);
+r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">24</span>;
+g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">32</span>;
+b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">40</span>;
+color2 <span style="color:#f92672">=</span> rgb(r, g, b);
+r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">48</span>;
+g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">56</span>;
+b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">64</span>;
+color3 <span style="color:#f92672">=</span> rgb(r, g, b);
+r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">72</span>;
+g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">80</span>;
+b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">88</span>;
+color4 <span style="color:#f92672">=</span> rgb(r, g, b);</code></pre></div>
 <p>This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.</p>
 
 <p>Here where the color index comes into play:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">base = (colorIndex + (colorIndex * <span style="color:#ff0;font-weight:bold">0x2</span>)) &lt;&lt; <span style="color:#ff0;font-weight:bold">0x5</span></code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">base <span style="color:#f92672">=</span> (colorIndex <span style="color:#f92672">+</span> (colorIndex <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x2</span>)) <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">0x5</span></code></pre></div>
 <p>Depending on the value of <code>colorIndex</code> it will give the following numbers:</p>
 
 <pre><code>0: 0
@@ -363,23 +363,23 @@ color4 = rgb(r, g, b);</code></pre></div>
 
 <p>The step is 96: this number of bytes is needed to store four colors.
 I don&rsquo;t know how the source code looked initially, but I can represent it using the following structures:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> {
-  <span style="color:#fff;font-weight:bold">double</span> red;
-  <span style="color:#fff;font-weight:bold">double</span> green;
-  <span style="color:#fff;font-weight:bold">double</span> blue;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+  <span style="color:#66d9ef">double</span> red;
+  <span style="color:#66d9ef">double</span> green;
+  <span style="color:#66d9ef">double</span> blue;
 } color;
 
-<span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> {
+<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
   color c1;
   color c2;
   color c3;
   color c4;
 } theme;
 
-<span style="color:#007f7f">/// One color theme for each color index
-</span><span style="color:#007f7f"></span><span style="color:#fff;font-weight:bold">static</span> theme themes[<span style="color:#ff0;font-weight:bold">6</span>] = {
- <span style="color:#007f7f">/// actual color definitions
-</span><span style="color:#007f7f"></span>};</code></pre></div>
+<span style="color:#75715e">/// One color theme for each color index
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> theme themes[<span style="color:#ae81ff">6</span>] <span style="color:#f92672">=</span> {
+ <span style="color:#75715e">/// actual color definitions
+</span><span style="color:#75715e"></span>};</code></pre></div>
 <p>I know that four colors are used, but I don&rsquo;t yet know what they are used for.
 Patching them one by one gives the following result:</p>
 
@@ -391,26 +391,26 @@ Patching them one by one gives the following result:</p>
           height: auto;" /></p>
 
 <p>I can now rename field name to be more descriptive.</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
   color background_color;
   color border_color;
   color window_title_color;
   color icon_color;
 } theme;</code></pre></div>
 <p>Once I have this in place changing the colors becomes a trivial task:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">color rgb(<span style="color:#fff;font-weight:bold">int</span> r, <span style="color:#fff;font-weight:bold">int</span> g, <span style="color:#fff;font-weight:bold">int</span> b);
-<span style="color:#fff;font-weight:bold">void</span> changeColor(<span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">int</span> colorIndex, FILE *binary) {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">color <span style="color:#a6e22e">rgb</span>(<span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> g, <span style="color:#66d9ef">int</span> b);
+<span style="color:#66d9ef">void</span> <span style="color:#a6e22e">changeColor</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> colorIndex, FILE <span style="color:#f92672">*</span>binary) {
   theme t;
 
-  t.background_color = rgb(<span style="color:#ff0;font-weight:bold">255</span>, <span style="color:#ff0;font-weight:bold">255</span>, <span style="color:#ff0;font-weight:bold">255</span>);
-  t.window_title_color = rgb(<span style="color:#ff0;font-weight:bold">38</span>, <span style="color:#ff0;font-weight:bold">173</span>, <span style="color:#ff0;font-weight:bold">228</span>);
-  t.icon_color = t.window_title_color;
-  t.border_color = rgb(<span style="color:#ff0;font-weight:bold">77</span>, <span style="color:#ff0;font-weight:bold">188</span>, <span style="color:#ff0;font-weight:bold">233</span>);
+  t.background_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>);
+  t.window_title_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">38</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">228</span>);
+  t.icon_color <span style="color:#f92672">=</span> t.window_title_color;
+  t.border_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">77</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">233</span>);
 
-  <span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">int</span> ColorAddressBase = <span style="color:#ff0;font-weight:bold">0xc790</span>;
-  <span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">int</span> offset = ColorAddressBase + colorIndex * <span style="color:#ff0;font-weight:bold">96</span>;
+  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> ColorAddressBase <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc790</span>;
+  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> offset <span style="color:#f92672">=</span> ColorAddressBase <span style="color:#f92672">+</span> colorIndex <span style="color:#f92672">*</span> <span style="color:#ae81ff">96</span>;
   fseek(binary, offset, SEEK_SET);
-  fwrite(&amp;t, <span style="color:#fff;font-weight:bold">sizeof</span>(theme), <span style="color:#ff0;font-weight:bold">1</span>, binary);
+  fwrite(<span style="color:#f92672">&amp;</span>t, <span style="color:#66d9ef">sizeof</span>(theme), <span style="color:#ae81ff">1</span>, binary);
   rewind(binary);
 }</code></pre></div>
 <p>After running this code, I see a much better Sticky Note!</p>
@@ -988,11 +988,11 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -1012,23 +1012,15 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
@@ -1036,7 +1028,15 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -1048,7 +1048,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
       </ul>

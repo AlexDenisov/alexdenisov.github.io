@@ -484,19 +484,19 @@ The best choice would be is to automate this process.&lt;/p&gt;
 &lt;p&gt;The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.&lt;/p&gt;
 
 &lt;p&gt;For instance, from this sample&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;,
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;,
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;we could get two mutants by using &lt;code&gt;ReplaceNode&lt;/code&gt; mutation, such as:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;42&lt;/span&gt;, &lt;span style=&#34;color:#f00&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;color:#f00&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;color:#f00&#34;&gt;Mutation&lt;/span&gt;
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;, &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Mutation&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;,
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;42&lt;/span&gt; &lt;span style=&#34;color:#f00&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;color:#f00&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;color:#f00&#34;&gt;Mutation&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;,
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;//&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;-&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;Mutation&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;There are many decisions our serializer/mapper/whatnot can make when it gets such a result: return an error explaining why it cannot convert the dictionary into a model, or silently ignore &amp;ldquo;number&amp;rdquo; field, or any other action. In general this decision is up to you and your domain model.
 But I’m pretty sure there is no domain model that accepts exceptions like &lt;code&gt;-[__NSCFNumber length]: unrecognised selector sent to instance 0xDEADBEEF&lt;/code&gt;.&lt;/p&gt;
@@ -507,23 +507,23 @@ But I’m pretty sure there is no domain model that accepts exceptions like &lt;
 The recommended way is to create another test target and put these verifications there.&lt;/p&gt;
 
 &lt;p&gt;Example:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;- (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt;)test {
-  NSDictionary *sample = @{
-    &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;name&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;John Doe&amp;#34;&lt;/span&gt;,
-    &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;age&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;@42&lt;/span&gt;
-  };
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;- (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;test&lt;/span&gt; {
+  NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;sample &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@{&lt;/span&gt;
+    &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;name&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;John Doe&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;age&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@42&lt;/span&gt;
+  &lt;span style=&#34;color:#ae81ff&#34;&gt;}&lt;/span&gt;;
 
-  UserDeserializer *deserializer = [UserDeserializer new];
-  Mutator *mutator = [Mutator mutatorForSample:sample withMutationGenerator:[MutationGenerator builtinMutationGenerator]];
-  Engine *engine = [Engine engineWithMutator:mutator];
+  UserDeserializer &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;deserializer &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [UserDeserializer new];
+  Mutator &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutator &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Mutator mutatorForSample:sample withMutationGenerator:[MutationGenerator builtinMutationGenerator]];
+  Engine &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;engine &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Engine engineWithMutator:mutator];
 
-  NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant) {
-    User *user = [deserializer deserializeUser:mutant];
+  NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [engine runEngineOverMutants:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutant) {
+    User &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [deserializer deserializeUser:mutant];
     user.name.length;
     user.age.integerValue;
   }];
 
-  XCTAssertEqual(reports.count, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;);
+  XCTAssertEqual(reports.count, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;It’s not very elegant, but it does the job very well.
 Lines like &lt;code&gt;user.name.length;&lt;/code&gt; may look weird, but it’s the easiest way to validate that &lt;code&gt;name&lt;/code&gt; is &lt;code&gt;NSString&lt;/code&gt;.&lt;/p&gt;
@@ -533,11 +533,11 @@ Lines like &lt;code&gt;user.name.length;&lt;/code&gt; may look weird, but it’s
 &lt;p&gt;Example looks pretty straightforward, but I’d like to highlight couple of things.&lt;/p&gt;
 
 &lt;p&gt;The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant){ &lt;span style=&#34;color:#f00&#34;&gt;…&lt;/span&gt; }];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [engine runEngineOverMutants:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutant){ &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;…&lt;/span&gt; }];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The engine records only failures, so it’s enough to assert count of returned reports.
 One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; (Report *report &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; reports) {
-  NSLog(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Thrown &amp;#39;%@&amp;#39; on &amp;#39;%@&amp;#39;&amp;#34;&lt;/span&gt;, report.exception, report.mutant);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (Report &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;report &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; reports) {
+  NSLog(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Thrown &amp;#39;%@&amp;#39; on &amp;#39;%@&amp;#39;&amp;#34;&lt;/span&gt;, report.exception, report.mutant);
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;builtins&#34;&gt;Builtins&lt;/h3&gt;
 
@@ -546,25 +546,25 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;h4 id=&#34;delete-node-mutation&#34;&gt;Delete Node Mutation&lt;/h4&gt;
 
 &lt;p&gt;Returns sample without some node so that&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;,
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;,
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;becomes either&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;firstname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;John&amp;#34;&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;or&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
-  &lt;span style=&#34;font-weight:bold&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-json&#34; data-lang=&#34;json&#34;&gt;{
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;#34;lastname&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Doe&amp;#34;&lt;/span&gt;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id=&#34;replace-node-mutation&#34;&gt;Replace Node Mutation&lt;/h4&gt;
 
 &lt;p&gt;This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.&lt;/p&gt;
 
 &lt;p&gt;‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using &lt;code&gt;NodeReplacement&lt;/code&gt;, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;NodeReplacement *replacement = [NodeReplacement replacementWithValue:&amp;lt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#whatever may break your code#&amp;gt;];
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;id&lt;/span&gt;&amp;lt;Mutation&amp;gt; mutation = [ReplaceNodeMutation mutationWithReplacement:replacement];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;NodeReplacement &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;replacement &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NodeReplacement replacementWithValue:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#whatever may break your code#&amp;gt;];
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; mutation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [ReplaceNodeMutation mutationWithReplacement:replacement];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;That is, mutator will generate mutant with this replacement for each key/value.&lt;/p&gt;
 
 &lt;h3 id=&#34;extending-fuzzer&#34;&gt;Extending Fuzzer&lt;/h3&gt;
@@ -578,69 +578,69 @@ One can easily examine what caused failure by looking at report, e.g.:&lt;/p&gt;
 &lt;p&gt;Let’s create a mutation that will return random value (using  &lt;code&gt;NodeReplacement&lt;/code&gt;) instead of changing a sample.&lt;/p&gt;
 
 &lt;p&gt;Simplest interface ever:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#import &amp;lt;Fuzzer/Fuzzer.h&amp;gt;
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@interface&lt;/span&gt; ReplaceSampleMutation : NSObject
-  &amp;lt;Mutation&amp;gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#import &amp;lt;Fuzzer/Fuzzer.h&amp;gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ReplaceSampleMutation&lt;/span&gt; : &lt;span style=&#34;color:#a6e22e&#34;&gt;NSObject&lt;/span&gt;
+  &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;
 
-+ (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;instancetype&lt;/span&gt;)mutationWithReplacement:(NodeReplacement *)replacement;
+&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;instancetype&lt;/span&gt;)mutationWithReplacement:(NodeReplacement &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)replacement;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Implementation is not sophisticated as well:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@interface&lt;/span&gt; ReplaceSampleMutation ()
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ReplaceSampleMutation&lt;/span&gt; ()
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@property&lt;/span&gt; NodeReplacement *replacement;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@property&lt;/span&gt; NodeReplacement &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;replacement;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@implementation&lt;/span&gt; ReplaceSampleMutation
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ReplaceSampleMutation&lt;/span&gt;
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;///  Our constructor
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;+ (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;instancetype&lt;/span&gt;)mutationWithReplacement:(NodeReplacement *)replacement {
-  ReplaceSampleMutation *mutation = [&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt; new];
+&lt;span style=&#34;color:#75715e&#34;&gt;///  Our constructor
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;+ (&lt;span style=&#34;color:#66d9ef&#34;&gt;instancetype&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;mutationWithReplacement:&lt;/span&gt;(NodeReplacement &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)replacement {
+  ReplaceSampleMutation &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [self new];
 
-  mutation.replacement = replacement;
+  mutation.replacement &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; replacement;
 
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; mutation;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; mutation;
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/// ‘Mutation’ Protocol Requirement
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;- (NSDictionary *)mutateSample:(NSDictionary *)sample atNode:(NSString *)nodeName {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; (NSDictionary *)&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;.replacement.value;
+&lt;span style=&#34;color:#75715e&#34;&gt;/// ‘Mutation’ Protocol Requirement
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;- (NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;mutateSample:&lt;/span&gt;(NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)sample &lt;span style=&#34;color:#a6e22e&#34;&gt;atNode:&lt;/span&gt;(NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)nodeName {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; (NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)self.replacement.value;
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The usage is trivial:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;- (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt;)test {
-  NSDictionary *sample = @{
-    &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;name&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;John Doe&amp;#34;&lt;/span&gt;,
-    &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;age&amp;#34;&lt;/span&gt; : &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;@42&lt;/span&gt;
-  };
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;- (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;test&lt;/span&gt; {
+  NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;sample &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@{&lt;/span&gt;
+    &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;name&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;John Doe&amp;#34;&lt;/span&gt;,
+    &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;age&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@42&lt;/span&gt;
+  &lt;span style=&#34;color:#ae81ff&#34;&gt;}&lt;/span&gt;;
 
-  NSArray *replacements = [NodeReplacement builtinReplacements];
+  NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;replacements &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NodeReplacement builtinReplacements];
 
-  NSMutableArray *mutations = [NSMutableArray arrayWithCapacity:replacements.count];
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; (NodeReplacement *replacement &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; replacements) {
-        &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;id&lt;/span&gt;&amp;lt;Mutation&amp;gt; mutation = [ReplaceSampleMutation mutationWithReplacement:replacement];
+  NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutations &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray arrayWithCapacity:replacements.count];
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NodeReplacement &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;replacement &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; replacements) {
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;id&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Mutation&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; mutation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [ReplaceSampleMutation mutationWithReplacement:replacement];
         [mutations addObject:mutation];
   }
 
-  MutationGenerator *customGenerator = [MutationGenerator mutationGeneratorWithMutations:mutations];
-  MutationGenerator *builtinGenerator = [MutationGenerator builtinMutationGenerator];
+  MutationGenerator &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;customGenerator &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [MutationGenerator mutationGeneratorWithMutations:mutations];
+  MutationGenerator &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;builtinGenerator &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [MutationGenerator builtinMutationGenerator];
 
-  MutationGenerator *mutationGenerator = [MutationGenerator combineMutationGenerators:@[ customGenerator, builtinGenerator ]];
+  MutationGenerator &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutationGenerator &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [MutationGenerator combineMutationGenerators:&lt;span style=&#34;color:#ae81ff&#34;&gt;@[&lt;/span&gt; customGenerator, builtinGenerator &lt;span style=&#34;color:#ae81ff&#34;&gt;]&lt;/span&gt;];
 
-  Mutator *mutator = [Mutator mutatorForSample:sample withMutationGenerator:mutationGenerator];
-  Engine *engine = [Engine engineWithMutator:mutator];
+  Mutator &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutator &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Mutator mutatorForSample:sample withMutationGenerator:mutationGenerator];
+  Engine &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;engine &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Engine engineWithMutator:mutator];
 
-  UserDeserializer *deserializer = [UserDeserializer new];
-  NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant) {
-    User *user = [deserializer deserializeUser:mutant];
+  UserDeserializer &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;deserializer &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [UserDeserializer new];
+  NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;reports &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [engine runEngineOverMutants:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSDictionary &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mutant) {
+    User &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;user &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [deserializer deserializeUser:mutant];
     user.name.length;
     user.age.integerValue;
   }];
 
-  XCTAssertEqual(reports.count, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;);
+  XCTAssertEqual(reports.count, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;that-s-pretty-much-it&#34;&gt;That&amp;rsquo;s pretty much it&lt;/h3&gt;
 

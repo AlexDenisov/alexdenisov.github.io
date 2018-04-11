@@ -210,27 +210,27 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 <h3 id="llvm-ir">LLVM IR</h3>
 
 <p>Let&rsquo;s write some code to see LLVM IR in action.</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#007f7f">// main.c
-</span><span style="color:#007f7f"></span><span style="color:#fff;font-weight:bold">extern</span> <span style="color:#fff;font-weight:bold">int</span> printf(<span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">char</span> *fmt, ...);
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#75715e">// main.c
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">printf</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>fmt, ...);
 
-<span style="color:#fff;font-weight:bold">int</span> main() {
-  printf(<span style="color:#0ff;font-weight:bold">&#34;Hello World</span><span style="color:#0ff;font-weight:bold">\n</span><span style="color:#0ff;font-weight:bold">&#34;</span>);
-  <span style="color:#fff;font-weight:bold">return</span> <span style="color:#ff0;font-weight:bold">0</span>;
+<span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+  printf(<span style="color:#e6db74">&#34;Hello World</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 }</code></pre></div>
 <p>Run the following:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">clang -S -emit-llvm main.c</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">clang -S -emit-llvm main.c</code></pre></div>
 <p>And you&rsquo;ll have <code>main.ll</code> containing IR:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm">@.str = <span style="color:#fff;font-weight:bold">private</span> <span style="color:#fff;font-weight:bold">unnamed_addr</span> <span style="color:#fff;font-weight:bold">constant</span> [<span style="color:#ff0;font-weight:bold">13</span> <span style="color:#fff;font-weight:bold">x</span> <span style="color:#fff;font-weight:bold">i8</span>] <span style="color:#fff;font-weight:bold">c</span><span style="color:#0ff;font-weight:bold">&#34;Hello World\0A\00&#34;</span>, <span style="color:#fff;font-weight:bold">align</span> <span style="color:#ff0;font-weight:bold">1</span>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm">@.str = <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">unnamed_addr</span> <span style="color:#66d9ef">constant</span> [<span style="color:#ae81ff">13</span> <span style="color:#66d9ef">x</span> <span style="color:#66d9ef">i8</span>] <span style="color:#66d9ef">c</span><span style="color:#e6db74">&#34;Hello World\0A\00&#34;</span>, <span style="color:#66d9ef">align</span> <span style="color:#ae81ff">1</span>
 
-<span style="color:#007f7f">; Function Attrs: nounwind ssp uwtable
-</span><span style="color:#007f7f"></span><span style="color:#fff;font-weight:bold">define</span> <span style="color:#fff;font-weight:bold">i32</span> @main() #0 {
-  %1 = <span style="color:#fff;font-weight:bold">alloca</span> <span style="color:#fff;font-weight:bold">i32</span>, <span style="color:#fff;font-weight:bold">align</span> <span style="color:#ff0;font-weight:bold">4</span>
-  <span style="color:#fff;font-weight:bold">store</span> <span style="color:#fff;font-weight:bold">i32</span> <span style="color:#ff0;font-weight:bold">0</span>, <span style="color:#fff;font-weight:bold">i32</span>* %1
-  %2 = <span style="color:#fff;font-weight:bold">call</span> <span style="color:#fff;font-weight:bold">i32</span> (<span style="color:#fff;font-weight:bold">i8</span>*, ...)* @printf(<span style="color:#fff;font-weight:bold">i8</span>* <span style="color:#fff;font-weight:bold">getelementptr</span> <span style="color:#fff;font-weight:bold">inbounds</span> ([<span style="color:#ff0;font-weight:bold">13</span> <span style="color:#fff;font-weight:bold">x</span> <span style="color:#fff;font-weight:bold">i8</span>]* @.str, <span style="color:#fff;font-weight:bold">i32</span> <span style="color:#ff0;font-weight:bold">0</span>, <span style="color:#fff;font-weight:bold">i32</span> <span style="color:#ff0;font-weight:bold">0</span>))
-  <span style="color:#fff;font-weight:bold">ret</span> <span style="color:#fff;font-weight:bold">i32</span> <span style="color:#ff0;font-weight:bold">0</span>
+<span style="color:#75715e">; Function Attrs: nounwind ssp uwtable
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">define</span> <span style="color:#66d9ef">i32</span> @main() #0 {
+  %1 = <span style="color:#66d9ef">alloca</span> <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">align</span> <span style="color:#ae81ff">4</span>
+  <span style="color:#66d9ef">store</span> <span style="color:#66d9ef">i32</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">i32</span>* %1
+  %2 = <span style="color:#66d9ef">call</span> <span style="color:#66d9ef">i32</span> (<span style="color:#66d9ef">i8</span>*, ...)* @printf(<span style="color:#66d9ef">i8</span>* <span style="color:#66d9ef">getelementptr</span> <span style="color:#66d9ef">inbounds</span> ([<span style="color:#ae81ff">13</span> <span style="color:#66d9ef">x</span> <span style="color:#66d9ef">i8</span>]* @.str, <span style="color:#66d9ef">i32</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">i32</span> <span style="color:#ae81ff">0</span>))
+  <span style="color:#66d9ef">ret</span> <span style="color:#66d9ef">i32</span> <span style="color:#ae81ff">0</span>
 }
 
-<span style="color:#fff;font-weight:bold">declare</span> <span style="color:#fff;font-weight:bold">i32</span> @printf(<span style="color:#fff;font-weight:bold">i8</span>*, ...) #1</code></pre></div>
+<span style="color:#66d9ef">declare</span> <span style="color:#66d9ef">i32</span> @printf(<span style="color:#66d9ef">i8</span>*, ...) #1</code></pre></div>
 <p>What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).</p>
 
 <h3 id="how-could-malefactor-get-the-ir">How could malefactor get the IR?</h3>
@@ -245,14 +245,14 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
           height: auto;" /></p>
 
 <p>It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: <a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a>. The workflow is pretty straightforward. Let&rsquo;s assume that <code>some_binary</code> is a Mach-O file that contains object code for two CPUs (<code>arm</code> and <code>x86_64</code>), and each object code is built using two source files:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ bitcode_retriever some_binary
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ bitcode_retriever some_binary
 arm.xar
 x86_64.xar
 $ xar -xvf arm.xar
-<span style="color:#ff0;font-weight:bold">1</span>
-<span style="color:#ff0;font-weight:bold">2</span>
-$ llvm-dis <span style="color:#ff0;font-weight:bold">1</span> <span style="color:#007f7f"># outputs 1.ll
-</span><span style="color:#007f7f"></span>$ llvm-dis <span style="color:#ff0;font-weight:bold">2</span> # outputs <span style="color:#ff0;font-weight:bold">2</span>.ll</code></pre></div>
+<span style="color:#ae81ff">1</span>
+<span style="color:#ae81ff">2</span>
+$ llvm-dis <span style="color:#ae81ff">1</span> <span style="color:#75715e"># outputs 1.ll
+</span><span style="color:#75715e"></span>$ llvm-dis <span style="color:#ae81ff">2</span> # outputs <span style="color:#ae81ff">2</span>.ll</code></pre></div>
 <p>Bitcode does not store any information about original filenames but uses numbers instead (<code>1</code>, <code>2</code>, <code>3</code>, etc.).
 Also, probably you do not have <code>llvm-dis</code> installed/built on your machine, but you can easily obtain it, see this article for more details: <a href="http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started with Clang/LLVM on OS X</a>.</p>
 
@@ -815,19 +815,19 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -839,19 +839,11 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
@@ -859,15 +851,11 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
@@ -875,7 +863,19 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
       </ul>

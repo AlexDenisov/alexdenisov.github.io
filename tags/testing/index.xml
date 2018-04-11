@@ -496,17 +496,17 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 &lt;p&gt;Consider the following situation: you have a test case which covers implementation of a function &lt;code&gt;sum&lt;/code&gt;. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.&lt;/p&gt;
 
 &lt;p&gt;Here is the test:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;test_result test_sum() {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; result = sum(&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;9&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;5&lt;/span&gt;);
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;if&lt;/span&gt; (result &amp;gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;) {
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; success;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;test_result &lt;span style=&#34;color:#a6e22e&#34;&gt;test_sum&lt;/span&gt;() {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sum(&lt;span style=&#34;color:#ae81ff&#34;&gt;9&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;);
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (result &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; success;
   }
 
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; fail;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; fail;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Implementation of the &lt;code&gt;sum&lt;/code&gt; function is rather simple. But, since you missed your morning coffee you write a wrong operator there:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; sum(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; b) {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; a * b;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b) {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; b;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;You run the tests - everything is working.&lt;/p&gt;
 
@@ -523,10 +523,10 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 &lt;p&gt;Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.&lt;/p&gt;
 
 &lt;p&gt;Here is one potential mutation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt; int sum(int a, int b) {
--  return a * b;
-+  return a + b;
- }
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt; int sum(int a, int b) {
+&lt;span style=&#34;color:#f92672&#34;&gt;-  return a * b;
+&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;+  return a + b;
+&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&lt;/span&gt; }
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition &lt;code&gt;sum(9, 5) &amp;gt; 0&lt;/code&gt; still holds.&lt;/p&gt;
 
@@ -563,133 +563,133 @@ However, this proof of concept inspires me to start working on a real system, de
 
 &lt;p&gt;Below you can see a high level overview of an algorithm I have in my head.
 It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    Classes used within the algorithm
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;*/&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Classes used within the algorithm
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/* Basic instruction, e.g. a + b */&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt; Instruction {
+&lt;span style=&#34;color:#75715e&#34;&gt;/* Basic instruction, e.g. a + b */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Instruction&lt;/span&gt; {
 
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/* Represents set of istructions in a single scope, e.g. if/else branch */&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt; BasicBlock {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; instructions : [Instruction]
+&lt;span style=&#34;color:#75715e&#34;&gt;/* Represents set of istructions in a single scope, e.g. if/else branch */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;BasicBlock&lt;/span&gt; {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; instructions : [Instruction]
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/* Function is a function, that&amp;#39;s it */&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt; Function {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; basicBlocks : [BasicBlock]
+&lt;span style=&#34;color:#75715e&#34;&gt;/* Function is a function, that&amp;#39;s it */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Function&lt;/span&gt; {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; basicBlocks : [BasicBlock]
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/* Representation of a source file */&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt; Module {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; functions : [Function]
+&lt;span style=&#34;color:#75715e&#34;&gt;/* Representation of a source file */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Module&lt;/span&gt; {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; functions : [Function]
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/* Shows instruction that needs to be mutated */&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt; MutationPoint {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; instruction : Instruction
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; basicBlock : BasicBlock
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; function : Function
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; module : Module
+&lt;span style=&#34;color:#75715e&#34;&gt;/* Shows instruction that needs to be mutated */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MutationPoint&lt;/span&gt; {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; instruction : Instruction
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; basicBlock : BasicBlock
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; function : Function
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; module : Module
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    Algorithm
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;*/&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Algorithm
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/* Load all files into memory */&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; modules = loadProgramModules()
+&lt;span style=&#34;color:#75715e&#34;&gt;/* Load all files into memory */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modules = loadProgramModules()
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    Find all functions that represent test
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    &amp;#39;testFinder&amp;#39; is an abstraction intended to hide language/framework specific logic.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    Example classes are &amp;#39;CPP_GTest_TestFinder&amp;#39;, &amp;#39;ObjC_XCTest_TestFinder&amp;#39;,
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    &amp;#39;ObjC_Cedar_TestFinder&amp;#39; and so on.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;*/&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; tests = testFinder.findAllTests(modules)
+&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Find all functions that represent test
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    &amp;#39;testFinder&amp;#39; is an abstraction intended to hide language/framework specific logic.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Example classes are &amp;#39;CPP_GTest_TestFinder&amp;#39;, &amp;#39;ObjC_XCTest_TestFinder&amp;#39;,
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    &amp;#39;ObjC_Cedar_TestFinder&amp;#39; and so on.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tests = testFinder.findAllTests(modules)
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; tests {
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;      For each test we need to find a set of functions that can be mutated in some way
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  */&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; testeeFunctions = mutationFinder.findAllTesteeFunctions(test)
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; testee &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; testeeFunctions {
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        For each testee we do the following:
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        Testee belongs to a module, we need to make two copies of this module:
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        one copy will contain only testee (moduleWithOriginal)
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        another one will contain all functions but testee (moduleWithoutTesteeFunction)
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        Having this split we can mutate function inside of &amp;#39;moduleWithOriginal&amp;#39;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        without affecting and recompiling potentially big module
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    */&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; tests {
+  &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;      For each test we need to find a set of functions that can be mutated in some way
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; testeeFunctions = mutationFinder.findAllTesteeFunctions(test)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; testee &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; testeeFunctions {
+    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        For each testee we do the following:
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Testee belongs to a module, we need to make two copies of this module:
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        one copy will contain only testee (moduleWithOriginal)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        another one will contain all functions but testee (moduleWithoutTesteeFunction)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Having this split we can mutate function inside of &amp;#39;moduleWithOriginal&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        without affecting and recompiling potentially big module
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
 
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; moduleWithOriginal = copyOfModuleWithOnlyFunction(testee.module, testee)
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; moduleWithoutTesteeFunction = copyOfModuleWithoutFunction(testee.module, testee)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithOriginal = copyOfModuleWithOnlyFunction(testee.module, testee)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithoutTesteeFunction = copyOfModuleWithoutFunction(testee.module, testee)
 
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        Now we can create JIT engine using all modules, excluding the module of testee.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        In fact the latter one if replaced by &amp;#39;moduleWithoutTesteeFunction&amp;#39;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    */&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Now we can create JIT engine using all modules, excluding the module of testee.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        In fact the latter one if replaced by &amp;#39;moduleWithoutTesteeFunction&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
 
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; modulesWithoutTesteeModule = modules.without(testee.module)
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;var&lt;/span&gt; executionEngine = executionEngineWithModules(modulesWithoutTesteeModule)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modulesWithoutTesteeModule = modules.without(testee.module)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; executionEngine = executionEngineWithModules(modulesWithoutTesteeModule)
     executionEngine.addModule(moduleWithoutTesteeFunction)
 
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        Having JIT engine in place we can run the test against original implementation of testee
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    */&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Having JIT engine in place we can run the test against original implementation of testee
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
 
     executionEngine.addModule(moduleWithOriginal)
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; originalResult = executionEngine.runTest(test)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; originalResult = executionEngine.runTest(test)
     executionEngine.removeModule(moduleWithOriginal)
 
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        Now we need to find all places where we can apply mutation
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;    */&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Now we need to find all places where we can apply mutation
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
 
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; mutationPoints = mutationFinder.findAllMutationPoints(functino)
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; mutationPoints {
-        &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;            And for each such place we are getting copy of &amp;#39;moduleWithOriginal&amp;#39;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;            within applied mutation
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        */&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationPoints = mutationFinder.findAllMutationPoints(functino)
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; mutationPoints {
+        &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            And for each such place we are getting copy of &amp;#39;moduleWithOriginal&amp;#39;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            within applied mutation
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
 
-        &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; moduleWithMutation = applyMutationOnModule(point, moduleWithOriginal)
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithMutation = applyMutationOnModule(point, moduleWithOriginal)
 
-        &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;            Now we run the test against the mutant
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        */&lt;/span&gt;
+        &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            Now we run the test against the mutant
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
 
         executionEngine.addModule(moduleWithMutation)
-        &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; mutationResult = executionEngine.runTest(test)
+        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationResult = executionEngine.runTest(test)
         executionEngine.removeModule(moduleWithMutation)
 
-        &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;            And finally compare results
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;        */&lt;/span&gt;
+        &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            And finally compare results
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
 
         analyzeResults(originalResult, mutationResult)
     }
@@ -759,8 +759,8 @@ It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
 
 &lt;p&gt;If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
 Fortunately, it is very easy:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;echo&lt;/span&gt; &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;WITH_TESTS=YES&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; /usr/src
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;WITH_TESTS=YES&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
+cd /usr/src
 make buildworld
 make installworld&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id=&#34;running-tests&#34;&gt;Running tests&lt;/h4&gt;
@@ -770,10 +770,10 @@ make installworld&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.&lt;/p&gt;
 
 &lt;p&gt;To run tests you need to point &lt;code&gt;kyua&lt;/code&gt; to a &lt;code&gt;Kyuafile&lt;/code&gt;.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; /usr/tests
-kyua &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;test&lt;/span&gt; -k ./Kyuafile&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;cd /usr/tests
+kyua test -k ./Kyuafile&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;when it’s done you may request report:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;kyua report&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;kyua report&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
@@ -803,52 +803,52 @@ tap_test_program{name=&#39;some_tap_test’}
 &lt;p&gt;ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.&lt;/p&gt;
 
 &lt;p&gt;Here is a part of an ATF test written in shell:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;username=&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;test5678901234567&amp;#34;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;username&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test5678901234567&amp;#34;&lt;/span&gt;
 
 atf_test_case longname cleanup
 
-longname_head() {
-  atf_set &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;require.user&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;root&amp;#34;&lt;/span&gt;
-  atf_set &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;descr&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Test that usernames longer than 16 &amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;\
-&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;characters are allowed (PR bin/39546)&amp;#34;&lt;/span&gt;
-}
+longname_head&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+  atf_set &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;require.user&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;root&amp;#34;&lt;/span&gt;
+  atf_set &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;descr&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Test that usernames longer than 16 &amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;characters are allowed (PR bin/39546)&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
 
-longname_body() {
-  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;pw useradd &lt;/span&gt;$username&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;&lt;/span&gt;
-}
+longname_body&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pw useradd &lt;/span&gt;$username&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
 
-longname_cleanup() {
-  atf_check -s ignore -o ignore -e ignore -x &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;pw userdel &lt;/span&gt;$username&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;&lt;/span&gt;
-}
+longname_cleanup&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+  atf_check -s ignore -o ignore -e ignore -x &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pw userdel &lt;/span&gt;$username&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
 
-atf_init_test_cases() {
+atf_init_test_cases&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
   atf_add_test_case longname
-}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;If you try to find there a test written let’s say in C, then you will not succeed. All tests under &lt;code&gt;/usr/tests&lt;/code&gt; are executables.
 The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the &lt;code&gt;/usr/tests&lt;/code&gt;.
 For example, if you want to see tests for libc’ stdio, then you need to look at &lt;code&gt;/usr/src/lib/libc/tests/stdio&lt;/code&gt;.
 At the moment there is one test, here is part of it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
 ATF_TC_BODY(test_append_binary_pos, tc)
 {
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  * For compatibility with other implementations (glibc), we set the
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  * position to 0 when opening an automatically allocated binary stream
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  * for appending.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  */&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * For compatibility with other implementations (glibc), we set the
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * position to 0 when opening an automatically allocated binary stream
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * for appending.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
 
-  FILE *fp;
+  FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fp;
 
-  fp = fmemopen(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;NULL&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;ab+&amp;#34;&lt;/span&gt;);
-  ATF_REQUIRE(ftell(fp) == &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0L&lt;/span&gt;);
+  fp &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmemopen(NULL, &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ab+&amp;#34;&lt;/span&gt;);
+  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0L&lt;/span&gt;);
   fclose(fp);
 
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  * Make sure that a pre-allocated buffer behaves correctly.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  */&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;char&lt;/span&gt; buf[] = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt;;
-  fp = fmemopen(buf, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;sizeof&lt;/span&gt;(buf), &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;ab+&amp;#34;&lt;/span&gt;);
-  ATF_REQUIRE(ftell(fp) == strlen(buf));
+  &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * Make sure that a pre-allocated buffer behaves correctly.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buf[] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt;;
+  fp &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmemopen(buf, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(buf), &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ab+&amp;#34;&lt;/span&gt;);
+  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; strlen(buf));
   fclose(fp);
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;

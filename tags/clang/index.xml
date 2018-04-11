@@ -55,17 +55,17 @@ As for C family, there is the whole zoo of build tools: shell scripts, makefiles
 &lt;h4 id=&#34;mapping-bitcode-back-to-source-code&#34;&gt;Mapping bitcode back to source code&lt;/h4&gt;
 
 &lt;p&gt;First I thought that it would be a trivial task since everything in the original code should have a corresponding instruction in the bitcode. But, for instance, this line of C++ code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;some_vector.push_back(make_pair(foo, bar));
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;some_vector.push_back(make_pair(foo, bar));
 &lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Will be expanded into several hundred (!) of instructions, if one of those instructions crashes than a good IDE should show a corresponding line of code. Hence, all those hundreds of instructions are mapped to the same place in the original code.
 Another problem that all the following pieces of code have the same representation on the IR level:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;x +  &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#007f7f&#34;&gt;// sadd %x,  1
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;x -  &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#007f7f&#34;&gt;// sadd %x, -1
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;x += &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#007f7f&#34;&gt;// sadd %x,  1
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;x++    // sadd %x,  &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x, -1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;    &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; sadd &lt;span style=&#34;color:#f92672&#34;&gt;%&lt;/span&gt;x,  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Another problem: syntactic sugar.
 For instance:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;a = b + c;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;a &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; b &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; c;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;If &lt;code&gt;b&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt; are simple types, then this is an addition, but, if these are objects then this a function call.
 An end user might be a bit confused why some function related mutation was applied at the addition.&lt;/p&gt;
 
@@ -95,59 +95,59 @@ This process is quite fast since everything is happening in memory and we have a
 
 &lt;p&gt;One of the biggest advantages is that the algorithm for program execution is the same for each language/test framework.
 Below I describe the algorithm using pseudo code&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; Result {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; status   &lt;span style=&#34;color:#007f7f&#34;&gt;// failed, passed, timed out, etc&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; duration &lt;span style=&#34;color:#007f7f&#34;&gt;// how much time it took to run a program&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Result&lt;/span&gt; {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; status   &lt;span style=&#34;color:#75715e&#34;&gt;// failed, passed, timed out, etc&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; duration &lt;span style=&#34;color:#75715e&#34;&gt;// how much time it took to run a program&lt;/span&gt;
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; MutationPoint {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; module    &lt;span style=&#34;color:#007f7f&#34;&gt;// where the mutation is located&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; metadata  &lt;span style=&#34;color:#007f7f&#34;&gt;// some utility data&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MutationPoint&lt;/span&gt; {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; module    &lt;span style=&#34;color:#75715e&#34;&gt;// where the mutation is located&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; metadata  &lt;span style=&#34;color:#75715e&#34;&gt;// some utility data&lt;/span&gt;
 }
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/// we give N seconds for original test to complete&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; Timeout = N
+&lt;span style=&#34;color:#75715e&#34;&gt;/// we give N seconds for original test to complete&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; Timeout = N
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/// Program under test is represented as a&lt;/span&gt;
-&lt;span style=&#34;color:#007f7f&#34;&gt;/// set of bitcode modules&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; modules = loadModules()
+&lt;span style=&#34;color:#75715e&#34;&gt;/// Program under test is represented as a&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;/// set of bitcode modules&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modules = loadModules()
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;/// First we find tests. Each language + test framework&lt;/span&gt;
-&lt;span style=&#34;color:#007f7f&#34;&gt;/// has custom implementation of a Test Finder&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; tests = findTests(modules)
+&lt;span style=&#34;color:#75715e&#34;&gt;/// First we find tests. Each language + test framework&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;/// has custom implementation of a Test Finder&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tests = findTests(modules)
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; tests {
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// Then for each test we find places where we can&lt;/span&gt;
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// apply mutation - Mutation Point&lt;/span&gt;
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// Each language may have it&amp;#39;s own set of Mutation Operators&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; mutationPoints = findMutationPoints(test, modules)
+&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; tests {
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// Then for each test we find places where we can&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// apply mutation - Mutation Point&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// Each language may have it&amp;#39;s own set of Mutation Operators&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationPoints = findMutationPoints(test, modules)
 
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// Given we know what we want to mutate&lt;/span&gt;
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// We can start execution of each mutant&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; originalResult = runTest(test, modules, Timeout)
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;if&lt;/span&gt; originalResult != Passed {
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// Report an error and skip this test&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// One could also fail early, but we decided not to&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// Given we know what we want to mutate&lt;/span&gt;
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// We can start execution of each mutant&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; originalResult = runTest(test, modules, Timeout)
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; originalResult &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; Passed {
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// Report an error and skip this test&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// One could also fail early, but we decided not to&lt;/span&gt;
   }
 
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// Now it&amp;#39;s time to run a test against each mutant&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; mutationPoints {
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// Mutant is a copy of original module&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// within the mutation&lt;/span&gt;
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; mutant = applyMutation(point)
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// Now it&amp;#39;s time to run a test against each mutant&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; mutationPoints {
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// Mutant is a copy of original module&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// within the mutation&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutant = applyMutation(point)
 
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// To run the test against mutant we need&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// to replace the original module in the&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// set of modules&lt;/span&gt;
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; mutatedModules = modules.replace(point.module, mutant)
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// To run the test against mutant we need&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// to replace the original module in the&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// set of modules&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutatedModules = modules.replace(point.module, mutant)
 
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// Mutant should not take X times more time than&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// the original test&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// Otherwise we consider it as a timed out&lt;/span&gt;
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; timeout = originalResult * X
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;let&lt;/span&gt; mutationResult = runTest(test, mutatedModules, timeout)
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// The mutationResult can be now reported&lt;/span&gt;
-    &lt;span style=&#34;color:#007f7f&#34;&gt;/// We are done here, taking the next mutant&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// Mutant should not take X times more time than&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// the original test&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// Otherwise we consider it as a timed out&lt;/span&gt;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; timeout = originalResult &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; X
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationResult = runTest(test, mutatedModules, timeout)
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// The mutationResult can be now reported&lt;/span&gt;
+    &lt;span style=&#34;color:#75715e&#34;&gt;/// We are done here, taking the next mutant&lt;/span&gt;
   }
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;It is important to notice that each test run is done in a child process because mutation could lead to crash or an infinite loop.&lt;/p&gt;
@@ -167,23 +167,23 @@ the worker process.&lt;/p&gt;
 The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control the number of mutations.
 First place is &lt;code&gt;findTests&lt;/code&gt;: you could configure a program to run the only subset of tests. It is very convenient during analysis of a program under test.
 Another place is &lt;code&gt;findMutationPoints&lt;/code&gt;. Currently, our approach here is different from the one Pitest has. We do not use code coverage to find places where to add mutations. Instead, we use static analysis to build a call graph. For example:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt; test_foo() {
-  assert(foo() == &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;5&lt;/span&gt;);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;test_foo&lt;/span&gt;() {
+  assert(foo() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;);
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; foo() {
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; bar();
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; bar();
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; bar() {
-   &lt;span style=&#34;color:#007f7f&#34;&gt;/// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;   &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; buzz();
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;() {
+   &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; buzz();
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; buzz() {
-  &lt;span style=&#34;color:#007f7f&#34;&gt;/// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; x;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;buzz&lt;/span&gt;() {
+  &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; x;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Here we have the following call &amp;lsquo;graph&amp;rsquo;:&lt;/p&gt;
 
@@ -336,27 +336,27 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
 
 &lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// main.c
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; printf(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;char&lt;/span&gt; *fmt, ...);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// main.c
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fmt, ...);
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; main() {
-  printf(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;&lt;/span&gt;);
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+  printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Run the following:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;clang -S -emit-llvm main.c&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;clang -S -emit-llvm main.c&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;@.str = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;@.str = &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;; Function Attrs: nounwind ssp uwtable
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; @main() #0 {
-  %1 = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;4&lt;/span&gt;
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt;* %1
-  %2 = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;))
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;; Function Attrs: nounwind ssp uwtable
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @main() #0 {
+  %1 = &lt;span style=&#34;color:#66d9ef&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;* %1
+  %2 = &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;))
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;*, ...) #1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...) #1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
 
 &lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
@@ -371,14 +371,14 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ bitcode_retriever some_binary
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ bitcode_retriever some_binary
 arm.xar
 x86_64.xar
 $ xar -xvf arm.xar
-&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt;
-&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;
-$ llvm-dis &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#007f7f&#34;&gt;# outputs 1.ll
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$ llvm-dis &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt; # outputs &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;.ll&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 1.ll
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; # outputs &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;.ll&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
 Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
 
@@ -427,48 +427,48 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
 
 &lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSValue *center = @(view.center);    &lt;span style=&#34;color:#007f7f&#34;&gt;// Point p = view.center;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#007f7f&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;NSValue *frame = @(view.frame);      &lt;span style=&#34;color:#007f7f&#34;&gt;// Rect r = view.frame;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;                                     // [NSValue valueWithBytes:&amp;amp;r objCType:&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@encode&lt;/span&gt;(Rect)];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.center&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;    &lt;span style=&#34;color:#75715e&#34;&gt;// Point p = view.center;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#75715e&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.frame&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#75715e&#34;&gt;// Rect r = view.frame;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; [NSValue valueWithBytes:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;r objCType:&lt;span style=&#34;color:#66d9ef&#34;&gt;@encode&lt;/span&gt;(Rect)];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;!-- more --&gt;
 
 &lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) Point {
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; x, y;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x, y;
 };
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Size {
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; width, height;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; width, height;
 } Size;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _Rect {
 	Point origin;
   Size size;
 } Rect;
 
 Rect r;
-NSValue *bad_rect = @(r);       &lt;span style=&#34;color:#007f7f&#34;&gt;// error
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
+NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;       &lt;span style=&#34;color:#75715e&#34;&gt;// error
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
 
-NSValue *good_rect = @(r);      // ok&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; ok&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
 
 &lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#if __has_attribute(objc_boxable)
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#endif
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;
-CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;position&amp;#34;&lt;/span&gt;];
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;    animation.fromValue = @(layer.position);
-    animation.toValue = @(newPosition);
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#else
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;    animation.fromValue = [NSValue valueWithCGPoint:layer.position];
-    animation.toValue = [NSValue valueWithCGPoint:newPosition];
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#endif
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;[layer addAnimation:animation forKey:&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;move&amp;#34;&lt;/span&gt;];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_attribute(objc_boxable)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [CABasicAnimation animationWithKeyPath:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;position&amp;#34;&lt;/span&gt;];
+&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;layer.position&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;newPosition&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+&lt;span style=&#34;color:#75715e&#34;&gt;#else
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:layer.position];
+    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:newPosition];
+&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[layer addAnimation:animation forKey:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;move&amp;#34;&lt;/span&gt;];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;boring-numbers&#34;&gt;Boring Numbers&lt;/h3&gt;
 
 &lt;ul&gt;
@@ -495,13 +495,13 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:&lt;span sty
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSMutableArray *environments = [NSMutableArray new];
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; (NSString *key &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
-    XCCEnvironment *environment = [[XCCEnvironment alloc] initWithName:key
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+    XCCEnvironment &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] initWithName:key
                                                             parameters:dictionary[key]];
     [environments addObject:environments];
 }
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; environments;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
 
 &lt;!-- more --&gt;
@@ -516,11 +516,11 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:&lt;span sty
 &lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;NSMutableArray *environments = [NSMutableArray new];
-&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;[environments addObject:environments];
-// ...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[environments addObject:environments];
+&lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; ...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
@@ -598,40 +598,40 @@ The following topics are covered:&lt;/p&gt;
 &lt;p&gt;To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.&lt;/p&gt;
 
 &lt;p&gt;Let’s grab the latest sources:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir ~/Projects/clang_dev
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir ~/Projects/clang_dev
+cd ~/Projects/clang_dev
 git clone http://llvm.org/git/llvm.git
 git clone http://llvm.org/git/clang.git llvm/tools/clang
 git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra
 git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;You can checkout particular branch if you&amp;rsquo;re interested in a particular version (e.g. 3.4)&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir ~/Projects/clang_dev
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;export&lt;/span&gt; BRANCH=release_34
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir ~/Projects/clang_dev
+cd ~/Projects/clang_dev
+export BRANCH&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;release_34
 git clone http://llvm.org/git/llvm.git -b $BRANCH
 git clone http://llvm.org/git/clang.git llvm/tools/clang -b $BRANCH
 git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b $BRANCH
 git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b $BRANCH&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;From to time to time you have to update the sources if you use &lt;code&gt;HEAD&lt;/code&gt;. If you don’t want to do it manually, just put the script into &lt;code&gt;clang_dev&lt;/code&gt; directory:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#!/bin/env sh
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;root=&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm &amp;amp;&amp;amp; git pull origin master
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm/tools/clang &amp;amp;&amp;amp; git pull origin master
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm/projects/compiler-rt &amp;amp;&amp;amp; git pull origin master
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm/tools/clang/tools/extra &amp;amp;&amp;amp; git pull origin master&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#!/bin/env sh
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;root&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color:#e6db74&#34;&gt;`&lt;/span&gt;
+cd $root/llvm &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+cd $root/llvm/tools/clang &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+cd $root/llvm/projects/compiler-rt &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
+cd $root/llvm/tools/clang/tools/extra &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and make it executable&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;chmod +x update.sh&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;chmod +x update.sh&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;setting-up-ide-and-compiling&#34;&gt;Setting up IDE and compiling&lt;/h3&gt;
 
 &lt;p&gt;LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.&lt;/p&gt;
 
 &lt;p&gt;Let’s create the project for Xcode&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;cd ~/Projects/clang_dev
 mkdir build
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; build
-cmake -G Xcode CMAKE_BUILD_TYPE=&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Debug&amp;#34;&lt;/span&gt; ../llvm&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+cd build
+cmake -G Xcode CMAKE_BUILD_TYPE&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Debug&amp;#34;&lt;/span&gt; ../llvm&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;open it&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;open LLVM.xcodeproj&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;open LLVM.xcodeproj&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and find something to do (it’s not about ‘make tea’, but about ‘go for a party&amp;rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.&lt;/p&gt;
 
 &lt;p&gt;Well, once the project indexing is over you can build the clang.&lt;/p&gt;
@@ -712,8 +712,8 @@ cmake -G Xcode CMAKE_BUILD_TYPE=&lt;span style=&#34;color:#0ff;font-weight:bold&
 &lt;p&gt;In this example we’re going to debug a parser and semantic analysis phase of clang.&lt;/p&gt;
 
 &lt;p&gt;Create a file &lt;code&gt;/tmp/sum.c&lt;/code&gt; which contains the following code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; sum(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; b) {
-     &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; a + b;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b) {
+     &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; b;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and specify the file as an argument for a clang binary, with additional parameters:&lt;/p&gt;
 

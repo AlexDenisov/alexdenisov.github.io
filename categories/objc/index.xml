@@ -30,48 +30,48 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
 
 &lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSValue *center = @(view.center);    &lt;span style=&#34;color:#007f7f&#34;&gt;// Point p = view.center;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#007f7f&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;NSValue *frame = @(view.frame);      &lt;span style=&#34;color:#007f7f&#34;&gt;// Rect r = view.frame;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;                                     // [NSValue valueWithBytes:&amp;amp;r objCType:&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@encode&lt;/span&gt;(Rect)];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.center&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;    &lt;span style=&#34;color:#75715e&#34;&gt;// Point p = view.center;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#75715e&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.frame&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#75715e&#34;&gt;// Rect r = view.frame;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; [NSValue valueWithBytes:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;r objCType:&lt;span style=&#34;color:#66d9ef&#34;&gt;@encode&lt;/span&gt;(Rect)];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;!-- more --&gt;
 
 &lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) Point {
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; x, y;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x, y;
 };
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Size {
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; width, height;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; width, height;
 } Size;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _Rect {
 	Point origin;
   Size size;
 } Rect;
 
 Rect r;
-NSValue *bad_rect = @(r);       &lt;span style=&#34;color:#007f7f&#34;&gt;// error
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
+NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;       &lt;span style=&#34;color:#75715e&#34;&gt;// error
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
 
-NSValue *good_rect = @(r);      // ok&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; ok&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
 
 &lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#if __has_attribute(objc_boxable)
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; __attribute__((objc_boxable)) _Rect Rect;
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#endif
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;
-CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;position&amp;#34;&lt;/span&gt;];
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;    animation.fromValue = @(layer.position);
-    animation.toValue = @(newPosition);
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#else
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;    animation.fromValue = [NSValue valueWithCGPoint:layer.position];
-    animation.toValue = [NSValue valueWithCGPoint:newPosition];
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#endif
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;[layer addAnimation:animation forKey:&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;move&amp;#34;&lt;/span&gt;];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_attribute(objc_boxable)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [CABasicAnimation animationWithKeyPath:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;position&amp;#34;&lt;/span&gt;];
+&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;layer.position&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;newPosition&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+&lt;span style=&#34;color:#75715e&#34;&gt;#else
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:layer.position];
+    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:newPosition];
+&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[layer addAnimation:animation forKey:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;move&amp;#34;&lt;/span&gt;];&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;boring-numbers&#34;&gt;Boring Numbers&lt;/h3&gt;
 
 &lt;ul&gt;
@@ -100,10 +100,10 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:&lt;span sty
 &lt;p&gt;Imagine that there is a power in the universe that said to Apple: &amp;ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&amp;ldquo;.&lt;/p&gt;
 
 &lt;p&gt;I believe it was a hard task, but Apple managed to find that thing:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt; = [&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;super&lt;/span&gt; init];
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;) { &lt;span style=&#34;color:#007f7f&#34;&gt;// &amp;lt;- this is silly
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;}
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;self &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [super init];
+&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (self) { &lt;span style=&#34;color:#75715e&#34;&gt;// &amp;lt;- this is silly
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; self;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;**&lt;em&gt;Don&amp;rsquo;t want to offend you, I did this silly thing for years&lt;/em&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;strong&gt;TL;DR;&lt;/strong&gt;&lt;/p&gt;
@@ -146,10 +146,10 @@ return self;
 &lt;h4 id=&#34;nil-object-and-messaging&#34;&gt;Nil object and messaging&lt;/h4&gt;
 
 &lt;p&gt;In a first case an assignment expression just converts into a function call:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// note: &amp;#39;self&amp;#39; is nil
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;.foo = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;;
-&lt;span style=&#34;color:#007f7f&#34;&gt;// converts into
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;objc_msgSend(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@selector&lt;/span&gt;(setFoo:), &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// note: &amp;#39;self&amp;#39; is nil
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;self.foo &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#75715e&#34;&gt;// converts into
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;objc_msgSend(self, &lt;span style=&#34;color:#66d9ef&#34;&gt;@selector&lt;/span&gt;(setFoo:), &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;What happens when you send a message to a Nil object?&lt;/p&gt;
 
 &lt;p&gt;Well, nothing happens.&lt;/p&gt;
@@ -157,10 +157,10 @@ return self;
 &lt;h4 id=&#34;nil-object-and-pointers&#34;&gt;Nil object and pointers&lt;/h4&gt;
 
 &lt;p&gt;The second constructor also has a different final form:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// note: &amp;#39;self&amp;#39; is nil
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;_foo = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;;
-&lt;span style=&#34;color:#007f7f&#34;&gt;// actually means
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;-&amp;gt;_foo = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// note: &amp;#39;self&amp;#39; is nil
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;_foo &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#75715e&#34;&gt;// actually means
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;self&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;_foo &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Foo&amp;#34;&lt;/span&gt;;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;OK, another question: what happens when you dereference null pointer?&lt;/p&gt;
 
 &lt;p&gt;Behaviour in this case is undefined, but for iOS/OS X platforms it’s usually a crash.&lt;/p&gt;
@@ -190,13 +190,13 @@ return self;
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSMutableArray *environments = [NSMutableArray new];
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; (NSString *key &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
-    XCCEnvironment *environment = [[XCCEnvironment alloc] initWithName:key
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+    XCCEnvironment &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] initWithName:key
                                                             parameters:dictionary[key]];
     [environments addObject:environments];
 }
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; environments;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
 
 &lt;!-- more --&gt;
@@ -211,11 +211,11 @@ return self;
 &lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;NSMutableArray *environments = [NSMutableArray new];
-&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;[environments addObject:environments];
-// ...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[environments addObject:environments];
+&lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; ...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
@@ -275,14 +275,14 @@ return self;
 Our toolchain does not provide good solution for this problem, so we have to implement our own.&lt;/p&gt;
 
 &lt;p&gt;When I worked with Ruby On Rails I really loved its approach for database configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;development:
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;development:
   user: dev
   password: dev123
-&lt;span style=&#34;color:#007f7f&#34;&gt;# ...&lt;/span&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# ...&lt;/span&gt;
 production:
   user: root
   password: supersecurepassword
-&lt;span style=&#34;color:#007f7f&#34;&gt;# ...&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;# ...&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;I wish I can use the same approach in my daily iOS development.&lt;/p&gt;
 
 &lt;p&gt;Fortunately, I can!&lt;/p&gt;
@@ -301,11 +301,11 @@ Both of them have serious disadvantages.&lt;/p&gt;
 &lt;h4 id=&#34;preprocessor-definition&#34;&gt;Preprocessor Definition&lt;/h4&gt;
 
 &lt;p&gt;You may saw and probably used this approach. It&amp;rsquo;s pretty easy and simple to use:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#ifdef DEBUG
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;NSString *&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; kServerAddress = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;https://staging.example.com&amp;#34;&lt;/span&gt;;
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#else
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;NSString *&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; kServerAddress = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;https://example.com&amp;#34;&lt;/span&gt;;
-&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#endif&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#ifdef DEBUG
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;https://staging.example.com&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#75715e&#34;&gt;#else
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;https://example.com&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#75715e&#34;&gt;#endif&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;But let&amp;rsquo;s say that you add one more environment, e.g. &amp;ldquo;Beta&amp;rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&amp;rsquo;s really easy to make a typo or &amp;ldquo;accidentally&amp;rdquo; drop a definition. Your code will compile, but it&amp;rsquo;d use wrong environment.
 Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.&lt;/p&gt;
 
@@ -331,31 +331,31 @@ Still you have to perform way too many actions for such a simple task.&lt;/p&gt;
 &lt;h5 id=&#34;here-is-how-it-looks-like&#34;&gt;Here is how it looks like:&lt;/h5&gt;
 
 &lt;p&gt;Configuration file:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;principalClass: Configuration
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;principalClass: Configuration
 
 Debug:
   serverAddress: https://staging.example.com
-  APIKey: qwe123&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;!!qwe&lt;/span&gt;
+  APIKey: qwe123&lt;span style=&#34;color:#75715e&#34;&gt;!!qwe&lt;/span&gt;
 
 Release:
   serverAddress: https://example.com
   APIKey: qwe123qwe&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;ObjC code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;@Interface Configuration : NSObject
-- (NSString *)serverAddress;
-- (NSString *)APIKey;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;@Interface Configuration : NSObject
+&lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)serverAddress;
+- (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;APIKey&lt;/span&gt;;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
-Config *config = [Config new];
-NSLog(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;%@&amp;#34;&lt;/span&gt;, config.serverAddress);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+Config &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Config new];
+NSLog(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;%@&amp;#34;&lt;/span&gt;, config.serverAddress);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;No preprocessor, no boilerplate!&lt;/p&gt;
 
 &lt;h4 id=&#34;installation-and-usage&#34;&gt;Installation and usage&lt;/h4&gt;
 
 &lt;p&gt;To install &lt;code&gt;xcconf&lt;/code&gt; you need to clone repo and run one command, it&amp;rsquo;ll build executable and install it into &lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;git clone git@github.com:AlexDenisov/xcconf.git &amp;amp;&amp;amp; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; xcconf
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; cd xcconf
 make install&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Integration into project looks weird, but don&amp;rsquo;t worry, that&amp;rsquo;s ok :)&lt;/p&gt;
 
@@ -370,7 +370,7 @@ make install&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
   alt=&#34;New file&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Put there initial configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;principalClass: Config
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;principalClass: Config
 
 Debug:
   color: Green
@@ -378,9 +378,9 @@ Debug:
 Release:
   color: Blue&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Prepare class interface for configuration. &lt;strong&gt;But do not create implementation&lt;/strong&gt;. Its name should be equal to &lt;code&gt;principalClass&lt;/code&gt; and it might contain getter methods for all available parameters, in this case it&amp;rsquo;s just &lt;code&gt;color&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@interface&lt;/span&gt; Config : NSObject
-- (NSString *)color;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color:#a6e22e&#34;&gt;NSObject&lt;/span&gt;
+- (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;color&lt;/span&gt;;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
@@ -404,14 +404,14 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
   alt=&#34;xcconf&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Now we&amp;rsquo;re ready to use it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#import &amp;#34;Config.h&amp;#34;
-&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; main(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;char&lt;/span&gt; * argv[]) {
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@autoreleasepool&lt;/span&gt; {
-        Config *config = [Config new];
-        NSLog(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;%@&amp;#34;&lt;/span&gt;, config.color);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#import &amp;#34;Config.h&amp;#34;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; argv[]) {
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;@autoreleasepool&lt;/span&gt; {
+        Config &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Config new];
+        NSLog(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;%@&amp;#34;&lt;/span&gt;, config.color);
     }
-    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;;
+    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
 

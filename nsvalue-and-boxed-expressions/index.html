@@ -127,48 +127,48 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 <h3 id="boxed-expressions-and-structures">Boxed Expressions and Structures</h3>
 
 <p>Boxed expressions got limited support of NSValue:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">NSValue *center = @(view.center);    <span style="color:#007f7f">// Point p = view.center;
-</span><span style="color:#007f7f"></span>                                     <span style="color:#007f7f">// [NSValue valueWithBytes:&amp;p objCType:@encode(Point)];
-</span><span style="color:#007f7f"></span>NSValue *frame = @(view.frame);      <span style="color:#007f7f">// Rect r = view.frame;
-</span><span style="color:#007f7f"></span>                                     // [NSValue valueWithBytes:&amp;r objCType:<span style="color:#fff;font-weight:bold">@encode</span>(Rect)];</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">NSValue <span style="color:#f92672">*</span>center <span style="color:#f92672">=</span> <span style="color:#ae81ff">@(</span>view.center<span style="color:#ae81ff">)</span>;    <span style="color:#75715e">// Point p = view.center;
+</span><span style="color:#75715e"></span>                                     <span style="color:#75715e">// [NSValue valueWithBytes:&amp;p objCType:@encode(Point)];
+</span><span style="color:#75715e"></span>NSValue <span style="color:#f92672">*</span>frame <span style="color:#f92672">=</span> <span style="color:#ae81ff">@(</span>view.frame<span style="color:#ae81ff">)</span>;      <span style="color:#75715e">// Rect r = view.frame;
+</span><span style="color:#75715e"></span>                                     <span style="color:#f92672">//</span> [NSValue valueWithBytes:<span style="color:#f92672">&amp;</span>r objCType:<span style="color:#66d9ef">@encode</span>(Rect)];</code></pre></div>
 <!-- more -->
 
 <p>To use boxed expressions on a C struct or union you&rsquo;ve defined, mark it as <code>objc_boxable</code> first:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">struct</span> __attribute__((objc_boxable)) Point {
-    <span style="color:#fff;font-weight:bold">int</span> x, y;
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">__attribute__</span>((objc_boxable)) Point {
+    <span style="color:#66d9ef">int</span> x, y;
 };
 
-<span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> __attribute__((objc_boxable)) _Size {
-    <span style="color:#fff;font-weight:bold">int</span> width, height;
+<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">__attribute__</span>((objc_boxable)) _Size {
+    <span style="color:#66d9ef">int</span> width, height;
 } Size;</code></pre></div>
 <p>For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> _Rect {
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> _Rect {
 	Point origin;
   Size size;
 } Rect;
 
 Rect r;
-NSValue *bad_rect = @(r);       <span style="color:#007f7f">// error
-</span><span style="color:#007f7f"></span>
-<span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> __attribute__((objc_boxable)) _Rect Rect;
+NSValue <span style="color:#f92672">*</span>bad_rect <span style="color:#f92672">=</span> <span style="color:#ae81ff">@(</span>r<span style="color:#ae81ff">)</span>;       <span style="color:#75715e">// error
+</span><span style="color:#75715e"></span>
+<span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">__attribute__</span>((objc_boxable)) _Rect Rect;
 
-NSValue *good_rect = @(r);      // ok</code></pre></div>
+NSValue <span style="color:#f92672">*</span>good_rect <span style="color:#f92672">=</span> <span style="color:#ae81ff">@(</span>r<span style="color:#ae81ff">)</span>;      <span style="color:#f92672">//</span> ok</code></pre></div>
 <h3 id="availability">Availability</h3>
 
 <p>To write backward compatible code you need to check for attribute and feature availability:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#0f0;font-weight:bold">#if __has_attribute(objc_boxable)
-</span><span style="color:#0f0;font-weight:bold"></span>    <span style="color:#fff;font-weight:bold">typedef</span> <span style="color:#fff;font-weight:bold">struct</span> __attribute__((objc_boxable)) _Rect Rect;
-<span style="color:#0f0;font-weight:bold">#endif
-</span><span style="color:#0f0;font-weight:bold"></span>
-CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:<span style="color:#0ff;font-weight:bold">@&#34;position&#34;</span>];
-<span style="color:#0f0;font-weight:bold">#if __has_feature(objc_boxed_nsvalue_expressions)
-</span><span style="color:#0f0;font-weight:bold"></span>    animation.fromValue = @(layer.position);
-    animation.toValue = @(newPosition);
-<span style="color:#0f0;font-weight:bold">#else
-</span><span style="color:#0f0;font-weight:bold"></span>    animation.fromValue = [NSValue valueWithCGPoint:layer.position];
-    animation.toValue = [NSValue valueWithCGPoint:newPosition];
-<span style="color:#0f0;font-weight:bold">#endif
-</span><span style="color:#0f0;font-weight:bold"></span>[layer addAnimation:animation forKey:<span style="color:#0ff;font-weight:bold">@&#34;move&#34;</span>];</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#75715e">#if __has_attribute(objc_boxable)
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">__attribute__</span>((objc_boxable)) _Rect Rect;
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>
+CABasicAnimation animation <span style="color:#f92672">=</span> [CABasicAnimation animationWithKeyPath:<span style="color:#e6db74">@&#34;position&#34;</span>];
+<span style="color:#75715e">#if __has_feature(objc_boxed_nsvalue_expressions)
+</span><span style="color:#75715e"></span>    animation.fromValue <span style="color:#f92672">=</span> <span style="color:#ae81ff">@(</span>layer.position<span style="color:#ae81ff">)</span>;
+    animation.toValue <span style="color:#f92672">=</span> <span style="color:#ae81ff">@(</span>newPosition<span style="color:#ae81ff">)</span>;
+<span style="color:#75715e">#else
+</span><span style="color:#75715e"></span>    animation.fromValue <span style="color:#f92672">=</span> [NSValue valueWithCGPoint:layer.position];
+    animation.toValue <span style="color:#f92672">=</span> [NSValue valueWithCGPoint:newPosition];
+<span style="color:#75715e">#endif
+</span><span style="color:#75715e"></span>[layer addAnimation:animation forKey:<span style="color:#e6db74">@&#34;move&#34;</span>];</code></pre></div>
 <h3 id="boring-numbers">Boring Numbers</h3>
 
 <ul>
@@ -720,15 +720,15 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:<span style=
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -740,23 +740,11 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:<span style=
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
@@ -764,19 +752,31 @@ CABasicAnimation animation = [CABasicAnimation animationWithKeyPath:<span style=
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
       </ul>

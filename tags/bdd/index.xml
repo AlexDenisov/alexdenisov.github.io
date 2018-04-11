@@ -40,147 +40,147 @@
 &lt;p&gt;&lt;code&gt;Client&lt;/code&gt; - handles error/raw data from the &lt;code&gt;Loader&lt;/code&gt; and sends it to an end user&lt;/p&gt;
 
 &lt;p&gt;Here is the interface of the &lt;code&gt;Loader&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@interface&lt;/span&gt; Loader : NSObject
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Loader&lt;/span&gt; : &lt;span style=&#34;color:#a6e22e&#34;&gt;NSObject&lt;/span&gt;
 
-- (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt;)loadDataWithCompletion:(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt; (^) (NSData *data, NSError *error))completion;
+- (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;loadDataWithCompletion:&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;) (NSData &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error))completion;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;the interface of the &lt;code&gt;Client&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; void (^Callback) (NSArray *users, NSError *error);
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@class&lt;/span&gt; Loader;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;Callback) (NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;users, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Loader&lt;/span&gt;;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@interface&lt;/span&gt; Client : NSObject
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Client&lt;/span&gt; : &lt;span style=&#34;color:#a6e22e&#34;&gt;NSObject&lt;/span&gt;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@property&lt;/span&gt; Loader *loader;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@property&lt;/span&gt; Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;loader;
 
-- (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt;)loadUsersWithCallback:(Callback)callback;
+- (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)callback;
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and it’s implementation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@implementation&lt;/span&gt; Client
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;@implementation&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Client&lt;/span&gt;
 
-- (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt;)loadUsersWithCallback:(Callback)callback {
-  [&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;self&lt;/span&gt;.loader loadDataWithCompletion:^(NSData *data, NSError *error) {
-    NSArray *users = parseUsers(data);
-    NSError *finalError = processError(error);
+- (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;loadUsersWithCallback:&lt;/span&gt;(Callback)callback {
+  [self.loader loadDataWithCompletion:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSData &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error) {
+    NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;users &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parseUsers(data);
+    NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;finalError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; processError(error);
     callback(users, finalError);
   }];
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;span style=&#34;color:#66d9ef&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Our goal is to test that the client parses data and handles errors in a correct way:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;describe(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Client&amp;#34;&lt;/span&gt;, ^{
-  Client *client = [Client new];
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;describe(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Client&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;{
+  Client &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Client new];
 
-  it(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;should parse data&amp;#34;&lt;/span&gt;, ^{
-    NSArray *expectedUsers = ethalonUsers();
-    NSArray *actualUsers = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
+  it(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;should parse data&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;{
+    NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ethalonUsers();
+    NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
 
-    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
-      actualUsers = users;
+    [client loadUsersWithCallback:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;users, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error) {
+      actualUsers &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; users;
     }];
 
-    actualUsers should equal(expectedUsers);
+    actualUsers should &lt;span style=&#34;color:#a6e22e&#34;&gt;equal&lt;/span&gt;(expectedUsers);
   });
 
-  it(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;should process error&amp;#34;&lt;/span&gt;, ^{
-    NSError *expectedError = ethalonError();
-    NSError *actualError = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
+  it(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;should process error&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;{
+    NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ethalonError();
+    NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
 
-    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
-      actualError = error;
+    [client loadUsersWithCallback:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;users, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error) {
+      actualError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; error;
     }];
 
-    actualError should equal(expectedError);
+    actualError should &lt;span style=&#34;color:#a6e22e&#34;&gt;equal&lt;/span&gt;(expectedError);
   });
 
 });&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;To test this we just need to replace the &lt;code&gt;client.loader&lt;/code&gt; with a fake object that is going to mimic the desired behavior.&lt;/p&gt;
 
 &lt;p&gt;Here is how it looks like with Cedar:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; void (^LoaderCallback)(NSData *data, NSError *error);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;LoaderCallback)(NSData &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error);
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;// parse data
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;SEL&lt;/span&gt; sel = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
-Loader *loader = fake_for(Loader.&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt;);
-loader stub_method(sel).and_do(^(NSInvocation *invocation) {
-  LoaderCallback callback = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
-  NSData *data = getUsersData();
-  [invocation getArgument:&amp;amp;callback atIndex:&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;];
-  callback(data, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;);
+&lt;span style=&#34;color:#75715e&#34;&gt;// parse data
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
+Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt;);
+loader &lt;span style=&#34;color:#a6e22e&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSInvocation &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;invocation) {
+  LoaderCallback callback &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
+  NSData &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; getUsersData();
+  [invocation getArgument:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;callback atIndex:&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;];
+  callback(data, nil);
 });
 
-&lt;span style=&#34;color:#007f7f&#34;&gt;// parse data
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;SEL&lt;/span&gt; sel = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
-Loader *loader = fake_for(Loader.&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt;);
-loader stub_method(sel).and_do(^(NSInvocation *invocation) {
-  LoaderCallback callback = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
-  NSError *error = getError();
-  [invocation getArgument:&amp;amp;callback atIndex:&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;];
-  callback(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;, error);
+&lt;span style=&#34;color:#75715e&#34;&gt;// parse data
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
+Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt;);
+loader &lt;span style=&#34;color:#a6e22e&#34;&gt;stub_method&lt;/span&gt;(sel).and_do(&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSInvocation &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;invocation) {
+  LoaderCallback callback &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
+  NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; getError();
+  [invocation getArgument:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;callback atIndex:&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;];
+  callback(nil, error);
 });&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;For those unfamiliar with &lt;a href=&#34;https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html&#34;&gt;&lt;code&gt;NSInvocation&lt;/code&gt;&lt;/a&gt; let me cite it&amp;rsquo;s documentation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;/*
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;buffer:
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;index:
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  An integer specifying the index of the argument to get.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.
-&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;*/&lt;/span&gt;
-- (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt;)getArgument:(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt; * nonnull)buffer atIndex:(NSInteger)index;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;buffer:
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;index:
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  An integer specifying the index of the argument to get.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.
+&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+- (&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;)&lt;span style=&#34;color:#a6e22e&#34;&gt;getArgument:&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; nonnull)buffer &lt;span style=&#34;color:#a6e22e&#34;&gt;atIndex:&lt;/span&gt;(NSInteger)index;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;After putting these parts together you&amp;rsquo;ll have this cryptic code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; void (^LoaderCallback)(NSData *data, NSError *error);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;LoaderCallback)(NSData &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error);
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;static&lt;/span&gt; Loader *fakeUsersLoader() {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;SEL&lt;/span&gt; sel = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
-  Loader *loader = fake_for(Loader.&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt;);
-  loader stub_method(sel).and_do(^(NSInvocation *invocation) {
-    LoaderCallback callback = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
-    NSData *data = getUsersData();
-    [invocation getArgument:&amp;amp;callback atIndex:&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;];
-    callback(data, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;fakeUsersLoader&lt;/span&gt;() {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
+  Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt;);
+  loader stub_method(sel).and_do(&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSInvocation &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;invocation) {
+    LoaderCallback callback &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
+    NSData &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;data &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; getUsersData();
+    [invocation getArgument:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;callback atIndex:&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;];
+    callback(data, nil);
   });
 }
 
-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;static&lt;/span&gt; Loader *fakeErrorLoader() {
-  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;SEL&lt;/span&gt; sel = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
-  Loader *loader = fake_for(Loader.&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;class&lt;/span&gt;);
-  loader stub_method(sel).and_do(^(NSInvocation *invocation) {
-    LoaderCallback callback = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
-    NSError *error = getError();
-    [invocation getArgument:&amp;amp;callback atIndex:&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;];
-    callback(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;, error);
+&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;fakeErrorLoader&lt;/span&gt;() {
+  &lt;span style=&#34;color:#66d9ef&#34;&gt;SEL&lt;/span&gt; sel &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;@selector&lt;/span&gt;(loadDataWithCompletion:);
+  Loader &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;loader &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fake_for(Loader.&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt;);
+  loader stub_method(sel).and_do(&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSInvocation &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;invocation) {
+    LoaderCallback callback &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
+    NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; getError();
+    [invocation getArgument:&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;callback atIndex:&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;];
+    callback(nil, error);
   });
 }
 
-describe(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;Client&amp;#34;&lt;/span&gt;, ^{
-  Client *client = [Client new];
+describe(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Client&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;{
+  Client &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;client &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [Client new];
 
-  it(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;should parse data&amp;#34;&lt;/span&gt;, ^{
-    client.loader = fakeUsersLoader();
+  it(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;should parse data&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;{
+    client.loader &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fakeUsersLoader();
 
-    NSArray *expectedUsers = ethalonUsers();
-    NSArray *actualUsers = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
+    NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;expectedUsers &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ethalonUsers();
+    NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;actualUsers &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
 
-    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
-      actualUsers = users;
+    [client loadUsersWithCallback:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;users, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error) {
+      actualUsers &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; users;
     }];
 
-    actualUsers should equal(expectedUsers);
+    actualUsers should &lt;span style=&#34;color:#a6e22e&#34;&gt;equal&lt;/span&gt;(expectedUsers);
   });
 
-  it(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;should process error&amp;#34;&lt;/span&gt;, ^{
-    client.loader = fakeErrorLoader();
+  it(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;should process error&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;{
+    client.loader &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fakeErrorLoader();
 
-    NSError *expectedError = ethalonError();
-    NSError *actualError = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;nil&lt;/span&gt;;
+    NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;expectedError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ethalonError();
+    NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;actualError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; nil;
 
-    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
-      actualError = error;
+    [client loadUsersWithCallback:&lt;span style=&#34;color:#f92672&#34;&gt;^&lt;/span&gt;(NSArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;users, NSError &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;error) {
+      actualError &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; error;
     }];
 
-    actualError should equal(expectedError);
+    actualError should &lt;span style=&#34;color:#a6e22e&#34;&gt;equal&lt;/span&gt;(expectedError);
   });
 });&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;

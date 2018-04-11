@@ -117,13 +117,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           
 
 <p>Some time ago I accidentally wrote this code:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">NSMutableArray *environments = [NSMutableArray new];
-<span style="color:#fff;font-weight:bold">for</span> (NSString *key <span style="color:#fff;font-weight:bold">in</span> [dictionary allKeys]) {
-    XCCEnvironment *environment = [[XCCEnvironment alloc] initWithName:key
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">NSMutableArray <span style="color:#f92672">*</span>environments <span style="color:#f92672">=</span> [NSMutableArray new];
+<span style="color:#66d9ef">for</span> (NSString <span style="color:#f92672">*</span>key <span style="color:#66d9ef">in</span> [dictionary allKeys]) {
+    XCCEnvironment <span style="color:#f92672">*</span>environment <span style="color:#f92672">=</span> [[XCCEnvironment alloc] initWithName:key
                                                             parameters:dictionary[key]];
     [environments addObject:environments];
 }
-<span style="color:#fff;font-weight:bold">return</span> environments;</code></pre></div>
+<span style="color:#66d9ef">return</span> environments;</code></pre></div>
 <p>Did you notice the problem here? Well, I didn&rsquo;t.</p>
 
 <!-- more -->
@@ -138,11 +138,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <p>Consumer of <code>environments</code> expected to get <code>XCCEnvironment</code>, but got <code>NSMutableArray</code>.</p>
 
 <p>At the beginning it wasn&rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:</p>
-<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#007f7f">// ...
-</span><span style="color:#007f7f"></span>NSMutableArray *environments = [NSMutableArray new];
-<span style="color:#007f7f">// ...
-</span><span style="color:#007f7f"></span>[environments addObject:environments];
-// ...</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>NSMutableArray <span style="color:#f92672">*</span>environments <span style="color:#f92672">=</span> [NSMutableArray new];
+<span style="color:#75715e">// ...
+</span><span style="color:#75715e"></span>[environments addObject:environments];
+<span style="color:#f92672">//</span> ...</code></pre></div>
 <p>Documentation says nothing about collection&rsquo;s behaviour in such situation, the only valuable (imo) reading I&rsquo;ve found is Mike Ash&rsquo;s blog-post <a href="https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html">Let&rsquo;s break Cocoa</a>.</p>
 
 <p>The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.</p>
@@ -717,15 +717,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -741,31 +741,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -777,7 +765,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
       </ul>
