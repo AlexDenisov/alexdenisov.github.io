@@ -6,6 +6,8 @@
     <description>Recent content in Cocoapods on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 23 Nov 2015 17:05:00 +0000</lastBuildDate>
     <atom:link href="/tags/cocoapods/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>Components: taking a step back from Dependency Management</title>
       <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
@@ -78,22 +80,18 @@ Any big enough system is built from different components, that are composed toge
 &lt;h5 id=&#34;driver&#34;&gt;Driver&lt;/h5&gt;
 
 &lt;p&gt;Driver is responsible for iterating over makefiles and runs particular rule (one of the specified above) against them. Here is couple of examples:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;./components.sh install                &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# installs every component in the components directory (COMPONENTS_MAKE_PATH)&lt;/span&gt;
-./components.sh purge Cedar            &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# cleans and uninstalls Cedar library&lt;/span&gt;
-./components.sh update BloodMagic      &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# uninstalls current and installs new version of BloodMagic library&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;./components.sh install                &lt;span style=&#34;color:#007f7f&#34;&gt;# installs every component in the components directory (COMPONENTS_MAKE_PATH)
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;./components.sh purge Cedar            &lt;span style=&#34;color:#007f7f&#34;&gt;# cleans and uninstalls Cedar library
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;./components.sh update BloodMagic      # uninstalls current and installs new version of BloodMagic library&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;code&gt;GNU/Make&lt;/code&gt; has a feature called &amp;lsquo;dry-run&amp;rsquo; (&lt;code&gt;man make&lt;/code&gt; look for &amp;lsquo;&amp;ndash;dry-run&amp;rsquo;), that &amp;ldquo;prints the commands that would be executed, but do not execute them&amp;rdquo;. We have found it extremely useful and added to driver. To see what will happen during the installation of AFNetworking, simply run:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./components.sh explain install AFNetworking
-&lt;span style=&#34;color: #666666&#34;&gt;[&lt;/span&gt;install&lt;span style=&#34;color: #666666&#34;&gt;]&lt;/span&gt; AFNetworking:
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;$ ./components.sh explain install AFNetworking
+[install] AFNetworking:
 wget --no-use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
 unzip /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d /Users/alexdenisov/Library/Caches/Components/AFNetworking
 touch /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
 mkdir ./Components/AFNetworking/
 cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
-cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
-&lt;/pre&gt;&lt;/div&gt;
-
+cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;It is very useful if you want to debug your component’s installation process, but also if you’re concerned about security and do not want to blindly run a script downloaded from the internet.&lt;/p&gt;
 
 &lt;h3 id=&#34;example&#34;&gt;Example&lt;/h3&gt;
@@ -107,38 +105,34 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h4 id=&#34;header&#34;&gt;Header&lt;/h4&gt;
 
 &lt;p&gt;Here is a typical header of a component&amp;rsquo;s makefile:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking
-&lt;span style=&#34;color: #19177C&#34;&gt;VERSION&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;2.6.3
-&lt;span style=&#34;color: #19177C&#34;&gt;GH_REPO&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking/AFNetworking
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;NAME=AFNetworking
+VERSION=&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;.6.3
+GH_REPO=AFNetworking/AFNetworking
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;It says that we will work with version 2.6.3 of AFNetworking, the last line specifies the repository on Github. We could reuse &lt;code&gt;$NAME&lt;/code&gt; here, but it&amp;rsquo;s not the case for all projects, so we recommend to leave it as is.&lt;/p&gt;
 
 &lt;h4 id=&#34;paths&#34;&gt;Paths&lt;/h4&gt;
 
 &lt;p&gt;Next step is to define paths for all directories that will be involved in the process of the installation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_BUILD_CACHE_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;HOME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/Library/Caches/Components
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_INSTALL_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; ./Components
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;COMPONENTS_BUILD_CACHE_PATH ?= &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;HOME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/Library/Caches/Components
+COMPONENTS_INSTALL_PATH ?= ./Components
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;These are so called &amp;lsquo;global&amp;rsquo; variables provided by the driver script. These variables have default values in case you want to run &lt;code&gt;make install&lt;/code&gt; without the driver being involved. The cache directory contains all components installed in the system and their corresponding files (such as zip archives, build artefacts and so on). &lt;code&gt;./Components&lt;/code&gt; is a directory where ready-for-use component will be stored.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_BUILD_CACHE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;COMPONENT_BUILD_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_BUILD_CACHE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;COMPONENT_SOURCE_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;# ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;COMPONENT_INSTALL_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;.zip
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;ZIPBALL_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;.zip
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;These are directories where we store intermediates for the component and where to put installed component.&lt;/p&gt;
 
 &lt;h4 id=&#34;urls&#34;&gt;URLs&lt;/h4&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_URL&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;https://github.com/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;GH_REPO&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/archive/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;.zip
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;ZIPBALL_URL=https://github.com/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;GH_REPO&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/archive/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;.zip
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;In case of AFNetworking, this URL will be resolved to &lt;code&gt;https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;Usually this section contains only one URL, but there might be more. For instance you may want to fetch some patch from other source and apply it before building a component.&lt;/p&gt;
@@ -146,116 +140,107 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 &lt;h4 id=&#34;targets&#34;&gt;Targets&lt;/h4&gt;
 
 &lt;p&gt;There is a set of &amp;lsquo;rules&amp;rsquo; our makefile should conform to.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;.PHONY: install update uninstall clean prepare purge
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# install: ./Components/AFNetworking&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;install&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;# install: ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;install: &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;uninstall&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf ./Components/AFNetworking&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+uninstall:
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# rm -rf ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;update&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall install
+update: uninstall install
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;clean&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+clean:
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;purge&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall clean
-&lt;/pre&gt;&lt;/div&gt;
-
+purge: uninstall clean
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Let&amp;rsquo;s take a closer look at each line.&lt;/p&gt;
 
 &lt;h5 id=&#34;phony-targets&#34;&gt;Phony targets&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;.PHONY: install update uninstall clean prepare purge
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The nature of makefile is to check if a file or directory with the name of target exists. If it doesn’t, it will run the commands necessary to create that file or directory. Sometimes you want to be able to run commands without that dependency on existing files. For that, you would use ‘control targets’, marked as such with &lt;code&gt;.PHONY&lt;/code&gt;. So, in this example, even if the file or directory named &lt;code&gt;install&lt;/code&gt; exists, the makefile will still evaluate the provided commands.&lt;/p&gt;
 
 &lt;h5 id=&#34;install&#34;&gt;install&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# install: ./Components/AFNetworking&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;install&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;# install: ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;install: &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Target &lt;code&gt;install&lt;/code&gt; doesn&amp;rsquo;t have any commands to evaluate, though it says that it has a dependency that needs to be resolved first: &lt;code&gt;$(COMPONENT_INSTALL_PATH)&lt;/code&gt;, which resolves to &lt;code&gt;./Components/AFNetworking&lt;/code&gt;. This is exactly what we want: after running &lt;code&gt;make install&lt;/code&gt; we want to have AFNetworking installed to &lt;code&gt;./Components&lt;/code&gt; directory.&lt;/p&gt;
 
 &lt;h5 id=&#34;uninstall&#34;&gt;uninstall&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;uninstall&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf ./Components/AFNetworking&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;uninstall:
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# rm -rf ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;&lt;code&gt;uninstall&lt;/code&gt; doesn&amp;rsquo;t have any dependencies, but it has one command which just removes installed AFNetworking from the &lt;code&gt;./Components&lt;/code&gt; directory.&lt;/p&gt;
 
 &lt;h5 id=&#34;update&#34;&gt;update&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;update&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall install
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;update: uninstall install
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;That’s basically all what update does. It assumes that you have downloaded the newer version of the component and that the old one needs to be replaced.&lt;/p&gt;
 
 &lt;h5 id=&#34;clean&#34;&gt;clean&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;clean&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;clean:
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;So far clean is our biggest target. It has two simple commands - first one removes sources of AFNetworking (there might be some library/framework/whatnot for other project) and second one cleans up downloaded zip archive with sources. This target is needed only if you want to keep your system clean, though the easiest way to do it is to drop &lt;code&gt;$(HOME)/Library/Caches/Components/&lt;/code&gt; manually.&lt;/p&gt;
 
 &lt;h5 id=&#34;purge&#34;&gt;purge&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #0000FF&#34;&gt;purge&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall clean
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;purge: uninstall clean
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The last phony target we have here. It just cleans and uninstalls the component, nothing special.&lt;/p&gt;
 
 &lt;h4 id=&#34;artefacts&#34;&gt;Artefacts&lt;/h4&gt;
 
 &lt;p&gt;Finally, the last section of the makefile consists of rules to create artefacts:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_INSTALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir ./Components/AFNetworking&lt;/span&gt;
-  mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking&lt;/span&gt;
-  cp &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking&lt;/span&gt;
-  cp &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/UIKit+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(COMPONENT_INSTALL_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# mkdir ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  mkdir &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  cp &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  cp &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/UIKit+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_SOURCE_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-  unzip &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # touch $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-  touch &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(COMPONENT_SOURCE_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  unzip &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# touch $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  touch &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(ZIPBALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-  wget --no-use-server-timestamps &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(ZIPBALL_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  wget --no-use-server-timestamps &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_BUILD_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-  mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#007f7f&#34;&gt;#  $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(COMPONENT_BUILD_PATH):
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# mkdir  $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  mkdir &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;I will describe each target from top to bottom.&lt;/p&gt;
 
 &lt;h5 id=&#34;component-install-path&#34;&gt;COMPONENT_INSTALL_PATH&lt;/h5&gt;
 
 &lt;p&gt;We start off with &lt;code&gt;$(COMPONENT_INSTALL_PATH)&lt;/code&gt;, since this is what we actually want to get:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_INSTALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir ./Components/AFNetworking&lt;/span&gt;
-  mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking&lt;/span&gt;
-  cp &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking&lt;/span&gt;
-  cp &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/UIKit+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;# ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(COMPONENT_INSTALL_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# mkdir ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  mkdir &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  cp &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  cp &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/UIKit+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;This target has one dependency. We assume that this dependency already resolved and directory &lt;code&gt;$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/code&gt; contains source files of AFNetworking, to install it we just need to create a resulting directory (&lt;code&gt;./Components/AFNetworking&lt;/code&gt;) and copy all sources there.&lt;/p&gt;
 
 &lt;p&gt;Next time we run &lt;code&gt;make install&lt;/code&gt; these commands will be evaluated only if &lt;code&gt;./Components/AFNetworking&lt;/code&gt; doesn&amp;rsquo;t exist.&lt;/p&gt;
@@ -264,93 +249,89 @@ cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/
 
 &lt;p&gt;The goal of this target is to provide sources.
 Again, this target has dependency and we assume that it&amp;rsquo;s resolved already.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_SOURCE_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-  unzip &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # touch $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/span&gt;
-  touch &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(COMPONENT_SOURCE_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  unzip &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# touch $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  touch &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;To provide sources for the next step we need to extract them from an archive. Pretty trivial, though it needs more explanation.&lt;/p&gt;
 
 &lt;p&gt;After extraction &lt;code&gt;unzip&lt;/code&gt; command will create &lt;code&gt;$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;/code&gt; because of internal structure of the archive. We may expect that once we extracted data from archive we will not evaluate these commands again, but &lt;code&gt;GNU/Make&lt;/code&gt; and &lt;code&gt;unzip&lt;/code&gt; are smart. &lt;code&gt;unzip&lt;/code&gt; preserves timestamps of archived files and &lt;code&gt;make&lt;/code&gt; checks those timestamps: if it sees that directory exists, but it&amp;rsquo;s &amp;lsquo;old&amp;rsquo;, then it will still evaluate this step. To avoid this we have to cheat a bit by &lt;code&gt;touch&lt;/code&gt;&amp;lsquo;ing the directory with sources (&lt;code&gt;touch&lt;/code&gt; changes modification and access times of file or directory).&lt;/p&gt;
 
 &lt;h5 id=&#34;zipball-path&#34;&gt;ZIPBALL_PATH&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(ZIPBALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;/span&gt;
-  wget --no-use-server-timestamps &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;# $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(ZIPBALL_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  wget --no-use-server-timestamps &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;This step is pretty similar to previous one: we also have to take care of access/modification times, but in this case we could avoid &lt;code&gt;touch&lt;/code&gt;&amp;lsquo;ing file, because &lt;code&gt;wget&lt;/code&gt; can do this for us.&lt;/p&gt;
 
 &lt;h5 id=&#34;component-build-path&#34;&gt;COMPONENT_BUILD_PATH&lt;/h5&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_BUILD_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;  # mkdir  $(HOME)/Library/Caches/Components/AFNetworking/&lt;/span&gt;
-  mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;#  $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$(COMPONENT_BUILD_PATH):
+  &lt;span style=&#34;color:#007f7f&#34;&gt;# mkdir  $(HOME)/Library/Caches/Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;  mkdir &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;I don&amp;rsquo;t think this target requires explanation, but let be explicit: this step creates directory &lt;code&gt;$(HOME)/Library/Caches/Components/AFNetworking/&lt;/code&gt;.&lt;/p&gt;
 
 &lt;h4 id=&#34;whole-makefile-and-tips&#34;&gt;Whole Makefile and tips&lt;/h4&gt;
 
 &lt;p&gt;Please, take a look at resulting makefile. As you can see it&amp;rsquo;s not that big and scary at all:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;NAME&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking
-&lt;span style=&#34;color: #19177C&#34;&gt;VERSION&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;2.6.3
-&lt;span style=&#34;color: #19177C&#34;&gt;GH_REPO&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;AFNetworking/AFNetworking
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-makefile&#34; data-lang=&#34;makefile&#34;&gt;NAME=AFNetworking
+VERSION=&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;.6.3
+GH_REPO=AFNetworking/AFNetworking
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;### Paths&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;### Paths
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
+COMPONENTS_BUILD_CACHE_PATH ?= &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;HOME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/Library/Caches/Components
+COMPONENTS_INSTALL_PATH ?= ./Components
 
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_BUILD_CACHE_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;HOME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/Library/Caches/Components
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENTS_INSTALL_PATH&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;?=&lt;/span&gt; ./Components
+COMPONENT_BUILD_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_BUILD_CACHE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+COMPONENT_SOURCE_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+COMPONENT_INSTALL_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/
 
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_BUILD_CACHE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENTS_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/
+ZIPBALL_PATH=&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;.zip
 
-&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;.zip
+&lt;span style=&#34;color:#007f7f&#34;&gt;### URLs
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
+ZIPBALL_URL=https://github.com/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;GH_REPO&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/archive/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;.zip
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;### URLs&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;### Targets
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
+.PHONY: install update uninstall clean prepare purge
 
-&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_URL&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;https://github.com/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;GH_REPO&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/archive/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;VERSION&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;.zip
+install: &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;### Targets&lt;/span&gt;
+uninstall:
+  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;.PHONY&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; install update uninstall clean prepare purge
+update: uninstall install
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;install&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_INSTALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+clean:
+  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  rm -rf &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;uninstall&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+purge: uninstall clean
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;update&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall install
+&lt;span style=&#34;color:#007f7f&#34;&gt;### Artefacts
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
+$(COMPONENT_INSTALL_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  mkdir &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  cp &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  cp &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/UIKit+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;clean&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  rm -rf &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
+$(COMPONENT_SOURCE_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  unzip &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  touch &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #0000FF&#34;&gt;purge&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; uninstall clean
+$(ZIPBALL_PATH): &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+  wget --no-use-server-timestamps &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;### Artefacts&lt;/span&gt;
-
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_INSTALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_SOURCE_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  cp &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  cp &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/UIKit+&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;NAME&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;/* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_INSTALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_SOURCE_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;ZIPBALL_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  unzip &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -d &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  touch &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_SOURCE_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(ZIPBALL_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;COMPONENT_BUILD_PATH&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-  wget --no-use-server-timestamps &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt; -O &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;ZIPBALL_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-
-&lt;span style=&#34;color: #0000FF&#34;&gt;$(COMPONENT_BUILD_PATH)&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;:&lt;/span&gt;
-  mkdir &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;)&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+$(COMPONENT_BUILD_PATH):
+  mkdir &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;$(&lt;/span&gt;COMPONENT_BUILD_PATH&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h4 id=&#34;debugging&#34;&gt;Debugging&lt;/h4&gt;
 
 &lt;p&gt;To sum up the above example I want to give a small tip about debugging if you still think that makefiles are hard to manage and introduce huge complexity.&lt;/p&gt;
@@ -358,71 +339,67 @@ Again, this target has dependency and we assume that it&amp;rsquo;s resolved alr
 &lt;p&gt;You can see what is going on when you run &lt;code&gt;make&lt;/code&gt; and how &lt;code&gt;make&lt;/code&gt; is reasoning about its decisions.&lt;/p&gt;
 
 &lt;p&gt;Just add two flags &lt;code&gt;-r&lt;/code&gt; and &lt;code&gt;-d&lt;/code&gt;. First one disables implicit rules (just to decrease output), second one actually prints debug information, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;make install -r -d
-GNU Make 3.81
-Copyright &lt;span style=&#34;color: #666666&#34;&gt;(&lt;/span&gt;C&lt;span style=&#34;color: #666666&#34;&gt;)&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;2006&lt;/span&gt;  Free Software Foundation, Inc.
-This is free software; see the &lt;span style=&#34;color: #008000&#34;&gt;source &lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; copying conditions.
-There is NO warranty; not even &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; MERCHANTABILITY or FITNESS FOR A
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;$ make install -r -d
+GNU Make &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;3&lt;/span&gt;.81
+Copyright (C) &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2006&lt;/span&gt;  Free Software Foundation, Inc.
+This is free software; see the &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;source&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; copying conditions.
+There is NO warranty; not even &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; MERCHANTABILITY or FITNESS FOR A
 PARTICULAR PURPOSE.
 
-This program built &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; i386-apple-darwin11.3.0
+This program built &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; i386-apple-darwin11.3.0
 Reading makefiles...
-Reading makefile &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;...&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Updating makefiles....&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt; Considering target file `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&amp;#39;&lt;/span&gt;.
-  Looking &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; an implicit rule &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;  No implicit rule found for `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&amp;#39;&lt;/span&gt;.
-  Finished prerequisites of target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt; No need to remake target `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&amp;#39;&lt;/span&gt;.
+Reading makefile &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;...
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Updating makefiles....
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt; Considering target file `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&amp;#39;&lt;/span&gt;.
+  Looking &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; an implicit rule &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;  No implicit rule found for `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&amp;#39;&lt;/span&gt;.
+  Finished prerequisites of target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt; No need to remake target `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&amp;#39;&lt;/span&gt;.
 Updating goal targets....
-Considering target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;install&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt; File `install&amp;#39;&lt;/span&gt; does not exist.
-  Considering target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;Components/AFNetworking&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;   File `Components/AFNetworking&amp;#39;&lt;/span&gt; does not exist.
-    Considering target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;      Considering target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&amp;#39;&lt;/span&gt;.
-        Considering target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;         Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking&amp;#39;&lt;/span&gt;.
-        No need to remake target &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;       Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&amp;#39;&lt;/span&gt;.
-       Prerequisite &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39; is older than target `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&amp;#39;&lt;/span&gt;.
-      No need to remake target &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;     Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&amp;#39;&lt;/span&gt;.
-     Prerequisite &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39; is older than target `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&amp;#39;&lt;/span&gt;.
-    No need to remake target &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;   Finished prerequisites of target file `Components/AFNetworking&amp;#39;&lt;/span&gt;.
-  Must remake target &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;Components/AFNetworking&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;mkdir ./Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Putting child 0x7ff3e940a340 (Components/AFNetworking) PID 48450 on the chain.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48450&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Reaping winning child 0x7ff3e940a340 PID 48450&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48451&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Reaping winning child 0x7ff3e940a340 PID 48451&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48452&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Reaping winning child 0x7ff3e940a340 PID 48452&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Removing child 0x7ff3e940a340 PID 48452 from chain.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;  Successfully remade target file `Components/AFNetworking&amp;#39;&lt;/span&gt;.
- Finished prerequisites of target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;install&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;#39;.&lt;/span&gt;
-&lt;span style=&#34;color: #BA2121&#34;&gt;Must remake target `install&amp;#39;&lt;/span&gt;.
-Successfully remade target file &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;install&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;#39;&lt;/span&gt;.
-&lt;/pre&gt;&lt;/div&gt;
-
+Considering target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;install&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt; File `install&amp;#39;&lt;/span&gt; does not exist.
+  Considering target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;Components/AFNetworking&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;   File `Components/AFNetworking&amp;#39;&lt;/span&gt; does not exist.
+    Considering target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;      Considering target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&amp;#39;&lt;/span&gt;.
+        Considering target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;         Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking&amp;#39;&lt;/span&gt;.
+        No need to remake target &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;       Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&amp;#39;&lt;/span&gt;.
+       Prerequisite &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39; is older than target `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&amp;#39;&lt;/span&gt;.
+      No need to remake target &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;     Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&amp;#39;&lt;/span&gt;.
+     Prerequisite &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39; is older than target `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&amp;#39;&lt;/span&gt;.
+    No need to remake target &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;   Finished prerequisites of target file `Components/AFNetworking&amp;#39;&lt;/span&gt;.
+  Must remake target &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;Components/AFNetworking&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;mkdir ./Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Putting child 0x7ff3e940a340 (Components/AFNetworking) PID 48450 on the chain.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48450
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Reaping winning child 0x7ff3e940a340 PID 48450
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48451
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Reaping winning child 0x7ff3e940a340 PID 48451
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48452
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Reaping winning child 0x7ff3e940a340 PID 48452
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Removing child 0x7ff3e940a340 PID 48452 from chain.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;  Successfully remade target file `Components/AFNetworking&amp;#39;&lt;/span&gt;.
+ Finished prerequisites of target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;install&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#39;.
+&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;Must remake target `install&amp;#39;&lt;/span&gt;.
+Successfully remade target file &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;install&lt;span style=&#34;color:#f00&#34;&gt;&amp;#39;&lt;/span&gt;.&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Just use these two flags if you ever face any problems with makefiles.&lt;/p&gt;
 
 &lt;p&gt;Second tip is &lt;code&gt;make&lt;/code&gt; parameter &lt;code&gt;--warn-undefined-variables&lt;/code&gt;. It emits a warning if some variable does not exist. We have found it very helpful to avoid mistakes like &lt;code&gt;rm -rf $FOO/&lt;/code&gt; when &lt;code&gt;$FOO&lt;/code&gt; is not set. Also, the &lt;code&gt;components.sh&lt;/code&gt; driver has this flag enabled. It&amp;rsquo;s even more helpful when you run &lt;code&gt;explain&lt;/code&gt;, e.g.:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;./components.sh explain install
-&lt;span style=&#34;color: #666666&#34;&gt;[&lt;/span&gt;install&lt;span style=&#34;color: #666666&#34;&gt;]&lt;/span&gt; AFNetworking:
-/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make:49: warning: undefined variable &lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;border: 1px solid #FF0000&#34;&gt;&amp;#39;&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;$ ./components.sh explain install
+[install] AFNetworking:
+/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make:49: warning: undefined variable &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;ZIPBALL_URL&lt;span style=&#34;color:#f00&#34;&gt;&amp;#39;&lt;/span&gt;
 wget --no-use-server-timestamps  -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
 unzip /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d /Users/alexdenisov/Library/Caches/Components/AFNetworking
 touch /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
 mkdir ./Components/AFNetworking/
 cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
-cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
-&lt;/pre&gt;&lt;/div&gt;
-
+cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;In the output above you may see a warning because I&amp;rsquo;ve added a typo to &lt;code&gt;ZIPBALL_URL&lt;/code&gt;&lt;/p&gt;
 
 &lt;h3 id=&#34;key-features-and-goals&#34;&gt;Key features and goals&lt;/h3&gt;

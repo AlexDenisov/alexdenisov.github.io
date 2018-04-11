@@ -6,6 +6,8 @@
     <description>Recent content in Compiler on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 28 Feb 2014 00:00:00 +0000</lastBuildDate>
     <atom:link href="/tags/compiler/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>Creating and using Clang plugin with Xcode</title>
       <link>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</link>
       <pubDate>Fri, 28 Feb 2014</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</guid>
       <description></description>
     </item>

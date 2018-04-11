@@ -179,31 +179,29 @@ For more information consider reading official documentation and header files pr
           height: auto;" /></p>
 
 <p>The only structures we need to represent the file:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">struct</span> mach_header {
-  <span style="color: #B00040">uint32_t</span>      magic;
-  <span style="color: #B00040">cpu_type_t</span>    cputype;
-  <span style="color: #B00040">cpu_subtype_t</span> cpusubtype;
-  <span style="color: #B00040">uint32_t</span>      filetype;
-  <span style="color: #B00040">uint32_t</span>      ncmds;
-  <span style="color: #B00040">uint32_t</span>      sizeofcmds;
-  <span style="color: #B00040">uint32_t</span>      flags;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">struct</span> mach_header {
+  uint32_t      magic;
+  cpu_type_t    cputype;
+  cpu_subtype_t cpusubtype;
+  uint32_t      filetype;
+  uint32_t      ncmds;
+  uint32_t      sizeofcmds;
+  uint32_t      flags;
 };
 
-<span style="color: #008000; font-weight: bold">struct</span> segment_command {
-  <span style="color: #B00040">uint32_t</span>  cmd;
-  <span style="color: #B00040">uint32_t</span>  cmdsize;
-  <span style="color: #B00040">char</span>      segname[<span style="color: #666666">16</span>];
-  <span style="color: #B00040">uint32_t</span>  vmaddr;
-  <span style="color: #B00040">uint32_t</span>  vmsize;
-  <span style="color: #B00040">uint32_t</span>  fileoff;
-  <span style="color: #B00040">uint32_t</span>  filesize;
-  <span style="color: #B00040">vm_prot_t</span> maxprot;
-  <span style="color: #B00040">vm_prot_t</span> initprot;
-  <span style="color: #B00040">uint32_t</span>  nsects;
-  <span style="color: #B00040">uint32_t</span>  flags;
-};
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">struct</span> segment_command {
+  uint32_t  cmd;
+  uint32_t  cmdsize;
+  <span style="color:#fff;font-weight:bold">char</span>      segname[<span style="color:#ff0;font-weight:bold">16</span>];
+  uint32_t  vmaddr;
+  uint32_t  vmsize;
+  uint32_t  fileoff;
+  uint32_t  filesize;
+  vm_prot_t maxprot;
+  vm_prot_t initprot;
+  uint32_t  nsects;
+  uint32_t  flags;
+};</code></pre></div>
 <p>Here is how memory mapping looks like:</p>
 
 <p><img src="/img/parse-mach-o-files/macho_memory_layout.png"
@@ -220,107 +218,95 @@ For more information consider reading official documentation and header files pr
 <p>Let&rsquo;s write a program that&rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.</p>
 
 <p>At the end we might have something similar:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #19177C">$ </span>./segname_dumper some_binary
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ ./segname_dumper some_binary
 i386
 segname __PAGEZERO
 segname __TEXT
-segname __LINKEDIT
-</pre></div>
-
+segname __LINKEDIT</code></pre></div>
 <h4 id="driver">Driver</h4>
 
 <p>Let&rsquo;s start with a simple &lsquo;driver&rsquo;.</p>
 
 <p>There are at least two possible ways to parse such files: load content into memory and work with buffer directly or open a file and jump back and forth through it. Both approaches have their own pros and cons, but I&rsquo;ll stick to a second one. Also, I assume that no one going to use the program in a wrong way, hence no error handling whatsoever.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#include &lt;stdio.h&gt;</span>
-<span style="color: #BC7A00">#include &lt;stdlib.h&gt;</span>
-<span style="color: #BC7A00">#include &lt;mach-o/loader.h&gt;</span>
-<span style="color: #BC7A00">#include &lt;mach-o/swap.h&gt;</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#0f0;font-weight:bold">#include</span> <span style="color:#0f0;font-weight:bold">&lt;stdio.h&gt;</span><span style="color:#0f0;font-weight:bold">
+</span><span style="color:#0f0;font-weight:bold">#include</span> <span style="color:#0f0;font-weight:bold">&lt;stdlib.h&gt;</span><span style="color:#0f0;font-weight:bold">
+</span><span style="color:#0f0;font-weight:bold">#include</span> <span style="color:#0f0;font-weight:bold">&lt;mach-o/loader.h&gt;</span><span style="color:#0f0;font-weight:bold">
+</span><span style="color:#0f0;font-weight:bold">#include</span> <span style="color:#0f0;font-weight:bold">&lt;mach-o/swap.h&gt;</span><span style="color:#0f0;font-weight:bold">
+</span><span style="color:#0f0;font-weight:bold"></span>
+<span style="color:#fff;font-weight:bold">void</span> dump_segments(FILE *obj_file);
 
-<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file);
-
-<span style="color: #B00040">int</span> <span style="color: #0000FF">main</span>(<span style="color: #B00040">int</span> argc, <span style="color: #B00040">char</span> <span style="color: #666666">*</span>argv[]) {
-  <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span>filename <span style="color: #666666">=</span> argv[<span style="color: #666666">1</span>];
-  <span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file <span style="color: #666666">=</span> fopen(filename, <span style="color: #BA2121">&quot;rb&quot;</span>);
+<span style="color:#fff;font-weight:bold">int</span> main(<span style="color:#fff;font-weight:bold">int</span> argc, <span style="color:#fff;font-weight:bold">char</span> *argv[]) {
+  <span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">char</span> *filename = argv[<span style="color:#ff0;font-weight:bold">1</span>];
+  FILE *obj_file = fopen(filename, <span style="color:#0ff;font-weight:bold">&#34;rb&#34;</span>);
   dump_segments(obj_file);
   fclose(obj_file);
 
-  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
+  <span style="color:#fff;font-weight:bold">return</span> <span style="color:#ff0;font-weight:bold">0</span>;
 }
 
-<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
-  <span style="color: #408080; font-style: italic">// Driver</span>
-}
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">void</span> dump_segments(FILE *obj_file) {
+  <span style="color:#007f7f">// Driver
+</span><span style="color:#007f7f"></span>}</code></pre></div>
 <h4 id="magic-numbers-cpu-and-endianness">Magic numbers, CPU and Endianness</h4>
 
 <p>To read at least the object file header we need to get all the information we need: CPU arch (32 bit or 64 bit) and the Byte Order. But first we need to retrieve a magic number:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">uint32_t</span> <span style="color: #0000FF">read_magic</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset) {
-  <span style="color: #B00040">uint32_t</span> magic;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">uint32_t read_magic(FILE *obj_file, <span style="color:#fff;font-weight:bold">int</span> offset) {
+  uint32_t magic;
   fseek(obj_file, offset, SEEK_SET);
-  fread(<span style="color: #666666">&amp;</span>magic, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #B00040">uint32_t</span>), <span style="color: #666666">1</span>, obj_file);
-  <span style="color: #008000; font-weight: bold">return</span> magic;
+  fread(&amp;magic, <span style="color:#fff;font-weight:bold">sizeof</span>(uint32_t), <span style="color:#ff0;font-weight:bold">1</span>, obj_file);
+  <span style="color:#fff;font-weight:bold">return</span> magic;
 }
 
-<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
-  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
-}
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">void</span> dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, <span style="color:#ff0;font-weight:bold">0</span>);
+}</code></pre></div>
 <p>The function <code>read_magic</code> is pretty straitforward, though one thing there might look weird: <code>fseek</code>. The problem is that whenever somebody read from a file, the internal <code>_offset</code> of the file changes. It&rsquo;s better to specify the offset explicitly, to ensure that we read what we actually want to read. Also, this small trick will be useful later on.</p>
 
 <p>Structures that represent object file with 32 and 64 bits are different (e.g.: <code>mach_header</code> and <code>mach_header_64</code>), to choose which to use we need to check file&rsquo;s architecture:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">is_magic_64</span>(<span style="color: #B00040">uint32_t</span> magic) {
-  <span style="color: #008000; font-weight: bold">return</span> magic <span style="color: #666666">==</span> MH_MAGIC_64 <span style="color: #666666">||</span> magic <span style="color: #666666">==</span> MH_CIGAM_64;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">int</span> is_magic_64(uint32_t magic) {
+  <span style="color:#fff;font-weight:bold">return</span> magic == MH_MAGIC_64 || magic == MH_CIGAM_64;
 }
 
-<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
-  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
-  <span style="color: #B00040">int</span> is_64 <span style="color: #666666">=</span> is_magic_64(magic);
-}
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">void</span> dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, <span style="color:#ff0;font-weight:bold">0</span>);
+  <span style="color:#fff;font-weight:bold">int</span> is_64 = is_magic_64(magic);
+}</code></pre></div>
 <p><code>MH_MAGIC_64</code> and <code>MH_CIGAM_64</code> are &lsquo;magic&rsquo; numbers provided by the system. Second one looks even more magicly than first one. Explanation is following.</p>
 
 <p>Due to historical reasons different computers might use different <a href="https://en.wikipedia.org/wiki/Endianness">byte order</a>: Big Endian (left to right) and Little Endian (right to left). Magic numbers store this information as well: <code>MH_CIGAM</code> and <code>MH_CIGAM_64</code> says that byte order differs from host OS, hence all the bytes should be swapped:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">should_swap_bytes</span>(<span style="color: #B00040">uint32_t</span> magic) {
-  <span style="color: #008000; font-weight: bold">return</span> magic <span style="color: #666666">==</span> MH_CIGAM <span style="color: #666666">||</span> magic <span style="color: #666666">==</span> MH_CIGAM_64;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">int</span> should_swap_bytes(uint32_t magic) {
+  <span style="color:#fff;font-weight:bold">return</span> magic == MH_CIGAM || magic == MH_CIGAM_64;
 }
 
-<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
-  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
-  <span style="color: #B00040">int</span> is_64 <span style="color: #666666">=</span> is_magic_64(magic);
-  <span style="color: #B00040">int</span> is_swap <span style="color: #666666">=</span> should_swap_bytes(magic);
-}
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">void</span> dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, <span style="color:#ff0;font-weight:bold">0</span>);
+  <span style="color:#fff;font-weight:bold">int</span> is_64 = is_magic_64(magic);
+  <span style="color:#fff;font-weight:bold">int</span> is_swap = should_swap_bytes(magic);
+}</code></pre></div>
 <h4 id="mach-o-header">Mach-O Header</h4>
 
 <p>Finally we can read <code>mach_header</code>. Let&rsquo;s first introduce generic function for reading data from a file.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">void</span> <span style="color: #666666">*</span><span style="color: #0000FF">load_bytes</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> size) {
-  <span style="color: #B00040">void</span> <span style="color: #666666">*</span>buf <span style="color: #666666">=</span> calloc(<span style="color: #666666">1</span>, size);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">void</span> *load_bytes(FILE *obj_file, <span style="color:#fff;font-weight:bold">int</span> offset, <span style="color:#fff;font-weight:bold">int</span> size) {
+  <span style="color:#fff;font-weight:bold">void</span> *buf = calloc(<span style="color:#ff0;font-weight:bold">1</span>, size);
   fseek(obj_file, offset, SEEK_SET);
-  fread(buf, size, <span style="color: #666666">1</span>, obj_file);
-  <span style="color: #008000; font-weight: bold">return</span> buf;
-}
-</pre></div>
-
+  fread(buf, size, <span style="color:#ff0;font-weight:bold">1</span>, obj_file);
+  <span style="color:#fff;font-weight:bold">return</span> buf;
+}</code></pre></div>
 <p><strong>Note: The data should be freed after usage!</strong></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">void</span> <span style="color: #0000FF">dump_mach_header</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> is_64, <span style="color: #B00040">int</span> is_swap) {
-  <span style="color: #008000; font-weight: bold">if</span> (is_64) {
-    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header_64);
-    <span style="color: #008000; font-weight: bold">struct</span> mach_header_64 <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
-    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-      swap_mach_header_64(header, <span style="color: #666666">0</span>);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">void</span> dump_mach_header(FILE *obj_file, <span style="color:#fff;font-weight:bold">int</span> offset, <span style="color:#fff;font-weight:bold">int</span> is_64, <span style="color:#fff;font-weight:bold">int</span> is_swap) {
+  <span style="color:#fff;font-weight:bold">if</span> (is_64) {
+    <span style="color:#fff;font-weight:bold">int</span> header_size = <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> mach_header_64);
+    <span style="color:#fff;font-weight:bold">struct</span> mach_header_64 *header = load_bytes(obj_file, offset, header_size);
+    <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+      swap_mach_header_64(header, <span style="color:#ff0;font-weight:bold">0</span>);
     }
 
     free(header);
-  } <span style="color: #008000; font-weight: bold">else</span> {
-    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header);
-    <span style="color: #008000; font-weight: bold">struct</span> mach_header <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
-    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-      swap_mach_header(header, <span style="color: #666666">0</span>);
+  } <span style="color:#fff;font-weight:bold">else</span> {
+    <span style="color:#fff;font-weight:bold">int</span> header_size = <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> mach_header);
+    <span style="color:#fff;font-weight:bold">struct</span> mach_header *header = load_bytes(obj_file, offset, header_size);
+    <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+      swap_mach_header(header, <span style="color:#ff0;font-weight:bold">0</span>);
     }
 
     free(header);
@@ -328,138 +314,126 @@ segname __LINKEDIT
   free(buffer);
 }
 
-<span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segments</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file) {
-  <span style="color: #B00040">uint32_t</span> magic <span style="color: #666666">=</span> read_magic(obj_file, <span style="color: #666666">0</span>);
-  <span style="color: #B00040">int</span> is_64 <span style="color: #666666">=</span> is_magic_64(magic);
-  <span style="color: #B00040">int</span> is_swap <span style="color: #666666">=</span> should_swap_bytes(magic);
-  dump_mach_header(obj_file, <span style="color: #666666">0</span>, is_64, is_swap);
-}
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">void</span> dump_segments(FILE *obj_file) {
+  uint32_t magic = read_magic(obj_file, <span style="color:#ff0;font-weight:bold">0</span>);
+  <span style="color:#fff;font-weight:bold">int</span> is_64 = is_magic_64(magic);
+  <span style="color:#fff;font-weight:bold">int</span> is_swap = should_swap_bytes(magic);
+  dump_mach_header(obj_file, <span style="color:#ff0;font-weight:bold">0</span>, is_64, is_swap);
+}</code></pre></div>
 <p>Here we introduced another function <code>dump_mach_header</code> to not mess up &lsquo;driver&rsquo; function.
 The next step is to read all segment commands and print their names.
 The problem is that mach-o files usually contain other commands as well. If you recall the first field of <code>segment_command</code> structure is a <code>uint32_t cmd;</code>, this field represents type of a command.
 Here is another structure provided by the system that we&rsquo;ll use:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">struct</span> load_command {
-  <span style="color: #B00040">uint32_t</span> cmd;
-  <span style="color: #B00040">uint32_t</span> cmdsize;
-};
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">struct</span> load_command {
+  uint32_t cmd;
+  uint32_t cmdsize;
+};</code></pre></div>
 <p>Besides all the information <code>mach_header</code> has number of load commands, so we can just iterate over and skip commands we&rsquo;re not interested in. Also, we need to calculate offset where the header ends. Here is the final version of <code>dump_mach_header</code>:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">void</span> <span style="color: #0000FF">dump_mach_header</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> is_64, <span style="color: #B00040">int</span> is_swap) {
-  <span style="color: #B00040">uint32_t</span> ncmds;
-  <span style="color: #B00040">int</span> load_commands_offset <span style="color: #666666">=</span> offset;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">void</span> dump_mach_header(FILE *obj_file, <span style="color:#fff;font-weight:bold">int</span> offset, <span style="color:#fff;font-weight:bold">int</span> is_64, <span style="color:#fff;font-weight:bold">int</span> is_swap) {
+  uint32_t ncmds;
+  <span style="color:#fff;font-weight:bold">int</span> load_commands_offset = offset;
 
-  <span style="color: #008000; font-weight: bold">if</span> (is_64) {
-    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header_64);
-    <span style="color: #008000; font-weight: bold">struct</span> mach_header_64 <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
-    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-      swap_mach_header_64(header, <span style="color: #666666">0</span>);
+  <span style="color:#fff;font-weight:bold">if</span> (is_64) {
+    <span style="color:#fff;font-weight:bold">int</span> header_size = <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> mach_header_64);
+    <span style="color:#fff;font-weight:bold">struct</span> mach_header_64 *header = load_bytes(obj_file, offset, header_size);
+    <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+      swap_mach_header_64(header, <span style="color:#ff0;font-weight:bold">0</span>);
     }
-    ncmds <span style="color: #666666">=</span> header<span style="color: #666666">-&gt;</span>ncmds;
-    load_commands_offset <span style="color: #666666">+=</span> header_size;
+    ncmds = header-&gt;ncmds;
+    load_commands_offset += header_size;
 
     free(header);
-  } <span style="color: #008000; font-weight: bold">else</span> {
-    <span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header);
-    <span style="color: #008000; font-weight: bold">struct</span> mach_header <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
-    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-      swap_mach_header(header, <span style="color: #666666">0</span>);
+  } <span style="color:#fff;font-weight:bold">else</span> {
+    <span style="color:#fff;font-weight:bold">int</span> header_size = <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> mach_header);
+    <span style="color:#fff;font-weight:bold">struct</span> mach_header *header = load_bytes(obj_file, offset, header_size);
+    <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+      swap_mach_header(header, <span style="color:#ff0;font-weight:bold">0</span>);
     }
 
-    ncmds <span style="color: #666666">=</span> header<span style="color: #666666">-&gt;</span>ncmds;
-    load_commands_offset <span style="color: #666666">+=</span> header_size;
+    ncmds = header-&gt;ncmds;
+    load_commands_offset += header_size;
 
     free(header);
   }
 
   dump_segment_commands(obj_file, load_commands_offset, is_swap, ncmds);
-}
-</pre></div>
-
+}</code></pre></div>
 <h4 id="segment-command">Segment Command</h4>
 
 <p>It&rsquo;s time to dump all segment names:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">void</span> <span style="color: #0000FF">dump_segment_commands</span>(<span style="color: #B00040">FILE</span> <span style="color: #666666">*</span>obj_file, <span style="color: #B00040">int</span> offset, <span style="color: #B00040">int</span> is_swap, <span style="color: #B00040">uint32_t</span> ncmds) {
-  <span style="color: #B00040">int</span> actual_offset <span style="color: #666666">=</span> offset;
-  <span style="color: #008000; font-weight: bold">for</span> (<span style="color: #B00040">int</span>  i <span style="color: #666666">=</span> <span style="color: #666666">0</span>; i <span style="color: #666666">&lt;</span> ncmds; i<span style="color: #666666">++</span>) {
-    <span style="color: #008000; font-weight: bold">struct</span> load_command <span style="color: #666666">*</span>cmd <span style="color: #666666">=</span> load_bytes(obj_file, actual_offset, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> load_command));
-    <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-      swap_load_command(cmd, <span style="color: #666666">0</span>);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">void</span> dump_segment_commands(FILE *obj_file, <span style="color:#fff;font-weight:bold">int</span> offset, <span style="color:#fff;font-weight:bold">int</span> is_swap, uint32_t ncmds) {
+  <span style="color:#fff;font-weight:bold">int</span> actual_offset = offset;
+  <span style="color:#fff;font-weight:bold">for</span> (<span style="color:#fff;font-weight:bold">int</span>  i = <span style="color:#ff0;font-weight:bold">0</span>; i &lt; ncmds; i++) {
+    <span style="color:#fff;font-weight:bold">struct</span> load_command *cmd = load_bytes(obj_file, actual_offset, <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> load_command));
+    <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+      swap_load_command(cmd, <span style="color:#ff0;font-weight:bold">0</span>);
     }
 
-    <span style="color: #008000; font-weight: bold">if</span> (cmd<span style="color: #666666">-&gt;</span>cmd <span style="color: #666666">==</span> LC_SEGMENT_64) {
-      <span style="color: #008000; font-weight: bold">struct</span> segment_command_64 <span style="color: #666666">*</span>segment <span style="color: #666666">=</span> load_bytes(obj_file, actual_offset, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> segment_command_64));
-      <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-        swap_segment_command_64(segment, <span style="color: #666666">0</span>);
+    <span style="color:#fff;font-weight:bold">if</span> (cmd-&gt;cmd == LC_SEGMENT_64) {
+      <span style="color:#fff;font-weight:bold">struct</span> segment_command_64 *segment = load_bytes(obj_file, actual_offset, <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> segment_command_64));
+      <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+        swap_segment_command_64(segment, <span style="color:#ff0;font-weight:bold">0</span>);
       }
 
-      printf(<span style="color: #BA2121">&quot;segname: %s</span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span>, segment<span style="color: #666666">-&gt;</span>segname);
+      printf(<span style="color:#0ff;font-weight:bold">&#34;segname: %s</span><span style="color:#0ff;font-weight:bold">\n</span><span style="color:#0ff;font-weight:bold">&#34;</span>, segment-&gt;segname);
 
       free(segment);
-    } <span style="color: #008000; font-weight: bold">else</span> <span style="color: #008000; font-weight: bold">if</span> (cmd<span style="color: #666666">-&gt;</span>cmd <span style="color: #666666">==</span> LC_SEGMENT) {
-      <span style="color: #008000; font-weight: bold">struct</span> segment_command <span style="color: #666666">*</span>segment <span style="color: #666666">=</span> load_bytes(obj_file, actual_offset, <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> segment_command));
-      <span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-        swap_segment_command(segment, <span style="color: #666666">0</span>);
+    } <span style="color:#fff;font-weight:bold">else</span> <span style="color:#fff;font-weight:bold">if</span> (cmd-&gt;cmd == LC_SEGMENT) {
+      <span style="color:#fff;font-weight:bold">struct</span> segment_command *segment = load_bytes(obj_file, actual_offset, <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> segment_command));
+      <span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+        swap_segment_command(segment, <span style="color:#ff0;font-weight:bold">0</span>);
       }
 
-      printf(<span style="color: #BA2121">&quot;segname: %s</span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span>, segment<span style="color: #666666">-&gt;</span>segname);
+      printf(<span style="color:#0ff;font-weight:bold">&#34;segname: %s</span><span style="color:#0ff;font-weight:bold">\n</span><span style="color:#0ff;font-weight:bold">&#34;</span>, segment-&gt;segname);
 
       free(segment);
     }
 
-    actual_offset <span style="color: #666666">+=</span> cmd<span style="color: #666666">-&gt;</span>cmdsize;
+    actual_offset += cmd-&gt;cmdsize;
 
     free(cmd);
   }
-}
-</pre></div>
-
+}</code></pre></div>
 <p>This function doesn&rsquo;t need <code>is_64</code> parameter, because we can infer it from <code>cmd</code> type itself (<code>LC_SEGMENT</code>/<code>LC_SEGMENT_64</code>). If it&rsquo;s not a segment, then we just skip the command and move forward to the next one.</p>
 
 <h4 id="cpu-name">CPU name</h4>
 
 <p>The last thing I want to show is how to retrieve the name of a processor based on a <code>cputype</code> from <code>mach_header</code>.
 I believe this is not the best option, but it&rsquo;s acceptable for this artificial example:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">struct</span> _cpu_type_names {
-  <span style="color: #B00040">cpu_type_t</span> cputype;
-  <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span>cpu_name;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">struct</span> _cpu_type_names {
+  cpu_type_t cputype;
+  <span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">char</span> *cpu_name;
 };
 
-<span style="color: #008000; font-weight: bold">static</span> <span style="color: #008000; font-weight: bold">struct</span> _cpu_type_names cpu_type_names[] <span style="color: #666666">=</span> {
-  { CPU_TYPE_I386, <span style="color: #BA2121">&quot;i386&quot;</span> },
-  { CPU_TYPE_X86_64, <span style="color: #BA2121">&quot;x86_64&quot;</span> },
-  { CPU_TYPE_ARM, <span style="color: #BA2121">&quot;arm&quot;</span> },
-  { CPU_TYPE_ARM64, <span style="color: #BA2121">&quot;arm64&quot;</span> }
+<span style="color:#fff;font-weight:bold">static</span> <span style="color:#fff;font-weight:bold">struct</span> _cpu_type_names cpu_type_names[] = {
+  { CPU_TYPE_I386, <span style="color:#0ff;font-weight:bold">&#34;i386&#34;</span> },
+  { CPU_TYPE_X86_64, <span style="color:#0ff;font-weight:bold">&#34;x86_64&#34;</span> },
+  { CPU_TYPE_ARM, <span style="color:#0ff;font-weight:bold">&#34;arm&#34;</span> },
+  { CPU_TYPE_ARM64, <span style="color:#0ff;font-weight:bold">&#34;arm64&#34;</span> }
 };
 
-<span style="color: #008000; font-weight: bold">static</span> <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span><span style="color: #0000FF">cpu_type_name</span>(<span style="color: #B00040">cpu_type_t</span> cpu_type) {
-  <span style="color: #008000; font-weight: bold">static</span> <span style="color: #B00040">int</span> cpu_type_names_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(cpu_type_names) <span style="color: #666666">/</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> _cpu_type_names);
-  <span style="color: #008000; font-weight: bold">for</span> (<span style="color: #B00040">int</span> i <span style="color: #666666">=</span> <span style="color: #666666">0</span>; i <span style="color: #666666">&lt;</span> cpu_type_names_size; i<span style="color: #666666">++</span> ) {
-    <span style="color: #008000; font-weight: bold">if</span> (cpu_type <span style="color: #666666">==</span> cpu_type_names[i].cputype) {
-      <span style="color: #008000; font-weight: bold">return</span> cpu_type_names[i].cpu_name;
+<span style="color:#fff;font-weight:bold">static</span> <span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">char</span> *cpu_type_name(cpu_type_t cpu_type) {
+  <span style="color:#fff;font-weight:bold">static</span> <span style="color:#fff;font-weight:bold">int</span> cpu_type_names_size = <span style="color:#fff;font-weight:bold">sizeof</span>(cpu_type_names) / <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> _cpu_type_names);
+  <span style="color:#fff;font-weight:bold">for</span> (<span style="color:#fff;font-weight:bold">int</span> i = <span style="color:#ff0;font-weight:bold">0</span>; i &lt; cpu_type_names_size; i++ ) {
+    <span style="color:#fff;font-weight:bold">if</span> (cpu_type == cpu_type_names[i].cputype) {
+      <span style="color:#fff;font-weight:bold">return</span> cpu_type_names[i].cpu_name;
     }
   }
 
-  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #BA2121">&quot;unknown&quot;</span>;
-}
-</pre></div>
-
+  <span style="color:#fff;font-weight:bold">return</span> <span style="color:#0ff;font-weight:bold">&#34;unknown&#34;</span>;
+}</code></pre></div>
 <p>OS X provides <code>CPU_TYPE_*</code> for a lot of CPUs, so we can &lsquo;easily&rsquo; associate particular magic number with a string literal. To print name of a CPU we need to modify <code>dump_mach_header</code> a bit:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> header_size <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">sizeof</span>(<span style="color: #008000; font-weight: bold">struct</span> mach_header_64);
-<span style="color: #008000; font-weight: bold">struct</span> mach_header_64 <span style="color: #666666">*</span>header <span style="color: #666666">=</span> load_bytes(obj_file, offset, header_size);
-<span style="color: #008000; font-weight: bold">if</span> (is_swap) {
-  swap_mach_header_64(header, <span style="color: #666666">0</span>);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">int</span> header_size = <span style="color:#fff;font-weight:bold">sizeof</span>(<span style="color:#fff;font-weight:bold">struct</span> mach_header_64);
+<span style="color:#fff;font-weight:bold">struct</span> mach_header_64 *header = load_bytes(obj_file, offset, header_size);
+<span style="color:#fff;font-weight:bold">if</span> (is_swap) {
+  swap_mach_header_64(header, <span style="color:#ff0;font-weight:bold">0</span>);
 }
-ncmds <span style="color: #666666">=</span> header<span style="color: #666666">-&gt;</span>ncmds;
-load_commands_offset <span style="color: #666666">+=</span> header_size;
+ncmds = header-&gt;ncmds;
+load_commands_offset += header_size;
 
-printf(<span style="color: #BA2121">&quot;%s</span><span style="color: #BB6622; font-weight: bold">\n</span><span style="color: #BA2121">&quot;</span>, cpu_type_name(header<span style="color: #666666">-&gt;</span>cputype)); <span style="color: #408080; font-style: italic">// &lt;-</span>
-
-free(header);
-</pre></div>
-
+printf(<span style="color:#0ff;font-weight:bold">&#34;%s</span><span style="color:#0ff;font-weight:bold">\n</span><span style="color:#0ff;font-weight:bold">&#34;</span>, cpu_type_name(header-&gt;cputype)); <span style="color:#007f7f">// &lt;-
+</span><span style="color:#007f7f"></span>
+free(header);</code></pre></div>
 <h4 id="fat-objects">Fat objects</h4>
 
 <p>The article is already way too big, so I&rsquo;m not going to describe how to handle Fat objects, but you can find implementation here: <a href="https://github.com/AlexDenisov/segment_dumper">segment_dumper</a></p>
@@ -1008,10 +982,6 @@ free(header);
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
@@ -1021,6 +991,10 @@ free(header);
       
         <li>
           <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -1040,7 +1014,27 @@ free(header);
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -1049,26 +1043,6 @@ free(header);
       
         <li>
           <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
       </ul>

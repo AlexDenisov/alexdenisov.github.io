@@ -6,6 +6,8 @@
     <description>Recent content in Reverse Engineering on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
     <atom:link href="/tags/reverse-engineering/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>Reverse Engineering Stickies.app</title>
       <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
       <pubDate>Mon, 13 Feb 2017</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
       <description>
 
@@ -55,9 +57,7 @@
 &lt;p&gt;The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&amp;rsquo;s used. Maybe then I will get another hint.&lt;/p&gt;
 
 &lt;p&gt;Localizations are stored within the app&amp;rsquo;s bundle, at &lt;code&gt;Contents/Resources&lt;/code&gt; folder. I am particularly interested in &lt;code&gt;Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;. By default, strings are Binary Plists. One can use &lt;code&gt;plutil&lt;/code&gt; to convert them into human-readable XML:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The &lt;code&gt;Localizable.strings&lt;/code&gt; contains many things, but colors are not there.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/localizable_strings.png&#34;
@@ -79,9 +79,7 @@
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Unlikely that I can find something useful inside, but let&amp;rsquo;s see.
 The &lt;code&gt;MainMenu&lt;/code&gt; contains 20k lines. Also, it is quite cryptic:&lt;/p&gt;
 
@@ -131,9 +129,7 @@ What&amp;rsquo;s left? The binary itself!&lt;/p&gt;
 &lt;p&gt;It feels like a dead end.&lt;/p&gt;
 
 &lt;p&gt;Instead of searching for other words hoping that I will find something useful I can ask &lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt; for help.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Shallow look at &lt;code&gt;Stickies.h&lt;/code&gt; shows that class &lt;code&gt;StickiesWindow&lt;/code&gt; has a method &lt;code&gt;setColorByIndex:&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/stickies_window.png&#34;
@@ -237,31 +233,27 @@ The base address can be obtained via LLDB as well.&lt;/p&gt;
 &lt;p&gt;Now I can pick value I want to use and start writing them one by one starting at &lt;code&gt;0xc790&lt;/code&gt;. But I have a better idea.&lt;/p&gt;
 
 &lt;p&gt;Let&amp;rsquo;s recall and rewrite a pseudo-code from Hopper:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;base &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0xc790&lt;/span&gt;;
-r &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
-g &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;8&lt;/span&gt;;
-b &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;16&lt;/span&gt;;
-color1 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
-r &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;24&lt;/span&gt;;
-g &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;32&lt;/span&gt;;
-b &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;40&lt;/span&gt;;
-color2 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
-r &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;48&lt;/span&gt;;
-g &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;56&lt;/span&gt;;
-b &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;64&lt;/span&gt;;
-color3 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
-r &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;72&lt;/span&gt;;
-g &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;80&lt;/span&gt;;
-b &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;88&lt;/span&gt;;
-color4 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;base = &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0xc790&lt;/span&gt;;
+r = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;;
+g = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;8&lt;/span&gt;;
+b = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;16&lt;/span&gt;;
+color1 = rgb(r, g, b);
+r = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;24&lt;/span&gt;;
+g = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;32&lt;/span&gt;;
+b = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;40&lt;/span&gt;;
+color2 = rgb(r, g, b);
+r = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;48&lt;/span&gt;;
+g = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;56&lt;/span&gt;;
+b = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;64&lt;/span&gt;;
+color3 = rgb(r, g, b);
+r = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;72&lt;/span&gt;;
+g = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;80&lt;/span&gt;;
+b = base + &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;88&lt;/span&gt;;
+color4 = rgb(r, g, b);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.&lt;/p&gt;
 
 &lt;p&gt;Here where the color index comes into play:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;base &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; (colorIndex &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; (colorIndex &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0x2&lt;/span&gt;)) &lt;span style=&#34;color: #666666&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0x5&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;base = (colorIndex + (colorIndex * &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0x2&lt;/span&gt;)) &amp;lt;&amp;lt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0x5&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Depending on the value of &lt;code&gt;colorIndex&lt;/code&gt; it will give the following numbers:&lt;/p&gt;
 
 &lt;pre&gt;&lt;code&gt;0: 0
@@ -274,25 +266,23 @@ color4 &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
 
 &lt;p&gt;The step is 96: this number of bytes is needed to store four colors.
 I don&amp;rsquo;t know how the source code looked initially, but I can represent it using the following structures:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
-  &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; red;
-  &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; green;
-  &lt;span style=&#34;color: #B00040&#34;&gt;double&lt;/span&gt; blue;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;double&lt;/span&gt; red;
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;double&lt;/span&gt; green;
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;double&lt;/span&gt; blue;
 } color;
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
   color c1;
   color c2;
   color c3;
   color c4;
 } theme;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// One color theme for each color index&lt;/span&gt;
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;static&lt;/span&gt; theme themes[&lt;span style=&#34;color: #666666&#34;&gt;6&lt;/span&gt;] &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; {
- &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;/// actual color definitions&lt;/span&gt;
-};
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#007f7f&#34;&gt;/// One color theme for each color index
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;static&lt;/span&gt; theme themes[&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;6&lt;/span&gt;] = {
+ &lt;span style=&#34;color:#007f7f&#34;&gt;/// actual color definitions
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;};&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;I know that four colors are used, but I don&amp;rsquo;t yet know what they are used for.
 Patching them one by one gives the following result:&lt;/p&gt;
 
@@ -304,32 +294,28 @@ Patching them one by one gives the following result:&lt;/p&gt;
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;I can now rename field name to be more descriptive.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;struct&lt;/span&gt; {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;struct&lt;/span&gt; {
   color background_color;
   color border_color;
   color window_title_color;
   color icon_color;
-} theme;
-&lt;/pre&gt;&lt;/div&gt;
-
+} theme;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Once I have this in place changing the colors becomes a trivial task:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;color &lt;span style=&#34;color: #0000FF&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b);
-&lt;span style=&#34;color: #B00040&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;changeColor&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; colorIndex, &lt;span style=&#34;color: #B00040&#34;&gt;FILE&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;binary) {
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;color rgb(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; b);
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;void&lt;/span&gt; changeColor(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; colorIndex, FILE *binary) {
   theme t;
 
-  t.background_color &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color: #666666&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;255&lt;/span&gt;);
-  t.window_title_color &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color: #666666&#34;&gt;38&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;173&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;228&lt;/span&gt;);
-  t.icon_color &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; t.window_title_color;
-  t.border_color &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color: #666666&#34;&gt;77&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;188&lt;/span&gt;, &lt;span style=&#34;color: #666666&#34;&gt;233&lt;/span&gt;);
+  t.background_color = rgb(&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;255&lt;/span&gt;);
+  t.window_title_color = rgb(&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;38&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;173&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;228&lt;/span&gt;);
+  t.icon_color = t.window_title_color;
+  t.border_color = rgb(&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;77&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;188&lt;/span&gt;, &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;233&lt;/span&gt;);
 
-  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0xc790&lt;/span&gt;;
-  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; offset &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; colorIndex &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;96&lt;/span&gt;;
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; ColorAddressBase = &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0xc790&lt;/span&gt;;
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; offset = ColorAddressBase + colorIndex * &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;96&lt;/span&gt;;
   fseek(binary, offset, SEEK_SET);
-  fwrite(&lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&lt;/span&gt;t, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;sizeof&lt;/span&gt;(theme), &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt;, binary);
+  fwrite(&amp;amp;t, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;sizeof&lt;/span&gt;(theme), &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt;, binary);
   rewind(binary);
-}
-&lt;/pre&gt;&lt;/div&gt;
-
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;After running this code, I see a much better Sticky Note!&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/blue_sticky.png&#34;
@@ -382,7 +368,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
@@ -480,33 +466,27 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
 
 &lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// main.c&lt;/span&gt;
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;fmt, ...);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// main.c
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; printf(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;char&lt;/span&gt; *fmt, ...);
 
-&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;() {
-  printf(&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello World&lt;/span&gt;&lt;span style=&#34;color: #BB6622; font-weight: bold&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;&lt;/span&gt;);
-  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
-}
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; main() {
+  printf(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;&lt;/span&gt;);
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Run the following:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;clang -S -emit-llvm main.c
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;clang -S -emit-llvm main.c&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;@.str&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color: #666666&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Hello World\0A\00&amp;quot;&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;@.str = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;; Function Attrs: nounwind ssp uwtable&lt;/span&gt;
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@main&lt;/span&gt;() &lt;span style=&#34;color: #19177C&#34;&gt;#0&lt;/span&gt; {
-  &lt;span style=&#34;color: #19177C&#34;&gt;%1&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;4&lt;/span&gt;
-  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt;* &lt;span style=&#34;color: #19177C&#34;&gt;%1&lt;/span&gt;
-  &lt;span style=&#34;color: #19177C&#34;&gt;%2&lt;/span&gt; = &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;*, ...)* &lt;span style=&#34;color: #19177C&#34;&gt;@printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color: #666666&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;]* &lt;span style=&#34;color: #19177C&#34;&gt;@.str&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;))
-  &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;; Function Attrs: nounwind ssp uwtable
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; @main() #0 {
+  %1 = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;4&lt;/span&gt;
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt;* %1
+  %2 = &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;))
+  &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;
 }
 
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;@printf&lt;/span&gt;(&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;i8&lt;/span&gt;*, ...) &lt;span style=&#34;color: #19177C&#34;&gt;#1&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;i8&lt;/span&gt;*, ...) #1&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
 
 &lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
@@ -521,16 +501,14 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
           height: auto;&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;bitcode_retriever some_binary
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;$ bitcode_retriever some_binary
 arm.xar
 x86_64.xar
-&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;xar -xvf arm.xar
-1
-2
-&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 1.ll&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;$ &lt;/span&gt;llvm-dis &lt;span style=&#34;color: #666666&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# outputs 2.ll&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+$ xar -xvf arm.xar
+&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt;
+&lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;
+$ llvm-dis &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#007f7f&#34;&gt;# outputs 1.ll
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;$ llvm-dis &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt; # outputs &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;2&lt;/span&gt;.ll&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
 Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
 

@@ -137,163 +137,149 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <p><code>Client</code> - handles error/raw data from the <code>Loader</code> and sends it to an end user</p>
 
 <p>Here is the interface of the <code>Loader</code>:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Loader</span> : <span style="color: #008000">NSObject</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">@interface</span> Loader : NSObject
 
-- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">loadDataWithCompletion:</span>(<span style="color: #B00040">void</span> (<span style="color: #666666">^</span>) (<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error))<span style="color: #19177C">completion</span>;
+- (<span style="color:#fff;font-weight:bold">void</span>)loadDataWithCompletion:(<span style="color:#fff;font-weight:bold">void</span> (^) (NSData *data, NSError *error))completion;
 
-<span style="color: #008000; font-weight: bold">@end</span>
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">@end</span></code></pre></div>
 <p>the interface of the <code>Client</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>Callback) (<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
-<span style="color: #008000; font-weight: bold">@class</span> <span style="color: #0000FF; font-weight: bold">Loader</span>;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">typedef</span> void (^Callback) (NSArray *users, NSError *error);
+<span style="color:#fff;font-weight:bold">@class</span> Loader;
 
-<span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Client</span> : <span style="color: #008000">NSObject</span>
+<span style="color:#fff;font-weight:bold">@interface</span> Client : NSObject
 
-<span style="color: #008000; font-weight: bold">@property</span> Loader <span style="color: #666666">*</span>loader;
+<span style="color:#fff;font-weight:bold">@property</span> Loader *loader;
 
-- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">loadUsersWithCallback:</span>(Callback)<span style="color: #19177C">callback</span>;
+- (<span style="color:#fff;font-weight:bold">void</span>)loadUsersWithCallback:(Callback)callback;
 
-<span style="color: #008000; font-weight: bold">@end</span>
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">@end</span></code></pre></div>
 <p>and it’s implementation:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@implementation</span> <span style="color: #0000FF; font-weight: bold">Client</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">@implementation</span> Client
 
-- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">loadUsersWithCallback:</span>(Callback)<span style="color: #19177C">callback</span> {
-  [<span style="color: #008000">self</span>.loader <span style="color: #A0A000">loadDataWithCompletion</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error) {
-    <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users <span style="color: #666666">=</span> parseUsers(data);
-    <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>finalError <span style="color: #666666">=</span> processError(error);
+- (<span style="color:#fff;font-weight:bold">void</span>)loadUsersWithCallback:(Callback)callback {
+  [<span style="color:#fff;font-weight:bold">self</span>.loader loadDataWithCompletion:^(NSData *data, NSError *error) {
+    NSArray *users = parseUsers(data);
+    NSError *finalError = processError(error);
     callback(users, finalError);
   }];
 }
 
-<span style="color: #008000; font-weight: bold">@end</span>
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">@end</span></code></pre></div>
 <p>Our goal is to test that the client parses data and handles errors in a correct way:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="color: #666666">^</span>{
-  Client <span style="color: #666666">*</span>client <span style="color: #666666">=</span> [Client new];
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c">describe(<span style="color:#0ff;font-weight:bold">@&#34;Client&#34;</span>, ^{
+  Client *client = [Client new];
 
-  it(<span style="color: #BA2121">@&quot;should parse data&quot;</span>, <span style="color: #666666">^</span>{
-    <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>expectedUsers <span style="color: #666666">=</span> ethalonUsers();
-    <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>actualUsers <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
+  it(<span style="color:#0ff;font-weight:bold">@&#34;should parse data&#34;</span>, ^{
+    NSArray *expectedUsers = ethalonUsers();
+    NSArray *actualUsers = <span style="color:#fff;font-weight:bold">nil</span>;
 
-    [client <span style="color: #A0A000">loadUsersWithCallback</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error) {
-      actualUsers <span style="color: #666666">=</span> users;
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualUsers = users;
     }];
 
-    actualUsers should <span style="color: #0000FF">equal</span>(expectedUsers);
+    actualUsers should equal(expectedUsers);
   });
 
-  it(<span style="color: #BA2121">@&quot;should process error&quot;</span>, <span style="color: #666666">^</span>{
-    <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>expectedError <span style="color: #666666">=</span> ethalonError();
-    <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>actualError <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
+  it(<span style="color:#0ff;font-weight:bold">@&#34;should process error&#34;</span>, ^{
+    NSError *expectedError = ethalonError();
+    NSError *actualError = <span style="color:#fff;font-weight:bold">nil</span>;
 
-    [client <span style="color: #A0A000">loadUsersWithCallback</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error) {
-      actualError <span style="color: #666666">=</span> error;
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualError = error;
     }];
 
-    actualError should <span style="color: #0000FF">equal</span>(expectedError);
+    actualError should equal(expectedError);
   });
 
-});
-</pre></div>
-
+});</code></pre></div>
 <p>To test this we just need to replace the <code>client.loader</code> with a fake object that is going to mimic the desired behavior.</p>
 
 <p>Here is how it looks like with Cedar:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>LoaderCallback)(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">typedef</span> void (^LoaderCallback)(NSData *data, NSError *error);
 
-<span style="color: #408080; font-style: italic">// parse data</span>
-<span style="color: #B00040">SEL</span> sel <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">loadDataWithCompletion</span>:);
-Loader <span style="color: #666666">*</span>loader <span style="color: #666666">=</span> fake_for(Loader.<span style="color: #008000; font-weight: bold">class</span>);
-loader <span style="color: #0000FF">stub_method</span>(sel).and_do(<span style="color: #666666">^</span>(<span style="color: #008000">NSInvocation</span> <span style="color: #666666">*</span>invocation) {
-  LoaderCallback callback <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
-  <span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data <span style="color: #666666">=</span> getUsersData();
-  [invocation <span style="color: #A0A000">getArgument</span>:<span style="color: #666666">&amp;</span>callback <span style="color: #A0A000">atIndex</span>:<span style="color: #666666">2</span>];
-  callback(data, <span style="color: #008000">nil</span>);
+<span style="color:#007f7f">// parse data
+</span><span style="color:#007f7f"></span><span style="color:#fff;font-weight:bold">SEL</span> sel = <span style="color:#fff;font-weight:bold">@selector</span>(loadDataWithCompletion:);
+Loader *loader = fake_for(Loader.<span style="color:#fff;font-weight:bold">class</span>);
+loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+  LoaderCallback callback = <span style="color:#fff;font-weight:bold">nil</span>;
+  NSData *data = getUsersData();
+  [invocation getArgument:&amp;callback atIndex:<span style="color:#ff0;font-weight:bold">2</span>];
+  callback(data, <span style="color:#fff;font-weight:bold">nil</span>);
 });
 
-<span style="color: #408080; font-style: italic">// parse data</span>
-<span style="color: #B00040">SEL</span> sel <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">loadDataWithCompletion</span>:);
-Loader <span style="color: #666666">*</span>loader <span style="color: #666666">=</span> fake_for(Loader.<span style="color: #008000; font-weight: bold">class</span>);
-loader <span style="color: #0000FF">stub_method</span>(sel).and_do(<span style="color: #666666">^</span>(<span style="color: #008000">NSInvocation</span> <span style="color: #666666">*</span>invocation) {
-  LoaderCallback callback <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
-  <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error <span style="color: #666666">=</span> getError();
-  [invocation <span style="color: #A0A000">getArgument</span>:<span style="color: #666666">&amp;</span>callback <span style="color: #A0A000">atIndex</span>:<span style="color: #666666">2</span>];
-  callback(<span style="color: #008000">nil</span>, error);
-});
-</pre></div>
-
+<span style="color:#007f7f">// parse data
+</span><span style="color:#007f7f"></span><span style="color:#fff;font-weight:bold">SEL</span> sel = <span style="color:#fff;font-weight:bold">@selector</span>(loadDataWithCompletion:);
+Loader *loader = fake_for(Loader.<span style="color:#fff;font-weight:bold">class</span>);
+loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+  LoaderCallback callback = <span style="color:#fff;font-weight:bold">nil</span>;
+  NSError *error = getError();
+  [invocation getArgument:&amp;callback atIndex:<span style="color:#ff0;font-weight:bold">2</span>];
+  callback(<span style="color:#fff;font-weight:bold">nil</span>, error);
+});</code></pre></div>
 <p>For those unfamiliar with <a href="https://developer.apple.com/library/prerelease/ios/documentation/Cocoa/Reference/Foundation/Classes/NSInvocation_Class/index.html"><code>NSInvocation</code></a> let me cite it&rsquo;s documentation:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">/*</span>
-<span style="color: #408080; font-style: italic">buffer:</span>
-<span style="color: #408080; font-style: italic">  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.</span>
-
-<span style="color: #408080; font-style: italic">index:</span>
-<span style="color: #408080; font-style: italic">  An integer specifying the index of the argument to get.</span>
-<span style="color: #408080; font-style: italic">  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.</span>
-<span style="color: #408080; font-style: italic">*/</span>
-- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">getArgument:</span>(<span style="color: #B00040">void</span> <span style="color: #666666">*</span> nonnull)<span style="color: #19177C">buffer</span> <span style="color: #0000FF">atIndex:</span>(NSInteger)<span style="color: #19177C">index</span>;
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#007f7f">/*
+</span><span style="color:#007f7f">buffer:
+</span><span style="color:#007f7f">  An untyped buffer to hold the returned argument. See the discussion below relating to argument values that are objects.
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">index:
+</span><span style="color:#007f7f">  An integer specifying the index of the argument to get.
+</span><span style="color:#007f7f">  Indices 0 and 1 indicate the hidden arguments self and _cmd, respectively; these values can be retrieved directly with the target and selector methods. Use indices 2 and greater for the arguments normally passed in a message.
+</span><span style="color:#007f7f">*/</span>
+- (<span style="color:#fff;font-weight:bold">void</span>)getArgument:(<span style="color:#fff;font-weight:bold">void</span> * nonnull)buffer atIndex:(NSInteger)index;</code></pre></div>
 <p>After putting these parts together you&rsquo;ll have this cryptic code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">typedef</span> <span style="color: #0000FF">void</span> (<span style="color: #666666">^</span>LoaderCallback)(<span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objective-c" data-lang="objective-c"><span style="color:#fff;font-weight:bold">typedef</span> void (^LoaderCallback)(NSData *data, NSError *error);
 
-<span style="color: #008000; font-weight: bold">static</span> Loader <span style="color: #666666">*</span><span style="color: #0000FF">fakeUsersLoader</span>() {
-  <span style="color: #B00040">SEL</span> sel <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">loadDataWithCompletion</span>:);
-  Loader <span style="color: #666666">*</span>loader <span style="color: #666666">=</span> fake_for(Loader.<span style="color: #008000; font-weight: bold">class</span>);
-  loader stub_method(sel).and_do(<span style="color: #666666">^</span>(<span style="color: #008000">NSInvocation</span> <span style="color: #666666">*</span>invocation) {
-    LoaderCallback callback <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
-    <span style="color: #008000">NSData</span> <span style="color: #666666">*</span>data <span style="color: #666666">=</span> getUsersData();
-    [invocation <span style="color: #A0A000">getArgument</span>:<span style="color: #666666">&amp;</span>callback <span style="color: #A0A000">atIndex</span>:<span style="color: #666666">2</span>];
-    callback(data, <span style="color: #008000">nil</span>);
+<span style="color:#fff;font-weight:bold">static</span> Loader *fakeUsersLoader() {
+  <span style="color:#fff;font-weight:bold">SEL</span> sel = <span style="color:#fff;font-weight:bold">@selector</span>(loadDataWithCompletion:);
+  Loader *loader = fake_for(Loader.<span style="color:#fff;font-weight:bold">class</span>);
+  loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+    LoaderCallback callback = <span style="color:#fff;font-weight:bold">nil</span>;
+    NSData *data = getUsersData();
+    [invocation getArgument:&amp;callback atIndex:<span style="color:#ff0;font-weight:bold">2</span>];
+    callback(data, <span style="color:#fff;font-weight:bold">nil</span>);
   });
 }
 
-<span style="color: #008000; font-weight: bold">static</span> Loader <span style="color: #666666">*</span><span style="color: #0000FF">fakeErrorLoader</span>() {
-  <span style="color: #B00040">SEL</span> sel <span style="color: #666666">=</span> <span style="color: #008000; font-weight: bold">@selector</span>(<span style="color: #A0A000">loadDataWithCompletion</span>:);
-  Loader <span style="color: #666666">*</span>loader <span style="color: #666666">=</span> fake_for(Loader.<span style="color: #008000; font-weight: bold">class</span>);
-  loader stub_method(sel).and_do(<span style="color: #666666">^</span>(<span style="color: #008000">NSInvocation</span> <span style="color: #666666">*</span>invocation) {
-    LoaderCallback callback <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
-    <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error <span style="color: #666666">=</span> getError();
-    [invocation <span style="color: #A0A000">getArgument</span>:<span style="color: #666666">&amp;</span>callback <span style="color: #A0A000">atIndex</span>:<span style="color: #666666">2</span>];
-    callback(<span style="color: #008000">nil</span>, error);
+<span style="color:#fff;font-weight:bold">static</span> Loader *fakeErrorLoader() {
+  <span style="color:#fff;font-weight:bold">SEL</span> sel = <span style="color:#fff;font-weight:bold">@selector</span>(loadDataWithCompletion:);
+  Loader *loader = fake_for(Loader.<span style="color:#fff;font-weight:bold">class</span>);
+  loader stub_method(sel).and_do(^(NSInvocation *invocation) {
+    LoaderCallback callback = <span style="color:#fff;font-weight:bold">nil</span>;
+    NSError *error = getError();
+    [invocation getArgument:&amp;callback atIndex:<span style="color:#ff0;font-weight:bold">2</span>];
+    callback(<span style="color:#fff;font-weight:bold">nil</span>, error);
   });
 }
 
-describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="color: #666666">^</span>{
-  Client <span style="color: #666666">*</span>client <span style="color: #666666">=</span> [Client new];
+describe(<span style="color:#0ff;font-weight:bold">@&#34;Client&#34;</span>, ^{
+  Client *client = [Client new];
 
-  it(<span style="color: #BA2121">@&quot;should parse data&quot;</span>, <span style="color: #666666">^</span>{
-    client.loader <span style="color: #666666">=</span> fakeUsersLoader();
+  it(<span style="color:#0ff;font-weight:bold">@&#34;should parse data&#34;</span>, ^{
+    client.loader = fakeUsersLoader();
 
-    <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>expectedUsers <span style="color: #666666">=</span> ethalonUsers();
-    <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>actualUsers <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
+    NSArray *expectedUsers = ethalonUsers();
+    NSArray *actualUsers = <span style="color:#fff;font-weight:bold">nil</span>;
 
-    [client <span style="color: #A0A000">loadUsersWithCallback</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error) {
-      actualUsers <span style="color: #666666">=</span> users;
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualUsers = users;
     }];
 
-    actualUsers should <span style="color: #0000FF">equal</span>(expectedUsers);
+    actualUsers should equal(expectedUsers);
   });
 
-  it(<span style="color: #BA2121">@&quot;should process error&quot;</span>, <span style="color: #666666">^</span>{
-    client.loader <span style="color: #666666">=</span> fakeErrorLoader();
+  it(<span style="color:#0ff;font-weight:bold">@&#34;should process error&#34;</span>, ^{
+    client.loader = fakeErrorLoader();
 
-    <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>expectedError <span style="color: #666666">=</span> ethalonError();
-    <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>actualError <span style="color: #666666">=</span> <span style="color: #008000">nil</span>;
+    NSError *expectedError = ethalonError();
+    NSError *actualError = <span style="color:#fff;font-weight:bold">nil</span>;
 
-    [client <span style="color: #A0A000">loadUsersWithCallback</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>users, <span style="color: #008000">NSError</span> <span style="color: #666666">*</span>error) {
-      actualError <span style="color: #666666">=</span> error;
+    [client loadUsersWithCallback:^(NSArray *users, NSError *error) {
+      actualError = error;
     }];
 
-    actualError should <span style="color: #0000FF">equal</span>(expectedError);
+    actualError should equal(expectedError);
   });
-});
-</pre></div>
-
+});</code></pre></div>
 <h3 id="summary">Summary</h3>
 
 <p>One of our modules had lots of asynchronous network tests which were failing randomly. As you might imagine, that’s not an optimal situation to find yourself in. By getting rid of asynchrony, we didn’t only get rid of random failures, but also decreased execution time from ~2.5s to ~0.01s.</p>
@@ -826,11 +812,11 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -838,7 +824,7 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -850,31 +836,11 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
@@ -887,6 +853,26 @@ describe(<span style="color: #BA2121">@&quot;Client&quot;</span>, <span style="c
       
         <li>
           <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
       </ul>

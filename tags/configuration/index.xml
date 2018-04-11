@@ -6,6 +6,8 @@
     <description>Recent content in Configuration on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 06 Feb 2015 00:43:11 +0100</lastBuildDate>
     <atom:link href="/tags/configuration/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
@@ -21,16 +23,14 @@
 Our toolchain does not provide good solution for this problem, so we have to implement our own.&lt;/p&gt;
 
 &lt;p&gt;When I worked with Ruby On Rails I really loved its approach for database configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;development:
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;development:
   user: dev
   password: dev123
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
+&lt;span style=&#34;color:#007f7f&#34;&gt;# ...&lt;/span&gt;
 production:
   user: root
   password: supersecurepassword
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;# ...&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#007f7f&#34;&gt;# ...&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;I wish I can use the same approach in my daily iOS development.&lt;/p&gt;
 
 &lt;p&gt;Fortunately, I can!&lt;/p&gt;
@@ -49,13 +49,11 @@ Both of them have serious disadvantages.&lt;/p&gt;
 &lt;h4 id=&#34;preprocessor-definition&#34;&gt;Preprocessor Definition&lt;/h4&gt;
 
 &lt;p&gt;You may saw and probably used this approach. It&amp;rsquo;s pretty easy and simple to use:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#ifdef DEBUG&lt;/span&gt;
-&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://staging.example.com&amp;quot;&lt;/span&gt;;
-&lt;span style=&#34;color: #BC7A00&#34;&gt;#else&lt;/span&gt;
-&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; kServerAddress &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;https://example.com&amp;quot;&lt;/span&gt;;
-&lt;span style=&#34;color: #BC7A00&#34;&gt;#endif&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#ifdef DEBUG
+&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;NSString *&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; kServerAddress = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;https://staging.example.com&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#else
+&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;NSString *&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; kServerAddress = &lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;https://example.com&amp;#34;&lt;/span&gt;;
+&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#endif&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;But let&amp;rsquo;s say that you add one more environment, e.g. &amp;ldquo;Beta&amp;rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&amp;rsquo;s really easy to make a typo or &amp;ldquo;accidentally&amp;rdquo; drop a definition. Your code will compile, but it&amp;rsquo;d use wrong environment.
 Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.&lt;/p&gt;
 
@@ -81,38 +79,32 @@ Still you have to perform way too many actions for such a simple task.&lt;/p&gt;
 &lt;h5 id=&#34;here-is-how-it-looks-like&#34;&gt;Here is how it looks like:&lt;/h5&gt;
 
 &lt;p&gt;Configuration file:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;principalClass: Configuration
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;principalClass: Configuration
 
 Debug:
   serverAddress: https://staging.example.com
-  APIKey: qwe123!!qwe
+  APIKey: qwe123&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;!!qwe&lt;/span&gt;
 
 Release:
   serverAddress: https://example.com
-  APIKey: qwe123qwe
-&lt;/pre&gt;&lt;/div&gt;
-
+  APIKey: qwe123qwe&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;ObjC code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;@Interface &lt;span style=&#34;color: #A0A000&#34;&gt;Configuration&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
-&lt;span style=&#34;color: #666666&#34;&gt;-&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)serverAddress;
-- (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;APIKey&lt;/span&gt;;
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;@Interface Configuration : NSObject
+- (NSString *)serverAddress;
+- (NSString *)APIKey;
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;
 
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
-
-Config &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Config new];
-NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/span&gt;, config.serverAddress);
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;
+Config *config = [Config new];
+NSLog(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;%@&amp;#34;&lt;/span&gt;, config.serverAddress);&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;No preprocessor, no boilerplate!&lt;/p&gt;
 
 &lt;h4 id=&#34;installation-and-usage&#34;&gt;Installation and usage&lt;/h4&gt;
 
 &lt;p&gt;To install &lt;code&gt;xcconf&lt;/code&gt; you need to clone repo and run one command, it&amp;rsquo;ll build executable and install it into &lt;code&gt;/usr/local/bin&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;git clone git@github.com:AlexDenisov/xcconf.git &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; &lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;xcconf
-make install
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;git clone git@github.com:AlexDenisov/xcconf.git &amp;amp;&amp;amp; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; xcconf
+make install&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Integration into project looks weird, but don&amp;rsquo;t worry, that&amp;rsquo;s ok :)&lt;/p&gt;
 
 &lt;p&gt;First of all create YAML file, e.g,: &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
@@ -126,21 +118,17 @@ make install
   alt=&#34;New file&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Put there initial configuration:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;principalClass: Config
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-yaml&#34; data-lang=&#34;yaml&#34;&gt;principalClass: Config
 
 Debug:
   color: Green
 
 Release:
-  color: Blue
-&lt;/pre&gt;&lt;/div&gt;
-
+  color: Blue&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Prepare class interface for configuration. &lt;strong&gt;But do not create implementation&lt;/strong&gt;. Its name should be equal to &lt;code&gt;principalClass&lt;/code&gt; and it might contain getter methods for all available parameters, in this case it&amp;rsquo;s just &lt;code&gt;color&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@interface&lt;/span&gt; &lt;span style=&#34;color: #0000FF; font-weight: bold&#34;&gt;Config&lt;/span&gt; : &lt;span style=&#34;color: #008000&#34;&gt;NSObject&lt;/span&gt;
-- (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;)&lt;span style=&#34;color: #0000FF&#34;&gt;color&lt;/span&gt;;
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@end&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@interface&lt;/span&gt; Config : NSObject
+- (NSString *)color;
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@end&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Let&amp;rsquo;s now compile our config, go to &lt;code&gt;Build Phases&lt;/code&gt; -&amp;gt; &lt;code&gt;Compile Sources&lt;/code&gt; -&amp;gt; &lt;code&gt;+&lt;/code&gt; and add &lt;code&gt;config.yaml&lt;/code&gt;&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/compile_yaml.png&#34;
@@ -164,17 +152,15 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
   alt=&#34;xcconf&#34; /&gt;&lt;/p&gt;
 
 &lt;p&gt;Now we&amp;rsquo;re ready to use it:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #BC7A00&#34;&gt;#import &amp;quot;Config.h&amp;quot;&lt;/span&gt;
-
-&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color: #B00040&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt; argv[]) {
-    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;@autoreleasepool&lt;/span&gt; {
-        Config &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;config &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [Config new];
-        NSLog(&lt;span style=&#34;color: #BA2121&#34;&gt;@&amp;quot;%@&amp;quot;&lt;/span&gt;, config.color);
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objectivec&#34; data-lang=&#34;objectivec&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#import &amp;#34;Config.h&amp;#34;
+&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; main(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;char&lt;/span&gt; * argv[]) {
+    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;@autoreleasepool&lt;/span&gt; {
+        Config *config = [Config new];
+        NSLog(&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;@&amp;#34;%@&amp;#34;&lt;/span&gt;, config.color);
     }
-    &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;0&lt;/span&gt;;
-}
-&lt;/pre&gt;&lt;/div&gt;
-
+    &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ff0;font-weight:bold&#34;&gt;0&lt;/span&gt;;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Build&amp;amp;Run:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/yaml-based-configuration/output.png&#34;

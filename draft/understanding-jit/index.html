@@ -119,9 +119,8 @@ To understand JIT better we will move up from very low level. Our path will run 
 
 <div class="image-box">
   <img src="/img/understanding-jit/and.png"
-    style="
-            width: 30%;
-            height: auto;" />
+    style="width: 30%;
+           height: auto;" />
   <img src="/img/understanding-jit/or.png"
     style="
             width: 30%;
@@ -158,15 +157,13 @@ output: <code>sum</code> holds the sum, while <code>carry</code> shows whether &
 not.</p>
 
 <p>Nothing describes <code>Mux</code> better than this piece of code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">mux</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b, <span style="color: #B00040">bool</span> sel) {
-  <span style="color: #008000; font-weight: bold">if</span> (sel) {
-    <span style="color: #008000; font-weight: bold">return</span> b;
-  } <span style="color: #008000; font-weight: bold">else</span> {
-    <span style="color: #008000; font-weight: bold">return</span> a;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">int</span> mux(<span style="color:#fff;font-weight:bold">int</span> a, <span style="color:#fff;font-weight:bold">int</span> b, <span style="color:#fff;font-weight:bold">bool</span> sel) {
+  <span style="color:#fff;font-weight:bold">if</span> (sel) {
+    <span style="color:#fff;font-weight:bold">return</span> b;
+  } <span style="color:#fff;font-weight:bold">else</span> {
+    <span style="color:#fff;font-weight:bold">return</span> a;
   }
-}
-</pre></div>
-
+}</code></pre></div>
 <div class="image-box">
 <img src="/img/understanding-jit/half_adder.png"
   style="
@@ -251,10 +248,8 @@ Processing Unit)</a>.</p>
 <p>mnemonic_mapping.png</p>
 
 <p>This way one can just write</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #0000FF">mov</span> <span style="color: #880000">ax</span>, <span style="color: #880000">bx</span>
-<span style="color: #0000FF">ret</span>
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-asm" data-lang="asm">mov ax, bx
+ret</code></pre></div>
 <p>Which will be converted to actual 0&rsquo;s and 1&rsquo;s. This is exactly what happening with assembly or a high level code when it is compiled.
 These blobs of zeros and ones usually stored on disk for later processing. They referred to as object files.
 Basically any compiled program on your machine is a big stream of 0&rsquo;s and 1&rsquo;s. And some metadata.</p>
@@ -789,7 +784,11 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -797,11 +796,7 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -813,27 +808,23 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -845,11 +836,15 @@ Basically any compiled program on your machine is a big stream of 0&rsquo;s and 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
         </li>
       
       </ul>

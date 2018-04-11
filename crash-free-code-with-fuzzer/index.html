@@ -134,26 +134,20 @@ The best choice would be is to automate this process.</p>
 <p>The basic idea is to generate many many derivatives of original sample data and feed it to a consumer.</p>
 
 <p>For instance, from this sample</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
-  <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>,
-  <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;firstname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;John&#34;</span>,
+  <span style="font-weight:bold">&#34;lastname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;Doe&#34;</span>
+}</code></pre></div>
 <p>we could get two mutants by using <code>ReplaceNode</code> mutation, such as:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
-  <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #666666">42</span>, <span style="border: 1px solid #FF0000">//</span> <span style="border: 1px solid #FF0000">&lt;-</span> <span style="border: 1px solid #FF0000">Mutation</span>
-  <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;firstname&#34;</span> : <span style="color:#ff0;font-weight:bold">42</span>, <span style="color:#f00">//</span> <span style="color:#f00">&lt;-</span> <span style="color:#f00">Mutation</span>
+  <span style="font-weight:bold">&#34;lastname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;Doe&#34;</span>
+}</code></pre></div>
 <p>and</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
-  <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>,
-  <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #666666">42</span> <span style="border: 1px solid #FF0000">//</span> <span style="border: 1px solid #FF0000">&lt;-</span> <span style="border: 1px solid #FF0000">Mutation</span>
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;firstname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;John&#34;</span>,
+  <span style="font-weight:bold">&#34;lastname&#34;</span> : <span style="color:#ff0;font-weight:bold">42</span> <span style="color:#f00">//</span> <span style="color:#f00">&lt;-</span> <span style="color:#f00">Mutation</span>
+}</code></pre></div>
 <p>There are many decisions our serializer/mapper/whatnot can make when it gets such a result: return an error explaining why it cannot convert the dictionary into a model, or silently ignore &ldquo;number&rdquo; field, or any other action. In general this decision is up to you and your domain model.
 But I’m pretty sure there is no domain model that accepts exceptions like <code>-[__NSCFNumber length]: unrecognised selector sent to instance 0xDEADBEEF</code>.</p>
 
@@ -163,26 +157,24 @@ But I’m pretty sure there is no domain model that accepts exceptions like <cod
 The recommended way is to create another test target and put these verifications there.</p>
 
 <p>Example:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">test</span> {
-  <span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>sample <span style="color: #666666">=</span> @{
-    <span style="color: #BA2121">@&quot;name&quot;</span> <span style="color: #666666">:</span> <span style="color: #BA2121">@&quot;John Doe&quot;</span>,
-    <span style="color: #BA2121">@&quot;age&quot;</span> <span style="color: #666666">:</span> <span style="color: #666666">@42</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec">- (<span style="color:#fff;font-weight:bold">void</span>)test {
+  NSDictionary *sample = @{
+    <span style="color:#0ff;font-weight:bold">@&#34;name&#34;</span> : <span style="color:#0ff;font-weight:bold">@&#34;John Doe&#34;</span>,
+    <span style="color:#0ff;font-weight:bold">@&#34;age&#34;</span> : <span style="color:#ff0;font-weight:bold">@42</span>
   };
 
-  UserDeserializer <span style="color: #666666">*</span>deserializer <span style="color: #666666">=</span> [UserDeserializer new];
-  Mutator <span style="color: #666666">*</span>mutator <span style="color: #666666">=</span> [Mutator <span style="color: #A0A000">mutatorForSample</span>:sample <span style="color: #A0A000">withMutationGenerator</span>:[MutationGenerator builtinMutationGenerator]];
-  Engine <span style="color: #666666">*</span>engine <span style="color: #666666">=</span> [Engine <span style="color: #A0A000">engineWithMutator</span>:mutator];
+  UserDeserializer *deserializer = [UserDeserializer new];
+  Mutator *mutator = [Mutator mutatorForSample:sample withMutationGenerator:[MutationGenerator builtinMutationGenerator]];
+  Engine *engine = [Engine engineWithMutator:mutator];
 
-  <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>reports <span style="color: #666666">=</span> [engine <span style="color: #A0A000">runEngineOverMutants</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>mutant) {
-    User <span style="color: #666666">*</span>user <span style="color: #666666">=</span> [deserializer <span style="color: #A0A000">deserializeUser</span>:mutant];
+  NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant) {
+    User *user = [deserializer deserializeUser:mutant];
     user.name.length;
     user.age.integerValue;
   }];
 
-  XCTAssertEqual(reports.count, <span style="color: #666666">0</span>);
-}
-</pre></div>
-
+  XCTAssertEqual(reports.count, <span style="color:#ff0;font-weight:bold">0</span>);
+}</code></pre></div>
 <p>It’s not very elegant, but it does the job very well.
 Lines like <code>user.name.length;</code> may look weird, but it’s the easiest way to validate that <code>name</code> is <code>NSString</code>.</p>
 
@@ -191,16 +183,12 @@ Lines like <code>user.name.length;</code> may look weird, but it’s the easiest
 <p>Example looks pretty straightforward, but I’d like to highlight couple of things.</p>
 
 <p>The block here does nothing but catching exceptions and recording them into internal storage within mutant that caused the exception:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>reports <span style="color: #666666">=</span> [engine <span style="color: #A0A000">runEngineOverMutants</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>mutant){ <span style="border: 1px solid #FF0000">…</span> }];
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec">NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant){ <span style="color:#f00">…</span> }];</code></pre></div>
 <p>The engine records only failures, so it’s enough to assert count of returned reports.
 One can easily examine what caused failure by looking at report, e.g.:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">for</span> (Report <span style="color: #666666">*</span>report <span style="color: #008000; font-weight: bold">in</span> reports) {
-  NSLog(<span style="color: #BA2121">@&quot;Thrown &#39;%@&#39; on &#39;%@&#39;&quot;</span>, report.exception, report.mutant);
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec"><span style="color:#fff;font-weight:bold">for</span> (Report *report <span style="color:#fff;font-weight:bold">in</span> reports) {
+  NSLog(<span style="color:#0ff;font-weight:bold">@&#34;Thrown &#39;%@&#39; on &#39;%@&#39;&#34;</span>, report.exception, report.mutant);
+}</code></pre></div>
 <h3 id="builtins">Builtins</h3>
 
 <p>The library provides just a couple of built-in mutations.</p>
@@ -208,33 +196,25 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 <h4 id="delete-node-mutation">Delete Node Mutation</h4>
 
 <p>Returns sample without some node so that</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
-  <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>,
-  <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;firstname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;John&#34;</span>,
+  <span style="font-weight:bold">&#34;lastname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;Doe&#34;</span>
+}</code></pre></div>
 <p>becomes either</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
-  <span style="color: #008000; font-weight: bold">&quot;firstname&quot;</span> : <span style="color: #BA2121">&quot;John&quot;</span>
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;firstname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;John&#34;</span>
+}</code></pre></div>
 <p>or</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">{
-  <span style="color: #008000; font-weight: bold">&quot;lastname&quot;</span> : <span style="color: #BA2121">&quot;Doe&quot;</span>
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-json" data-lang="json">{
+  <span style="font-weight:bold">&#34;lastname&#34;</span> : <span style="color:#0ff;font-weight:bold">&#34;Doe&#34;</span>
+}</code></pre></div>
 <h4 id="replace-node-mutation">Replace Node Mutation</h4>
 
 <p>This mutation replaces value of some node with another, ‘random’ value as shown in the very first example above.</p>
 
 <p>‘Random’ quoted not because of nature of ‘randomness’ in general, but because the replacement can be provided using <code>NodeReplacement</code>, e.g.:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">NodeReplacement <span style="color: #666666">*</span>replacement <span style="color: #666666">=</span> [NodeReplacement <span style="color: #A0A000">replacementWithValue</span>:<span style="color: #666666">&lt;</span><span style="border: 1px solid #FF0000">#</span>whatever may <span style="color: #008000; font-weight: bold">break</span> your code<span style="border: 1px solid #FF0000">#</span><span style="color: #666666">&gt;</span>];
-<span style="color: #B00040">id</span><span style="color: #666666">&lt;</span>Mutation<span style="color: #666666">&gt;</span> mutation <span style="color: #666666">=</span> [ReplaceNodeMutation <span style="color: #A0A000">mutationWithReplacement</span>:replacement];
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec">NodeReplacement *replacement = [NodeReplacement replacementWithValue:&lt;<span style="color:#0f0;font-weight:bold">#whatever may break your code#&gt;];
+</span><span style="color:#0f0;font-weight:bold"></span><span style="color:#fff;font-weight:bold">id</span>&lt;Mutation&gt; mutation = [ReplaceNodeMutation mutationWithReplacement:replacement];</code></pre></div>
 <p>That is, mutator will generate mutant with this replacement for each key/value.</p>
 
 <h3 id="extending-fuzzer">Extending Fuzzer</h3>
@@ -248,76 +228,70 @@ One can easily examine what caused failure by looking at report, e.g.:</p>
 <p>Let’s create a mutation that will return random value (using  <code>NodeReplacement</code>) instead of changing a sample.</p>
 
 <p>Simplest interface ever:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#import &lt;Fuzzer/Fuzzer.h&gt;</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec"><span style="color:#0f0;font-weight:bold">#import &lt;Fuzzer/Fuzzer.h&gt;
+</span><span style="color:#0f0;font-weight:bold"></span>
+<span style="color:#fff;font-weight:bold">@interface</span> ReplaceSampleMutation : NSObject
+  &lt;Mutation&gt;
 
-<span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">ReplaceSampleMutation</span> : <span style="color: #008000">NSObject</span>
-  <span style="color: #666666">&lt;</span>Mutation<span style="color: #666666">&gt;</span>
++ (<span style="color:#fff;font-weight:bold">instancetype</span>)mutationWithReplacement:(NodeReplacement *)replacement;
 
-<span style="color: #666666">+</span> (<span style="color: #B00040">instancetype</span>)<span style="color: #A0A000">mutationWithReplacement</span>:(NodeReplacement <span style="color: #666666">*</span>)replacement;
-
-<span style="color: #008000; font-weight: bold">@end</span>
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">@end</span></code></pre></div>
 <p>Implementation is not sophisticated as well:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">ReplaceSampleMutation</span> ()
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec"><span style="color:#fff;font-weight:bold">@interface</span> ReplaceSampleMutation ()
 
-<span style="color: #008000; font-weight: bold">@property</span> NodeReplacement <span style="color: #666666">*</span>replacement;
+<span style="color:#fff;font-weight:bold">@property</span> NodeReplacement *replacement;
 
-<span style="color: #008000; font-weight: bold">@end</span>
+<span style="color:#fff;font-weight:bold">@end</span>
 
-<span style="color: #008000; font-weight: bold">@implementation</span> <span style="color: #0000FF; font-weight: bold">ReplaceSampleMutation</span>
+<span style="color:#fff;font-weight:bold">@implementation</span> ReplaceSampleMutation
 
-<span style="color: #408080; font-style: italic">///  Our constructor</span>
-+ (<span style="color: #B00040">instancetype</span>)<span style="color: #0000FF">mutationWithReplacement:</span>(NodeReplacement <span style="color: #666666">*</span>)<span style="color: #19177C">replacement</span> {
-  ReplaceSampleMutation <span style="color: #666666">*</span>mutation <span style="color: #666666">=</span> [<span style="color: #008000">self</span> new];
+<span style="color:#007f7f">///  Our constructor
+</span><span style="color:#007f7f"></span>+ (<span style="color:#fff;font-weight:bold">instancetype</span>)mutationWithReplacement:(NodeReplacement *)replacement {
+  ReplaceSampleMutation *mutation = [<span style="color:#fff;font-weight:bold">self</span> new];
 
-  mutation.replacement <span style="color: #666666">=</span> replacement;
+  mutation.replacement = replacement;
 
-  <span style="color: #008000; font-weight: bold">return</span> mutation;
+  <span style="color:#fff;font-weight:bold">return</span> mutation;
 }
 
-<span style="color: #408080; font-style: italic">/// ‘Mutation’ Protocol Requirement</span>
-- (<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">mutateSample:</span>(<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>)<span style="color: #19177C">sample</span> <span style="color: #0000FF">atNode:</span>(<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #19177C">nodeName</span> {
-  <span style="color: #008000; font-weight: bold">return</span> (<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>)<span style="color: #008000">self</span>.replacement.value;
+<span style="color:#007f7f">/// ‘Mutation’ Protocol Requirement
+</span><span style="color:#007f7f"></span>- (NSDictionary *)mutateSample:(NSDictionary *)sample atNode:(NSString *)nodeName {
+  <span style="color:#fff;font-weight:bold">return</span> (NSDictionary *)<span style="color:#fff;font-weight:bold">self</span>.replacement.value;
 }
 
-<span style="color: #008000; font-weight: bold">@end</span>
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">@end</span></code></pre></div>
 <p>The usage is trivial:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">- (<span style="color: #B00040">void</span>)<span style="color: #0000FF">test</span> {
-  <span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>sample <span style="color: #666666">=</span> @{
-    <span style="color: #BA2121">@&quot;name&quot;</span> <span style="color: #666666">:</span> <span style="color: #BA2121">@&quot;John Doe&quot;</span>,
-    <span style="color: #BA2121">@&quot;age&quot;</span> <span style="color: #666666">:</span> <span style="color: #666666">@42</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec">- (<span style="color:#fff;font-weight:bold">void</span>)test {
+  NSDictionary *sample = @{
+    <span style="color:#0ff;font-weight:bold">@&#34;name&#34;</span> : <span style="color:#0ff;font-weight:bold">@&#34;John Doe&#34;</span>,
+    <span style="color:#0ff;font-weight:bold">@&#34;age&#34;</span> : <span style="color:#ff0;font-weight:bold">@42</span>
   };
 
-  <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>replacements <span style="color: #666666">=</span> [NodeReplacement builtinReplacements];
+  NSArray *replacements = [NodeReplacement builtinReplacements];
 
-  <span style="color: #008000">NSMutableArray</span> <span style="color: #666666">*</span>mutations <span style="color: #666666">=</span> [<span style="color: #008000">NSMutableArray</span> <span style="color: #A0A000">arrayWithCapacity</span>:replacements.count];
-  <span style="color: #008000; font-weight: bold">for</span> (NodeReplacement <span style="color: #666666">*</span>replacement <span style="color: #008000; font-weight: bold">in</span> replacements) {
-        <span style="color: #B00040">id</span><span style="color: #666666">&lt;</span>Mutation<span style="color: #666666">&gt;</span> mutation <span style="color: #666666">=</span> [ReplaceSampleMutation <span style="color: #A0A000">mutationWithReplacement</span>:replacement];
-        [mutations <span style="color: #A0A000">addObject</span>:mutation];
+  NSMutableArray *mutations = [NSMutableArray arrayWithCapacity:replacements.count];
+  <span style="color:#fff;font-weight:bold">for</span> (NodeReplacement *replacement <span style="color:#fff;font-weight:bold">in</span> replacements) {
+        <span style="color:#fff;font-weight:bold">id</span>&lt;Mutation&gt; mutation = [ReplaceSampleMutation mutationWithReplacement:replacement];
+        [mutations addObject:mutation];
   }
 
-  MutationGenerator <span style="color: #666666">*</span>customGenerator <span style="color: #666666">=</span> [MutationGenerator <span style="color: #A0A000">mutationGeneratorWithMutations</span>:mutations];
-  MutationGenerator <span style="color: #666666">*</span>builtinGenerator <span style="color: #666666">=</span> [MutationGenerator builtinMutationGenerator];
+  MutationGenerator *customGenerator = [MutationGenerator mutationGeneratorWithMutations:mutations];
+  MutationGenerator *builtinGenerator = [MutationGenerator builtinMutationGenerator];
 
-  MutationGenerator <span style="color: #666666">*</span>mutationGenerator <span style="color: #666666">=</span> [MutationGenerator <span style="color: #A0A000">combineMutationGenerators</span>:@[ customGenerator, builtinGenerator ]];
+  MutationGenerator *mutationGenerator = [MutationGenerator combineMutationGenerators:@[ customGenerator, builtinGenerator ]];
 
-  Mutator <span style="color: #666666">*</span>mutator <span style="color: #666666">=</span> [Mutator <span style="color: #A0A000">mutatorForSample</span>:sample <span style="color: #A0A000">withMutationGenerator</span>:mutationGenerator];
-  Engine <span style="color: #666666">*</span>engine <span style="color: #666666">=</span> [Engine <span style="color: #A0A000">engineWithMutator</span>:mutator];
+  Mutator *mutator = [Mutator mutatorForSample:sample withMutationGenerator:mutationGenerator];
+  Engine *engine = [Engine engineWithMutator:mutator];
 
-  UserDeserializer <span style="color: #666666">*</span>deserializer <span style="color: #666666">=</span> [UserDeserializer new];
-  <span style="color: #008000">NSArray</span> <span style="color: #666666">*</span>reports <span style="color: #666666">=</span> [engine <span style="color: #A0A000">runEngineOverMutants</span>:<span style="color: #666666">^</span>(<span style="color: #008000">NSDictionary</span> <span style="color: #666666">*</span>mutant) {
-    User <span style="color: #666666">*</span>user <span style="color: #666666">=</span> [deserializer <span style="color: #A0A000">deserializeUser</span>:mutant];
+  UserDeserializer *deserializer = [UserDeserializer new];
+  NSArray *reports = [engine runEngineOverMutants:^(NSDictionary *mutant) {
+    User *user = [deserializer deserializeUser:mutant];
     user.name.length;
     user.age.integerValue;
   }];
 
-  XCTAssertEqual(reports.count, <span style="color: #666666">0</span>);
-}
-</pre></div>
-
+  XCTAssertEqual(reports.count, <span style="color:#ff0;font-weight:bold">0</span>);
+}</code></pre></div>
 <h3 id="that-s-pretty-much-it">That&rsquo;s pretty much it</h3>
 
 <p>Please, don’t crash when your server lies!</p>
@@ -860,11 +834,11 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -888,7 +862,11 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -896,7 +874,7 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
         <li>
@@ -904,7 +882,7 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
@@ -912,11 +890,7 @@ I will be more than happy to review the <a href="https://github.com/AlexDenisov/
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
       </ul>

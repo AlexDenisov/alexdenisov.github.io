@@ -152,22 +152,17 @@ As for C family, there is the whole zoo of build tools: shell scripts, makefiles
 <h4 id="mapping-bitcode-back-to-source-code">Mapping bitcode back to source code</h4>
 
 <p>First I thought that it would be a trivial task since everything in the original code should have a corresponding instruction in the bitcode. But, for instance, this line of C++ code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">some_vector.push_back(make_pair(foo, bar));
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c++" data-lang="c++">some_vector.push_back(make_pair(foo, bar));
+</code></pre></div>
 <p>Will be expanded into several hundred (!) of instructions, if one of those instructions crashes than a good IDE should show a corresponding line of code. Hence, all those hundreds of instructions are mapped to the same place in the original code.
 Another problem that all the following pieces of code have the same representation on the IR level:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">x <span style="color: #666666">+</span>  <span style="color: #666666">1</span> <span style="color: #408080; font-style: italic">// sadd %x,  1</span>
-x <span style="color: #666666">-</span>  <span style="color: #666666">1</span> <span style="color: #408080; font-style: italic">// sadd %x, -1</span>
-x <span style="color: #666666">+=</span> <span style="color: #666666">1</span> <span style="color: #408080; font-style: italic">// sadd %x,  1</span>
-x<span style="color: #666666">++</span>    <span style="color: #408080; font-style: italic">// sadd %x,  1</span>
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">x +  <span style="color:#ff0;font-weight:bold">1</span> <span style="color:#007f7f">// sadd %x,  1
+</span><span style="color:#007f7f"></span>x -  <span style="color:#ff0;font-weight:bold">1</span> <span style="color:#007f7f">// sadd %x, -1
+</span><span style="color:#007f7f"></span>x += <span style="color:#ff0;font-weight:bold">1</span> <span style="color:#007f7f">// sadd %x,  1
+</span><span style="color:#007f7f"></span>x++    // sadd %x,  <span style="color:#ff0;font-weight:bold">1</span></code></pre></div>
 <p>Another problem: syntactic sugar.
 For instance:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">a <span style="color: #666666">=</span> b <span style="color: #666666">+</span> c;
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">a = b + c;</code></pre></div>
 <p>If <code>b</code> and <code>c</code> are simple types, then this is an addition, but, if these are objects then this a function call.
 An end user might be a bit confused why some function related mutation was applied at the addition.</p>
 
@@ -197,63 +192,61 @@ This process is quite fast since everything is happening in memory and we have a
 
 <p>One of the biggest advantages is that the algorithm for program execution is the same for each language/test framework.
 Below I describe the algorithm using pseudo code</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">struct</span> <span style="color: #0000FF; font-weight: bold">Result</span> {
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">status</span>   <span style="color: #408080; font-style: italic">// failed, passed, timed out, etc</span>
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">duration</span> <span style="color: #408080; font-style: italic">// how much time it took to run a program</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-swift" data-lang="swift"><span style="color:#fff;font-weight:bold">struct</span> Result {
+  <span style="color:#fff;font-weight:bold">let</span> status   <span style="color:#007f7f">// failed, passed, timed out, etc</span>
+  <span style="color:#fff;font-weight:bold">let</span> duration <span style="color:#007f7f">// how much time it took to run a program</span>
 }
 
-<span style="color: #008000; font-weight: bold">struct</span> <span style="color: #0000FF; font-weight: bold">MutationPoint</span> {
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span>    <span style="color: #408080; font-style: italic">// where the mutation is located</span>
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">metadata</span>  <span style="color: #408080; font-style: italic">// some utility data</span>
+<span style="color:#fff;font-weight:bold">struct</span> MutationPoint {
+  <span style="color:#fff;font-weight:bold">let</span> module    <span style="color:#007f7f">// where the mutation is located</span>
+  <span style="color:#fff;font-weight:bold">let</span> metadata  <span style="color:#007f7f">// some utility data</span>
 }
 
-<span style="color: #408080; font-style: italic">/// we give N seconds for original test to complete</span>
-<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">Timeout</span> = N
+<span style="color:#007f7f">/// we give N seconds for original test to complete</span>
+<span style="color:#fff;font-weight:bold">let</span> Timeout = N
 
-<span style="color: #408080; font-style: italic">/// Program under test is represented as a</span>
-<span style="color: #408080; font-style: italic">/// set of bitcode modules</span>
-<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">modules</span> = loadModules()
+<span style="color:#007f7f">/// Program under test is represented as a</span>
+<span style="color:#007f7f">/// set of bitcode modules</span>
+<span style="color:#fff;font-weight:bold">let</span> modules = loadModules()
 
-<span style="color: #408080; font-style: italic">/// First we find tests. Each language + test framework</span>
-<span style="color: #408080; font-style: italic">/// has custom implementation of a Test Finder</span>
-<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">tests</span> = findTests(modules)
+<span style="color:#007f7f">/// First we find tests. Each language + test framework</span>
+<span style="color:#007f7f">/// has custom implementation of a Test Finder</span>
+<span style="color:#fff;font-weight:bold">let</span> tests = findTests(modules)
 
-<span style="color: #008000; font-weight: bold">for</span> test <span style="color: #008000; font-weight: bold">in</span> tests {
-  <span style="color: #408080; font-style: italic">/// Then for each test we find places where we can</span>
-  <span style="color: #408080; font-style: italic">/// apply mutation - Mutation Point</span>
-  <span style="color: #408080; font-style: italic">/// Each language may have it&#39;s own set of Mutation Operators</span>
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">mutationPoints</span> = findMutationPoints(test, modules)
+<span style="color:#fff;font-weight:bold">for</span> test <span style="color:#fff;font-weight:bold">in</span> tests {
+  <span style="color:#007f7f">/// Then for each test we find places where we can</span>
+  <span style="color:#007f7f">/// apply mutation - Mutation Point</span>
+  <span style="color:#007f7f">/// Each language may have it&#39;s own set of Mutation Operators</span>
+  <span style="color:#fff;font-weight:bold">let</span> mutationPoints = findMutationPoints(test, modules)
 
-  <span style="color: #408080; font-style: italic">/// Given we know what we want to mutate</span>
-  <span style="color: #408080; font-style: italic">/// We can start execution of each mutant</span>
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">originalResult</span> = runTest(test, modules, Timeout)
-  <span style="color: #008000; font-weight: bold">if</span> originalResult <span style="color: #666666">!=</span> Passed {
-    <span style="color: #408080; font-style: italic">/// Report an error and skip this test</span>
-    <span style="color: #408080; font-style: italic">/// One could also fail early, but we decided not to</span>
+  <span style="color:#007f7f">/// Given we know what we want to mutate</span>
+  <span style="color:#007f7f">/// We can start execution of each mutant</span>
+  <span style="color:#fff;font-weight:bold">let</span> originalResult = runTest(test, modules, Timeout)
+  <span style="color:#fff;font-weight:bold">if</span> originalResult != Passed {
+    <span style="color:#007f7f">/// Report an error and skip this test</span>
+    <span style="color:#007f7f">/// One could also fail early, but we decided not to</span>
   }
 
-  <span style="color: #408080; font-style: italic">/// Now it&#39;s time to run a test against each mutant</span>
-  <span style="color: #008000; font-weight: bold">for</span> point <span style="color: #008000; font-weight: bold">in</span> mutationPoints {
-    <span style="color: #408080; font-style: italic">/// Mutant is a copy of original module</span>
-    <span style="color: #408080; font-style: italic">/// within the mutation</span>
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">mutant</span> = applyMutation(point)
+  <span style="color:#007f7f">/// Now it&#39;s time to run a test against each mutant</span>
+  <span style="color:#fff;font-weight:bold">for</span> point <span style="color:#fff;font-weight:bold">in</span> mutationPoints {
+    <span style="color:#007f7f">/// Mutant is a copy of original module</span>
+    <span style="color:#007f7f">/// within the mutation</span>
+    <span style="color:#fff;font-weight:bold">let</span> mutant = applyMutation(point)
 
-    <span style="color: #408080; font-style: italic">/// To run the test against mutant we need</span>
-    <span style="color: #408080; font-style: italic">/// to replace the original module in the</span>
-    <span style="color: #408080; font-style: italic">/// set of modules</span>
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">mutatedModules</span> = modules.replace(point.module, mutant)
+    <span style="color:#007f7f">/// To run the test against mutant we need</span>
+    <span style="color:#007f7f">/// to replace the original module in the</span>
+    <span style="color:#007f7f">/// set of modules</span>
+    <span style="color:#fff;font-weight:bold">let</span> mutatedModules = modules.replace(point.module, mutant)
 
-    <span style="color: #408080; font-style: italic">/// Mutant should not take X times more time than</span>
-    <span style="color: #408080; font-style: italic">/// the original test</span>
-    <span style="color: #408080; font-style: italic">/// Otherwise we consider it as a timed out</span>
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">timeout</span> = originalResult <span style="color: #666666">*</span> X
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">mutationResult</span> = runTest(test, mutatedModules, timeout)
-    <span style="color: #408080; font-style: italic">/// The mutationResult can be now reported</span>
-    <span style="color: #408080; font-style: italic">/// We are done here, taking the next mutant</span>
+    <span style="color:#007f7f">/// Mutant should not take X times more time than</span>
+    <span style="color:#007f7f">/// the original test</span>
+    <span style="color:#007f7f">/// Otherwise we consider it as a timed out</span>
+    <span style="color:#fff;font-weight:bold">let</span> timeout = originalResult * X
+    <span style="color:#fff;font-weight:bold">let</span> mutationResult = runTest(test, mutatedModules, timeout)
+    <span style="color:#007f7f">/// The mutationResult can be now reported</span>
+    <span style="color:#007f7f">/// We are done here, taking the next mutant</span>
   }
-}
-</pre></div>
-
+}</code></pre></div>
 <p>It is important to notice that each test run is done in a child process because mutation could lead to crash or an infinite loop.</p>
 
 <p>The current implementation of the scheduling is not elegant and not efficient. We fork a process (watchdog), the watchdog forks two other processes: timer and worker. The timer does nothing but sleeps for N milliseconds. The worker executes the test or mutant. The watchdog is waiting for either process to finish. If the timer finishes first, then the worker timed out, we kill it and report timeout. If the worker stops first, then we terminate the timer and proceed. To report the result, we must check whether the worker process crashed, and if not what is the exit status.</p>
@@ -271,26 +264,24 @@ the worker process.</p>
 The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control the number of mutations.
 First place is <code>findTests</code>: you could configure a program to run the only subset of tests. It is very convenient during analysis of a program under test.
 Another place is <code>findMutationPoints</code>. Currently, our approach here is different from the one Pitest has. We do not use code coverage to find places where to add mutations. Instead, we use static analysis to build a call graph. For example:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">void</span> <span style="color: #0000FF">test_foo</span>() {
-  assert(foo() <span style="color: #666666">==</span> <span style="color: #666666">5</span>);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">void</span> test_foo() {
+  assert(foo() == <span style="color:#ff0;font-weight:bold">5</span>);
 }
 
-<span style="color: #B00040">int</span> <span style="color: #0000FF">foo</span>() {
-  <span style="color: #408080; font-style: italic">/// ...</span>
-  <span style="color: #008000; font-weight: bold">return</span> bar();
+<span style="color:#fff;font-weight:bold">int</span> foo() {
+  <span style="color:#007f7f">/// ...
+</span><span style="color:#007f7f"></span>  <span style="color:#fff;font-weight:bold">return</span> bar();
 }
 
-<span style="color: #B00040">int</span> <span style="color: #0000FF">bar</span>() {
-   <span style="color: #408080; font-style: italic">/// ...</span>
-   <span style="color: #008000; font-weight: bold">return</span> buzz();
+<span style="color:#fff;font-weight:bold">int</span> bar() {
+   <span style="color:#007f7f">/// ...
+</span><span style="color:#007f7f"></span>   <span style="color:#fff;font-weight:bold">return</span> buzz();
 }
 
-<span style="color: #B00040">int</span> <span style="color: #0000FF">buzz</span>() {
-  <span style="color: #408080; font-style: italic">/// ...</span>
-  <span style="color: #008000; font-weight: bold">return</span> x;
-}
-</pre></div>
-
+<span style="color:#fff;font-weight:bold">int</span> buzz() {
+  <span style="color:#007f7f">/// ...
+</span><span style="color:#007f7f"></span>  <span style="color:#fff;font-weight:bold">return</span> x;
+}</code></pre></div>
 <p>Here we have the following call &lsquo;graph&rsquo;:</p>
 
 <pre><code>test_foo -&gt; foo -&gt; bar -&gt; buzz
@@ -864,7 +855,7 @@ program without restarting potentially long running process.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -872,11 +863,11 @@ program without restarting potentially long running process.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -888,15 +879,23 @@ program without restarting potentially long running process.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
         <li>
@@ -912,19 +911,11 @@ program without restarting potentially long running process.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
       </ul>

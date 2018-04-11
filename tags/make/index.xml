@@ -6,6 +6,8 @@
     <description>Recent content in Make on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Sun, 12 Jun 2016 21:05:00 +0200</lastBuildDate>
     <atom:link href="/tags/make/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>System Under Test: GNU Make</title>
       <link>http://systemundertest.org/gnu-make/</link>
       <pubDate>Sun, 12 Jun 2016</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>http://systemundertest.org/gnu-make/</guid>
       <description>
 

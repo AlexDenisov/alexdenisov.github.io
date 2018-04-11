@@ -154,9 +154,7 @@ However there are still parts that do not change very often, that is they are go
 These tests are located in &lsquo;unittests&rsquo; directory.</p>
 
 <p>They can be run using <code>make</code>:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">make check-llvm-unit
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">make check-llvm-unit</code></pre></div>
 <p>Showing this beautiful output:</p>
 
 <p><img src="/img/sut_llvm/unit_tests.png"
@@ -171,23 +169,22 @@ These tests are located in &lsquo;unittests&rsquo; directory.</p>
 
 <p>Unit Tests are written using <a href="https://github.com/google/googletest">Google Test</a> framework.
 Here is an example of a simple test:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// unittests/Support/YAMLParserTest.cpp</span>
-TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cpp" data-lang="cpp"><span style="color:#007f7f">// unittests/Support/YAMLParserTest.cpp
+</span><span style="color:#007f7f"></span>TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
   SourceMgr SM;
-  yaml<span style="color: #666666">::</span>Stream Stream(<span style="color: #BA2121">&quot;[</span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">1</span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">, </span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">2</span><span style="color: #BB6622; font-weight: bold">\&quot;</span><span style="color: #BA2121">]&quot;</span>, SM);
+  yaml::Stream Stream(<span style="color:#0ff;font-weight:bold">&#34;[</span><span style="color:#0ff;font-weight:bold">\&#34;</span><span style="color:#0ff;font-weight:bold">1</span><span style="color:#0ff;font-weight:bold">\&#34;</span><span style="color:#0ff;font-weight:bold">, </span><span style="color:#0ff;font-weight:bold">\&#34;</span><span style="color:#0ff;font-weight:bold">2</span><span style="color:#0ff;font-weight:bold">\&#34;</span><span style="color:#0ff;font-weight:bold">]&#34;</span>, SM);
 
-  yaml<span style="color: #666666">::</span>SequenceNode <span style="color: #666666">*</span>Node <span style="color: #666666">=</span> dyn_cast<span style="color: #666666">&lt;</span>yaml<span style="color: #666666">::</span>SequenceNode<span style="color: #666666">&gt;</span>(
-                                              Stream.begin()<span style="color: #666666">-&gt;</span>getRoot());
+  yaml::SequenceNode *Node = dyn_cast&lt;yaml::SequenceNode&gt;(
+                                              Stream.begin()-&gt;getRoot());
 
-  <span style="color: #008000; font-weight: bold">auto</span> Begin <span style="color: #666666">=</span> Node<span style="color: #666666">-&gt;</span>begin();
-  <span style="color: #008000; font-weight: bold">auto</span> End <span style="color: #666666">=</span> Node<span style="color: #666666">-&gt;</span>end();
+  <span style="color:#fff;font-weight:bold">auto</span> Begin = Node-&gt;begin();
+  <span style="color:#fff;font-weight:bold">auto</span> End = Node-&gt;end();
 
-  EXPECT_TRUE(Begin <span style="color: #666666">!=</span> End);
-  EXPECT_FALSE(Begin <span style="color: #666666">!=</span> Begin);
-  EXPECT_FALSE(End <span style="color: #666666">!=</span> End);
+  EXPECT_TRUE(Begin != End);
+  EXPECT_FALSE(Begin != Begin);
+  EXPECT_FALSE(End != End);
 }
-</pre></div>
-
+</code></pre></div>
 <p>Pretty trivial.
 Let&rsquo;s move forward and look at another, more interesting group of tests.</p>
 
@@ -197,9 +194,7 @@ Let&rsquo;s move forward and look at another, more interesting group of tests.</
 This test suite located in <code>test</code> directory.
 It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
 It takes about 4 minutes to run on my machine using 4 threads.</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">make check-llvm
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">make check-llvm</code></pre></div>
 <p>The output is pretty similar to one above:</p>
 
 <p><img src="/img/sut_llvm/regression_tests.png"
@@ -212,36 +207,30 @@ It takes about 4 minutes to run on my machine using 4 threads.</p>
 
 <p>Regression Tests (unlike Unit Tests) are using custom tools such as <a href="http://llvm.org/docs/CommandGuide/lit.html">lit (LLVM Integrated Tester)</a> and <a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a>.
 Let&rsquo;s look at simple test to illustrate how it works:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; RUN: %lli %s | FileCheck %s</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm"><span style="color:#007f7f">; RUN: %lli %s | FileCheck %s
+</span><span style="color:#007f7f"></span>
+@flt = <span style="color:#fff;font-weight:bold">internal</span> <span style="color:#fff;font-weight:bold">global</span> <span style="color:#fff;font-weight:bold">float</span> <span style="color:#ff0;font-weight:bold">12.0e+0</span>
+@str = <span style="color:#fff;font-weight:bold">internal</span> <span style="color:#fff;font-weight:bold">constant</span> [<span style="color:#ff0;font-weight:bold">18</span> <span style="color:#fff;font-weight:bold">x</span> <span style="color:#fff;font-weight:bold">i8</span>] <span style="color:#fff;font-weight:bold">c</span><span style="color:#0ff;font-weight:bold">&#34;Double value: %f\0A\00&#34;</span>
 
-<span style="color: #19177C">@flt</span> = <span style="color: #008000; font-weight: bold">internal</span> <span style="color: #008000; font-weight: bold">global</span> <span style="color: #B00040">float</span> <span style="color: #666666">12.0e+0</span>
-<span style="color: #19177C">@str</span> = <span style="color: #008000; font-weight: bold">internal</span> <span style="color: #008000; font-weight: bold">constant</span> [<span style="color: #666666">18</span> <span style="color: #008000; font-weight: bold">x</span> <span style="color: #008000; font-weight: bold">i8</span>] <span style="color: #008000; font-weight: bold">c</span><span style="color: #BA2121">&quot;Double value: %f\0A\00&quot;</span>
+<span style="color:#fff;font-weight:bold">declare</span> <span style="color:#fff;font-weight:bold">i32</span> @printf(<span style="color:#fff;font-weight:bold">i8</span>* <span style="color:#fff;font-weight:bold">nocapture</span>, ...) <span style="color:#fff;font-weight:bold">nounwind</span>
+<span style="color:#fff;font-weight:bold">declare</span> <span style="color:#fff;font-weight:bold">i32</span> @fflush(<span style="color:#fff;font-weight:bold">i8</span>*) <span style="color:#fff;font-weight:bold">nounwind</span>
 
-<span style="color: #008000; font-weight: bold">declare</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@printf</span>(<span style="color: #008000; font-weight: bold">i8</span>* <span style="color: #008000; font-weight: bold">nocapture</span>, ...) <span style="color: #008000; font-weight: bold">nounwind</span>
-<span style="color: #008000; font-weight: bold">declare</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@fflush</span>(<span style="color: #008000; font-weight: bold">i8</span>*) <span style="color: #008000; font-weight: bold">nounwind</span>
-
-<span style="color: #008000; font-weight: bold">define</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@main</span>() {
-  <span style="color: #19177C">%flt</span> = <span style="color: #008000; font-weight: bold">load</span> <span style="color: #B00040">float</span>, <span style="color: #B00040">float</span>* <span style="color: #19177C">@flt</span>
-  <span style="color: #19177C">%float2</span> = <span style="color: #008000; font-weight: bold">frem</span> <span style="color: #B00040">float</span> <span style="color: #19177C">%flt</span>, <span style="color: #666666">5.0</span>
-  <span style="color: #19177C">%double1</span> = <span style="color: #008000; font-weight: bold">fpext</span> <span style="color: #B00040">float</span> <span style="color: #19177C">%float2</span> <span style="color: #008000; font-weight: bold">to</span> <span style="color: #B00040">double</span>
-  <span style="color: #008000; font-weight: bold">call</span> <span style="color: #008000; font-weight: bold">i32</span> (<span style="color: #008000; font-weight: bold">i8</span>*, ...) <span style="color: #19177C">@printf</span>(<span style="color: #008000; font-weight: bold">i8</span>* <span style="color: #008000; font-weight: bold">getelementptr</span> ([<span style="color: #666666">18</span> <span style="color: #008000; font-weight: bold">x</span> <span style="color: #008000; font-weight: bold">i8</span>], [<span style="color: #666666">18</span> <span style="color: #008000; font-weight: bold">x</span> <span style="color: #008000; font-weight: bold">i8</span>]* <span style="color: #19177C">@str</span>, <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #666666">0</span>, <span style="color: #008000; font-weight: bold">i64</span> <span style="color: #666666">0</span>), <span style="color: #B00040">double</span> <span style="color: #19177C">%double1</span>)
-  <span style="color: #008000; font-weight: bold">call</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #19177C">@fflush</span>(<span style="color: #008000; font-weight: bold">i8</span>* <span style="color: #008000; font-weight: bold">null</span>)
-  <span style="color: #008000; font-weight: bold">ret</span> <span style="color: #008000; font-weight: bold">i32</span> <span style="color: #666666">0</span>
+<span style="color:#fff;font-weight:bold">define</span> <span style="color:#fff;font-weight:bold">i32</span> @main() {
+  %flt = <span style="color:#fff;font-weight:bold">load</span> <span style="color:#fff;font-weight:bold">float</span>, <span style="color:#fff;font-weight:bold">float</span>* @flt
+  %float2 = <span style="color:#fff;font-weight:bold">frem</span> <span style="color:#fff;font-weight:bold">float</span> %flt, <span style="color:#ff0;font-weight:bold">5.0</span>
+  %double1 = <span style="color:#fff;font-weight:bold">fpext</span> <span style="color:#fff;font-weight:bold">float</span> %float2 <span style="color:#fff;font-weight:bold">to</span> <span style="color:#fff;font-weight:bold">double</span>
+  <span style="color:#fff;font-weight:bold">call</span> <span style="color:#fff;font-weight:bold">i32</span> (<span style="color:#fff;font-weight:bold">i8</span>*, ...) @printf(<span style="color:#fff;font-weight:bold">i8</span>* <span style="color:#fff;font-weight:bold">getelementptr</span> ([<span style="color:#ff0;font-weight:bold">18</span> <span style="color:#fff;font-weight:bold">x</span> <span style="color:#fff;font-weight:bold">i8</span>], [<span style="color:#ff0;font-weight:bold">18</span> <span style="color:#fff;font-weight:bold">x</span> <span style="color:#fff;font-weight:bold">i8</span>]* @str, <span style="color:#fff;font-weight:bold">i32</span> <span style="color:#ff0;font-weight:bold">0</span>, <span style="color:#fff;font-weight:bold">i64</span> <span style="color:#ff0;font-weight:bold">0</span>), <span style="color:#fff;font-weight:bold">double</span> %double1)
+  <span style="color:#fff;font-weight:bold">call</span> <span style="color:#fff;font-weight:bold">i32</span> @fflush(<span style="color:#fff;font-weight:bold">i8</span>* <span style="color:#fff;font-weight:bold">null</span>)
+  <span style="color:#fff;font-weight:bold">ret</span> <span style="color:#fff;font-weight:bold">i32</span> <span style="color:#ff0;font-weight:bold">0</span>
 }
 
-<span style="color: #408080; font-style: italic">; CHECK: Double value: 2.0</span>
-</pre></div>
-
+<span style="color:#f00">;</span> CHECK: <span style="color:#f00">Double</span> value: <span style="color:#ff0;font-weight:bold">2.0</span></code></pre></div>
 <p>This test can be split into three parts:</p>
 
 <p>Run command (the top line):</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; RUN: %lli %s | FileCheck %s</span>
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm"><span style="color:#f00">;</span> RUN: %lli %s <span style="color:#f00">|</span> <span style="color:#f00">FileCheck</span> %s</code></pre></div>
 <p>Expectations (the bottom line):</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">; CHECK: Double value: 2.0</span>
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm"><span style="color:#f00">;</span> CHECK: <span style="color:#f00">Double</span> value: <span style="color:#ff0;font-weight:bold">2.0</span></code></pre></div>
 <p>The rest (LLVM IR in the middle) is the body.</p>
 
 <p>All tests in this suite have one or more &lsquo;run&rsquo; command.
@@ -254,14 +243,10 @@ Let&rsquo;s look at simple test to illustrate how it works:</p>
 <p>Configurable substitutions however are taken from <code>lit.cfg</code> file, which is basically a Python script.</p>
 
 <p>For example, this config says that <code>%lli</code> is to be replaced with <code>/usr/local/bin/lli</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">lli <span style="color: #666666">=</span> <span style="color: #BA2121">&#39;/usr/local/bin/lli&#39;</span>
-config<span style="color: #666666">.</span>substitutions<span style="color: #666666">.</span>append( (<span style="color: #BA2121">&#39;%lli&#39;</span>, lli ) )
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">lli = <span style="color:#0ff;font-weight:bold">&#39;/usr/local/bin/lli&#39;</span>
+config.substitutions.append( (<span style="color:#0ff;font-weight:bold">&#39;%lli&#39;</span>, lli ) )</code></pre></div>
 <p>Having these parameters in place <code>lit</code> will run the test using this command:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll</code></pre></div>
 <p>Which will interpret <code>frem.ll</code> using LLVM Interpreter (<code>lli</code>) and pass the output to the <code>FileCheck</code>. <code>FileCheck</code> in turn takes two arguments: filename with expectations and input that needs to be examined.</p>
 
 <p>Summary of this example:</p>
@@ -293,40 +278,38 @@ As Daniel Dunbar <a href="https://twitter.com/daniel_dunbar/status/7452856606264
 The tool is so great that it is also used by <a href="http://llvm.org/docs/LibFuzzer.html#trophies">other software</a> such as Python, PCRE, OpenSSL, SQLite, and other.</p>
 
 <p>Here is an example of a fuzz test:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp</span>
-<span style="color: #008000; font-weight: bold">extern</span> <span style="color: #BA2121">&quot;C&quot;</span> <span style="color: #B00040">int</span> LLVMFuzzerTestOneInput(<span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">uint8_t</span> <span style="color: #666666">*</span>Data, <span style="color: #B00040">size_t</span> Size) {
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#007f7f">// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp
+</span><span style="color:#007f7f"></span><span style="color:#fff;font-weight:bold">extern</span> <span style="color:#0ff;font-weight:bold">&#34;C&#34;</span> <span style="color:#fff;font-weight:bold">int</span> LLVMFuzzerTestOneInput(<span style="color:#fff;font-weight:bold">const</span> uint8_t *Data, size_t Size) {
 
-  <span style="color: #408080; font-style: italic">// Allocate space for locals before setjmp so that memory can be collected</span>
-  <span style="color: #408080; font-style: italic">// if parse exits prematurely (via longjmp).</span>
-  StringRef Input((<span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span>)Data, Size);
-  <span style="color: #408080; font-style: italic">// Note: We need to create a buffer to add a null terminator to the</span>
-  <span style="color: #408080; font-style: italic">// end of the input string. The parser assumes that the string</span>
-  <span style="color: #408080; font-style: italic">// parsed is always null terminated.</span>
-  std<span style="color: #666666">::</span>unique_ptr<span style="color: #666666">&lt;</span>MemoryBuffer<span style="color: #666666">&gt;</span> MemBuf <span style="color: #666666">=</span> MemoryBuffer<span style="color: #666666">::</span>getMemBufferCopy(Input);
+  <span style="color:#007f7f">// Allocate space for locals before setjmp so that memory can be collected
+</span><span style="color:#007f7f"></span>  <span style="color:#007f7f">// if parse exits prematurely (via longjmp).
+</span><span style="color:#007f7f"></span>  StringRef Input((<span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">char</span> *)Data, Size);
+  <span style="color:#007f7f">// Note: We need to create a buffer to add a null terminator to the
+</span><span style="color:#007f7f"></span>  <span style="color:#007f7f">// end of the input string. The parser assumes that the string
+</span><span style="color:#007f7f"></span>  <span style="color:#007f7f">// parsed is always null terminated.
+</span><span style="color:#007f7f"></span>  std::unique_ptr&lt;MemoryBuffer&gt; MemBuf = MemoryBuffer::getMemBufferCopy(Input);
   SMDiagnostic Err;
-  LLVMContext <span style="color: #666666">&amp;</span>Context <span style="color: #666666">=</span> getGlobalContext();
-  std<span style="color: #666666">::</span>unique_ptr<span style="color: #666666">&lt;</span>Module<span style="color: #666666">&gt;</span> M;
+  LLVMContext &amp;Context = getGlobalContext();
+  std::unique_ptr&lt;Module&gt; M;
 
-  <span style="color: #008000; font-weight: bold">if</span> (setjmp(JmpBuf))
-    <span style="color: #408080; font-style: italic">// If reached, we have returned with non-zero status, so exit.</span>
-    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
+  <span style="color:#fff;font-weight:bold">if</span> (setjmp(JmpBuf))
+    <span style="color:#007f7f">// If reached, we have returned with non-zero status, so exit.
+</span><span style="color:#007f7f"></span>    <span style="color:#fff;font-weight:bold">return</span> <span style="color:#ff0;font-weight:bold">0</span>;
 
-  <span style="color: #408080; font-style: italic">// TODO(kschimpf) Write a main to do this initialization.</span>
-  <span style="color: #008000; font-weight: bold">if</span> (<span style="color: #666666">!</span>InstalledHandler) {
-    llvm<span style="color: #666666">::</span>install_fatal_error_handler(<span style="color: #666666">::</span>MyFatalErrorHandler, nullptr);
-    InstalledHandler <span style="color: #666666">=</span> <span style="color: #008000">true</span>;
+  <span style="color:#007f7f">// TODO(kschimpf) Write a main to do this initialization.
+</span><span style="color:#007f7f"></span>  <span style="color:#fff;font-weight:bold">if</span> (!InstalledHandler) {
+    llvm::install_fatal_error_handler(::MyFatalErrorHandler, nullptr);
+    InstalledHandler = <span style="color:#fff;font-weight:bold">true</span>;
   }
 
-  M <span style="color: #666666">=</span> parseAssembly(MemBuf<span style="color: #666666">-&gt;</span>getMemBufferRef(), Err, Context);
+  M = parseAssembly(MemBuf-&gt;getMemBufferRef(), Err, Context);
 
-  <span style="color: #008000; font-weight: bold">if</span> (<span style="color: #666666">!</span>M.get())
-    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
+  <span style="color:#fff;font-weight:bold">if</span> (!M.get())
+    <span style="color:#fff;font-weight:bold">return</span> <span style="color:#ff0;font-weight:bold">0</span>;
 
-  verifyModule(<span style="color: #666666">*</span>M.get());
-  <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
-}
-</pre></div>
-
+  verifyModule(*M.get());
+  <span style="color:#fff;font-weight:bold">return</span> <span style="color:#ff0;font-weight:bold">0</span>;
+}</code></pre></div>
 <p><code>LibFuzzer</code> generates huge amount of different inputs using <a href="https://en.wikipedia.org/wiki/Genetic_programming">Genetic programming</a> and calls <code>LLVMFuzzerTestOneInput</code> within each input.
 This test then tries to parse the input as an assembly. The parser should not crash.</p>
 
@@ -883,11 +866,11 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -895,7 +878,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -907,15 +890,19 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -931,19 +918,15 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
         </li>
       
       </ul>

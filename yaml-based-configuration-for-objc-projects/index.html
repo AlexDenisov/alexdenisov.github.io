@@ -120,16 +120,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
 
 <p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">development:
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">development:
   user: dev
   password: dev123
-<span style="color: #408080; font-style: italic"># ...</span>
+<span style="color:#007f7f"># ...</span>
 production:
   user: root
   password: supersecurepassword
-<span style="color: #408080; font-style: italic"># ...</span>
-</pre></div>
-
+<span style="color:#007f7f"># ...</span></code></pre></div>
 <p>I wish I can use the same approach in my daily iOS development.</p>
 
 <p>Fortunately, I can!</p>
@@ -148,13 +146,11 @@ Both of them have serious disadvantages.</p>
 <h4 id="preprocessor-definition">Preprocessor Definition</h4>
 
 <p>You may saw and probably used this approach. It&rsquo;s pretty easy and simple to use:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#ifdef DEBUG</span>
-<span style="color: #008000">NSString</span> <span style="color: #666666">*</span><span style="color: #008000; font-weight: bold">const</span> kServerAddress <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;https://staging.example.com&quot;</span>;
-<span style="color: #BC7A00">#else</span>
-<span style="color: #008000">NSString</span> <span style="color: #666666">*</span><span style="color: #008000; font-weight: bold">const</span> kServerAddress <span style="color: #666666">=</span> <span style="color: #BA2121">@&quot;https://example.com&quot;</span>;
-<span style="color: #BC7A00">#endif</span>
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec"><span style="color:#0f0;font-weight:bold">#ifdef DEBUG
+</span><span style="color:#0f0;font-weight:bold"></span>NSString *<span style="color:#fff;font-weight:bold">const</span> kServerAddress = <span style="color:#0ff;font-weight:bold">@&#34;https://staging.example.com&#34;</span>;
+<span style="color:#0f0;font-weight:bold">#else
+</span><span style="color:#0f0;font-weight:bold"></span>NSString *<span style="color:#fff;font-weight:bold">const</span> kServerAddress = <span style="color:#0ff;font-weight:bold">@&#34;https://example.com&#34;</span>;
+<span style="color:#0f0;font-weight:bold">#endif</span></code></pre></div>
 <p>But let&rsquo;s say that you add one more environment, e.g. &ldquo;Beta&rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&rsquo;s really easy to make a typo or &ldquo;accidentally&rdquo; drop a definition. Your code will compile, but it&rsquo;d use wrong environment.
 Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.</p>
 
@@ -180,38 +176,32 @@ Still you have to perform way too many actions for such a simple task.</p>
 <h5 id="here-is-how-it-looks-like">Here is how it looks like:</h5>
 
 <p>Configuration file:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">principalClass: Configuration
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">principalClass: Configuration
 
 Debug:
   serverAddress: https://staging.example.com
-  APIKey: qwe123!!qwe
+  APIKey: qwe123<span style="color:#0f0;font-weight:bold">!!qwe</span>
 
 Release:
   serverAddress: https://example.com
-  APIKey: qwe123qwe
-</pre></div>
-
+  APIKey: qwe123qwe</code></pre></div>
 <p>ObjC code:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">@Interface <span style="color: #A0A000">Configuration</span> : <span style="color: #008000">NSObject</span>
-<span style="color: #666666">-</span> (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)serverAddress;
-- (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">APIKey</span>;
-<span style="color: #008000; font-weight: bold">@end</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec">@Interface Configuration : NSObject
+- (NSString *)serverAddress;
+- (NSString *)APIKey;
+<span style="color:#fff;font-weight:bold">@end</span>
 
-<span style="color: #408080; font-style: italic">// ...</span>
-
-Config <span style="color: #666666">*</span>config <span style="color: #666666">=</span> [Config new];
-NSLog(<span style="color: #BA2121">@&quot;%@&quot;</span>, config.serverAddress);
-</pre></div>
-
+<span style="color:#007f7f">// ...
+</span><span style="color:#007f7f"></span>
+Config *config = [Config new];
+NSLog(<span style="color:#0ff;font-weight:bold">@&#34;%@&#34;</span>, config.serverAddress);</code></pre></div>
 <p>No preprocessor, no boilerplate!</p>
 
 <h4 id="installation-and-usage">Installation and usage</h4>
 
 <p>To install <code>xcconf</code> you need to clone repo and run one command, it&rsquo;ll build executable and install it into <code>/usr/local/bin</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">git clone git@github.com:AlexDenisov/xcconf.git <span style="color: #666666">&amp;&amp;</span> <span style="color: #008000">cd </span>xcconf
-make install
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">git clone git@github.com:AlexDenisov/xcconf.git &amp;&amp; <span style="color:#fff;font-weight:bold">cd</span> xcconf
+make install</code></pre></div>
 <p>Integration into project looks weird, but don&rsquo;t worry, that&rsquo;s ok :)</p>
 
 <p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
@@ -225,21 +215,17 @@ make install
   alt="New file" /></p>
 
 <p>Put there initial configuration:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">principalClass: Config
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">principalClass: Config
 
 Debug:
   color: Green
 
 Release:
-  color: Blue
-</pre></div>
-
+  color: Blue</code></pre></div>
 <p>Prepare class interface for configuration. <strong>But do not create implementation</strong>. Its name should be equal to <code>principalClass</code> and it might contain getter methods for all available parameters, in this case it&rsquo;s just <code>color</code></p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #008000; font-weight: bold">@interface</span> <span style="color: #0000FF; font-weight: bold">Config</span> : <span style="color: #008000">NSObject</span>
-- (<span style="color: #008000">NSString</span> <span style="color: #666666">*</span>)<span style="color: #0000FF">color</span>;
-<span style="color: #008000; font-weight: bold">@end</span>
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec"><span style="color:#fff;font-weight:bold">@interface</span> Config : NSObject
+- (NSString *)color;
+<span style="color:#fff;font-weight:bold">@end</span></code></pre></div>
 <p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -&gt; <code>Compile Sources</code> -&gt; <code>+</code> and add <code>config.yaml</code></p>
 
 <p><img src="/img/yaml-based-configuration/compile_yaml.png"
@@ -263,17 +249,15 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
   alt="xcconf" /></p>
 
 <p>Now we&rsquo;re ready to use it:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #BC7A00">#import &quot;Config.h&quot;</span>
-
-<span style="color: #B00040">int</span> <span style="color: #0000FF">main</span>(<span style="color: #B00040">int</span> argc, <span style="color: #008000; font-weight: bold">const</span> <span style="color: #B00040">char</span> <span style="color: #666666">*</span> argv[]) {
-    <span style="color: #008000; font-weight: bold">@autoreleasepool</span> {
-        Config <span style="color: #666666">*</span>config <span style="color: #666666">=</span> [Config new];
-        NSLog(<span style="color: #BA2121">@&quot;%@&quot;</span>, config.color);
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-objectivec" data-lang="objectivec"><span style="color:#0f0;font-weight:bold">#import &#34;Config.h&#34;
+</span><span style="color:#0f0;font-weight:bold"></span>
+<span style="color:#fff;font-weight:bold">int</span> main(<span style="color:#fff;font-weight:bold">int</span> argc, <span style="color:#fff;font-weight:bold">const</span> <span style="color:#fff;font-weight:bold">char</span> * argv[]) {
+    <span style="color:#fff;font-weight:bold">@autoreleasepool</span> {
+        Config *config = [Config new];
+        NSLog(<span style="color:#0ff;font-weight:bold">@&#34;%@&#34;</span>, config.color);
     }
-    <span style="color: #008000; font-weight: bold">return</span> <span style="color: #666666">0</span>;
-}
-</pre></div>
-
+    <span style="color:#fff;font-weight:bold">return</span> <span style="color:#ff0;font-weight:bold">0</span>;
+}</code></pre></div>
 <p>Build&amp;Run:</p>
 
 <p><img src="/img/yaml-based-configuration/output.png"
@@ -829,11 +813,11 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
@@ -853,14 +837,6 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
         </li>
       
@@ -873,15 +849,23 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
         </li>
       
       </ul>

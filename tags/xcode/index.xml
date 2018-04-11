@@ -6,6 +6,8 @@
     <description>Recent content in Xcode on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Sat, 27 Dec 2014 23:03:50 +0100</lastBuildDate>
     <atom:link href="/tags/xcode/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>Getting Started With LLVM/Clang on OS X</title>
       <link>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
       <pubDate>Sat, 27 Dec 2014</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
       <description>
 
@@ -39,52 +41,40 @@ The following topics are covered:&lt;/p&gt;
 &lt;p&gt;To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.&lt;/p&gt;
 
 &lt;p&gt;Let’s grab the latest sources:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;mkdir ~/Projects/clang_dev
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir ~/Projects/clang_dev
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
 git clone http://llvm.org/git/llvm.git
 git clone http://llvm.org/git/clang.git llvm/tools/clang
 git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra
-git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
-&lt;/pre&gt;&lt;/div&gt;
-
+git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;You can checkout particular branch if you&amp;rsquo;re interested in a particular version (e.g. 3.4)&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;mkdir ~/Projects/clang_dev
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
-&lt;span style=&#34;color: #008000&#34;&gt;export &lt;/span&gt;&lt;span style=&#34;color: #19177C&#34;&gt;BRANCH&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;release_34
-git clone http://llvm.org/git/llvm.git -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
-git clone http://llvm.org/git/clang.git llvm/tools/clang -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
-git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
-git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b &lt;span style=&#34;color: #19177C&#34;&gt;$BRANCH&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;mkdir ~/Projects/clang_dev
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;export&lt;/span&gt; BRANCH=release_34
+git clone http://llvm.org/git/llvm.git -b $BRANCH
+git clone http://llvm.org/git/clang.git llvm/tools/clang -b $BRANCH
+git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b $BRANCH
+git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b $BRANCH&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;From to time to time you have to update the sources if you use &lt;code&gt;HEAD&lt;/code&gt;. If you don’t want to do it manually, just put the script into &lt;code&gt;clang_dev&lt;/code&gt; directory:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;#!/bin/env sh&lt;/span&gt;
-&lt;span style=&#34;color: #19177C&#34;&gt;root&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color: #BA2121&#34;&gt;`&lt;/span&gt;
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/tools/clang &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/projects/compiler-rt &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
-&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; &lt;span style=&#34;color: #19177C&#34;&gt;$root&lt;/span&gt;/llvm/tools/clang/tools/extra &lt;span style=&#34;color: #666666&#34;&gt;&amp;amp;&amp;amp;&lt;/span&gt; git pull origin master
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;#!/bin/env sh
+&lt;/span&gt;&lt;span style=&#34;color:#0f0;font-weight:bold&#34;&gt;&lt;/span&gt;root=&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;~/Projects/clang_dev&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;`&lt;/span&gt;
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm &amp;amp;&amp;amp; git pull origin master
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm/tools/clang &amp;amp;&amp;amp; git pull origin master
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm/projects/compiler-rt &amp;amp;&amp;amp; git pull origin master
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; $root/llvm/tools/clang/tools/extra &amp;amp;&amp;amp; git pull origin master&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and make it executable&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;chmod +x update.sh
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;chmod +x update.sh&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;h3 id=&#34;setting-up-ide-and-compiling&#34;&gt;Setting up IDE and compiling&lt;/h3&gt;
 
 &lt;p&gt;LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.&lt;/p&gt;
 
 &lt;p&gt;Let’s create the project for Xcode&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; ~/Projects/clang_dev
 mkdir build
-&lt;span style=&#34;color: #008000&#34;&gt;cd &lt;/span&gt;build
-cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/span&gt;&lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color: #BA2121&#34;&gt;&amp;quot;Debug&amp;quot;&lt;/span&gt; ../llvm
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;cd&lt;/span&gt; build
+cmake -G Xcode CMAKE_BUILD_TYPE=&lt;span style=&#34;color:#0ff;font-weight:bold&#34;&gt;&amp;#34;Debug&amp;#34;&lt;/span&gt; ../llvm&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;open it&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;open LLVM.xcodeproj
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;open LLVM.xcodeproj&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and find something to do (it’s not about ‘make tea’, but about ‘go for a party&amp;rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.&lt;/p&gt;
 
 &lt;p&gt;Well, once the project indexing is over you can build the clang.&lt;/p&gt;
@@ -94,7 +84,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 &lt;p&gt;Click on &amp;lsquo;ALL_BUILD&amp;rsquo;&lt;/p&gt;
 
 
-&lt;figure &gt;
+&lt;figure&gt;
     
         &lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/all_build_target.png&#34; alt=&#34;ALL_BUILD target&#34; /&gt;
     
@@ -105,7 +95,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 &lt;p&gt;choose ‘Manage Schemes&amp;hellip;&amp;rsquo;&lt;/p&gt;
 
 
-&lt;figure &gt;
+&lt;figure&gt;
     
         &lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/manage_schemes.png&#34; alt=&#34;Manage Schemes...&#34; /&gt;
     
@@ -128,7 +118,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 &lt;p&gt;Select &lt;code&gt;Edit scheme&lt;/code&gt;:&lt;/p&gt;
 
 
-&lt;figure &gt;
+&lt;figure&gt;
     
         &lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/edit_scheme.png&#34; alt=&#34;Edit scheme&#34; /&gt;
     
@@ -165,11 +155,9 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
 &lt;p&gt;In this example we’re going to debug a parser and semantic analysis phase of clang.&lt;/p&gt;
 
 &lt;p&gt;Create a file &lt;code&gt;/tmp/sum.c&lt;/code&gt; which contains the following code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color: #0000FF&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color: #B00040&#34;&gt;int&lt;/span&gt; b) {
-     &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color: #666666&#34;&gt;+&lt;/span&gt; b;
-}
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; sum(&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;int&lt;/span&gt; b) {
+     &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; a + b;
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;and specify the file as an argument for a clang binary, with additional parameters:&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/getting-started-with-clang/debug_arguments.png&#34;
@@ -231,7 +219,7 @@ cmake -G Xcode &lt;span style=&#34;color: #19177C&#34;&gt;CMAKE_BUILD_TYPE&lt;/s
       <title>Creating and using Clang plugin with Xcode</title>
       <link>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</link>
       <pubDate>Fri, 28 Feb 2014</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</guid>
       <description></description>
     </item>

@@ -6,6 +6,8 @@
     <description>Recent content in Swift Module on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Thu, 26 Jun 2014 00:00:00 +0000</lastBuildDate>
     <atom:link href="/tags/swift-module/" rel="self" type="application/rss+xml" />
     
@@ -13,7 +15,7 @@
       <title>Creation of pure Swift module</title>
       <link>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</link>
       <pubDate>Thu, 26 Jun 2014</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</guid>
       <description></description>
     </item>

@@ -6,6 +6,8 @@
     <description>Recent content in Circular Containers on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 13 Apr 2015 22:44:26 +0200</lastBuildDate>
     <atom:link href="/tags/circular-containers/" rel="self" type="application/rss+xml" />
     
@@ -13,20 +15,18 @@
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      
+      <author>1101.debian@gmail.com (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
 &lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color: #008000&#34;&gt;NSString&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
-    XCCEnvironment &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] &lt;span style=&#34;color: #A0A000&#34;&gt;initWithName&lt;/span&gt;:key
-                                                            &lt;span style=&#34;color: #A0A000&#34;&gt;parameters&lt;/span&gt;:dictionary[key]];
-    [environments &lt;span style=&#34;color: #A0A000&#34;&gt;addObject&lt;/span&gt;:environments];
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;NSMutableArray *environments = [NSMutableArray new];
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;for&lt;/span&gt; (NSString *key &lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+    XCCEnvironment *environment = [[XCCEnvironment alloc] initWithName:key
+                                                            parameters:dictionary[key]];
+    [environments addObject:environments];
 }
-&lt;span style=&#34;color: #008000; font-weight: bold&#34;&gt;return&lt;/span&gt; environments;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;span style=&#34;color:#fff;font-weight:bold&#34;&gt;return&lt;/span&gt; environments;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
 
 &lt;!-- more --&gt;
@@ -41,13 +41,11 @@
 &lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
 
 &lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34; style=&#34;background: #f8f8f8&#34;&gt;&lt;pre style=&#34;line-height: 125%&#34;&gt;&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
-&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; &lt;span style=&#34;color: #666666&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color: #666666&#34;&gt;=&lt;/span&gt; [&lt;span style=&#34;color: #008000&#34;&gt;NSMutableArray&lt;/span&gt; new];
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
-[environments &lt;span style=&#34;color: #A0A000&#34;&gt;addObject&lt;/span&gt;:environments];
-&lt;span style=&#34;color: #408080; font-style: italic&#34;&gt;// ...&lt;/span&gt;
-&lt;/pre&gt;&lt;/div&gt;
-
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;NSMutableArray *environments = [NSMutableArray new];
+&lt;span style=&#34;color:#007f7f&#34;&gt;// ...
+&lt;/span&gt;&lt;span style=&#34;color:#007f7f&#34;&gt;&lt;/span&gt;[environments addObject:environments];
+// ...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
 
 &lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;

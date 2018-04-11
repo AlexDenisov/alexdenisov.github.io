@@ -144,22 +144,18 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 <p>Consider the following situation: you have a test case which covers implementation of a function <code>sum</code>. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.</p>
 
 <p>Here is the test:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%">test_result <span style="color: #0000FF">test_sum</span>() {
-  <span style="color: #B00040">int</span> result <span style="color: #666666">=</span> sum(<span style="color: #666666">9</span>, <span style="color: #666666">5</span>);
-  <span style="color: #008000; font-weight: bold">if</span> (result <span style="color: #666666">&gt;</span> <span style="color: #666666">0</span>) {
-    <span style="color: #008000; font-weight: bold">return</span> success;
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">test_result test_sum() {
+  <span style="color:#fff;font-weight:bold">int</span> result = sum(<span style="color:#ff0;font-weight:bold">9</span>, <span style="color:#ff0;font-weight:bold">5</span>);
+  <span style="color:#fff;font-weight:bold">if</span> (result &gt; <span style="color:#ff0;font-weight:bold">0</span>) {
+    <span style="color:#fff;font-weight:bold">return</span> success;
   }
 
-  <span style="color: #008000; font-weight: bold">return</span> fail;
-}
-</pre></div>
-
+  <span style="color:#fff;font-weight:bold">return</span> fail;
+}</code></pre></div>
 <p>Implementation of the <code>sum</code> function is rather simple. But, since you missed your morning coffee you write a wrong operator there:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #B00040">int</span> <span style="color: #0000FF">sum</span>(<span style="color: #B00040">int</span> a, <span style="color: #B00040">int</span> b) {
-  <span style="color: #008000; font-weight: bold">return</span> a <span style="color: #666666">*</span> b;
-}
-</pre></div>
-
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#fff;font-weight:bold">int</span> sum(<span style="color:#fff;font-weight:bold">int</span> a, <span style="color:#fff;font-weight:bold">int</span> b) {
+  <span style="color:#fff;font-weight:bold">return</span> a * b;
+}</code></pre></div>
 <p>You run the tests - everything is working.</p>
 
 <p>You check code coverage - oh wow, 100%.</p>
@@ -175,12 +171,11 @@ Since then I was (and still am) dreaming to have a tool which will do the job fo
 <p>Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.</p>
 
 <p>Here is one potential mutation:</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"> int sum(int a, int b) {
-<span style="color: #A00000">-  return a * b;</span>
-<span style="color: #00A000">+  return a + b;</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-diff" data-lang="diff"> int sum(int a, int b) {
+-  return a * b;
++  return a + b;
  }
-</pre></div>
-
+</code></pre></div>
 <p>Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition <code>sum(9, 5) &gt; 0</code> still holds.</p>
 
 <p>This survived mutant should give a hint to developer that something is wrong.</p>
@@ -216,140 +211,138 @@ However, this proof of concept inspires me to start working on a real system, de
 
 <p>Below you can see a high level overview of an algorithm I have in my head.
 It is a swift-like pseudocode. Please, follow the comments!</p>
-<div class="highlight" style="background: #f8f8f8"><pre style="line-height: 125%"><span style="color: #408080; font-style: italic">/*</span>
+<div class="highlight"><pre style="color:#e5e5e5;background-color:#000;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-swift" data-lang="swift"><span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    Classes used within the algorithm
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">*/</span>
 
-<span style="color: #408080; font-style: italic">    Classes used within the algorithm</span>
-
-<span style="color: #408080; font-style: italic">*/</span>
-
-<span style="color: #408080; font-style: italic">/* Basic instruction, e.g. a + b */</span>
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Instruction</span> {
+<span style="color:#007f7f">/* Basic instruction, e.g. a + b */</span>
+<span style="color:#fff;font-weight:bold">class</span> Instruction {
 
 }
 
-<span style="color: #408080; font-style: italic">/* Represents set of istructions in a single scope, e.g. if/else branch */</span>
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">BasicBlock</span> {
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">instructions</span> : [Instruction]
+<span style="color:#007f7f">/* Represents set of istructions in a single scope, e.g. if/else branch */</span>
+<span style="color:#fff;font-weight:bold">class</span> BasicBlock {
+  <span style="color:#fff;font-weight:bold">let</span> instructions : [Instruction]
 }
 
-<span style="color: #408080; font-style: italic">/* Function is a function, that&#39;s it */</span>
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Function</span> {
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">basicBlocks</span> : [BasicBlock]
+<span style="color:#007f7f">/* Function is a function, that&#39;s it */</span>
+<span style="color:#fff;font-weight:bold">class</span> Function {
+  <span style="color:#fff;font-weight:bold">let</span> basicBlocks : [BasicBlock]
 }
 
-<span style="color: #408080; font-style: italic">/* Representation of a source file */</span>
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">Module</span> {
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">functions</span> : [Function]
+<span style="color:#007f7f">/* Representation of a source file */</span>
+<span style="color:#fff;font-weight:bold">class</span> Module {
+  <span style="color:#fff;font-weight:bold">let</span> functions : [Function]
 }
 
-<span style="color: #408080; font-style: italic">/* Shows instruction that needs to be mutated */</span>
-<span style="color: #008000; font-weight: bold">class</span> <span style="color: #0000FF; font-weight: bold">MutationPoint</span> {
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">instruction</span> : Instruction
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">basicBlock</span> : BasicBlock
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">function</span> : Function
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">module</span> : Module
+<span style="color:#007f7f">/* Shows instruction that needs to be mutated */</span>
+<span style="color:#fff;font-weight:bold">class</span> MutationPoint {
+  <span style="color:#fff;font-weight:bold">let</span> instruction : Instruction
+  <span style="color:#fff;font-weight:bold">let</span> basicBlock : BasicBlock
+  <span style="color:#fff;font-weight:bold">let</span> function : Function
+  <span style="color:#fff;font-weight:bold">let</span> module : Module
 }
 
-<span style="color: #408080; font-style: italic">/*</span>
+<span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    Algorithm
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">*/</span>
 
-<span style="color: #408080; font-style: italic">    Algorithm</span>
+<span style="color:#007f7f">/* Load all files into memory */</span>
+<span style="color:#fff;font-weight:bold">let</span> modules = loadProgramModules()
 
-<span style="color: #408080; font-style: italic">*/</span>
+<span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    Find all functions that represent test
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    &#39;testFinder&#39; is an abstraction intended to hide language/framework specific logic.
+</span><span style="color:#007f7f">    Example classes are &#39;CPP_GTest_TestFinder&#39;, &#39;ObjC_XCTest_TestFinder&#39;,
+</span><span style="color:#007f7f">    &#39;ObjC_Cedar_TestFinder&#39; and so on.
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">*/</span>
+<span style="color:#fff;font-weight:bold">let</span> tests = testFinder.findAllTests(modules)
 
-<span style="color: #408080; font-style: italic">/* Load all files into memory */</span>
-<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">modules</span> = loadProgramModules()
+<span style="color:#fff;font-weight:bold">for</span> test <span style="color:#fff;font-weight:bold">in</span> tests {
+  <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">      For each test we need to find a set of functions that can be mutated in some way
+</span><span style="color:#007f7f">  */</span>
+  <span style="color:#fff;font-weight:bold">let</span> testeeFunctions = mutationFinder.findAllTesteeFunctions(test)
+    <span style="color:#fff;font-weight:bold">for</span> testee <span style="color:#fff;font-weight:bold">in</span> testeeFunctions {
+    <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">        For each testee we do the following:
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        Testee belongs to a module, we need to make two copies of this module:
+</span><span style="color:#007f7f">        one copy will contain only testee (moduleWithOriginal)
+</span><span style="color:#007f7f">        another one will contain all functions but testee (moduleWithoutTesteeFunction)
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        Having this split we can mutate function inside of &#39;moduleWithOriginal&#39;
+</span><span style="color:#007f7f">        without affecting and recompiling potentially big module
+</span><span style="color:#007f7f">    */</span>
 
-<span style="color: #408080; font-style: italic">/*</span>
+    <span style="color:#fff;font-weight:bold">let</span> moduleWithOriginal = copyOfModuleWithOnlyFunction(testee.module, testee)
+    <span style="color:#fff;font-weight:bold">let</span> moduleWithoutTesteeFunction = copyOfModuleWithoutFunction(testee.module, testee)
 
-<span style="color: #408080; font-style: italic">    Find all functions that represent test</span>
+    <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        Now we can create JIT engine using all modules, excluding the module of testee.
+</span><span style="color:#007f7f">        In fact the latter one if replaced by &#39;moduleWithoutTesteeFunction&#39;
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    */</span>
 
-<span style="color: #408080; font-style: italic">    &#39;testFinder&#39; is an abstraction intended to hide language/framework specific logic.</span>
-<span style="color: #408080; font-style: italic">    Example classes are &#39;CPP_GTest_TestFinder&#39;, &#39;ObjC_XCTest_TestFinder&#39;,</span>
-<span style="color: #408080; font-style: italic">    &#39;ObjC_Cedar_TestFinder&#39; and so on.</span>
-
-<span style="color: #408080; font-style: italic">*/</span>
-<span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">tests</span> = testFinder.findAllTests(modules)
-
-<span style="color: #008000; font-weight: bold">for</span> test <span style="color: #008000; font-weight: bold">in</span> tests {
-  <span style="color: #408080; font-style: italic">/*</span>
-<span style="color: #408080; font-style: italic">      For each test we need to find a set of functions that can be mutated in some way</span>
-<span style="color: #408080; font-style: italic">  */</span>
-  <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">testeeFunctions</span> = mutationFinder.findAllTesteeFunctions(test)
-    <span style="color: #008000; font-weight: bold">for</span> testee <span style="color: #008000; font-weight: bold">in</span> testeeFunctions {
-    <span style="color: #408080; font-style: italic">/*</span>
-<span style="color: #408080; font-style: italic">        For each testee we do the following:</span>
-
-<span style="color: #408080; font-style: italic">        Testee belongs to a module, we need to make two copies of this module:</span>
-<span style="color: #408080; font-style: italic">        one copy will contain only testee (moduleWithOriginal)</span>
-<span style="color: #408080; font-style: italic">        another one will contain all functions but testee (moduleWithoutTesteeFunction)</span>
-
-<span style="color: #408080; font-style: italic">        Having this split we can mutate function inside of &#39;moduleWithOriginal&#39;</span>
-<span style="color: #408080; font-style: italic">        without affecting and recompiling potentially big module</span>
-<span style="color: #408080; font-style: italic">    */</span>
-
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">moduleWithOriginal</span> = copyOfModuleWithOnlyFunction(testee.module, testee)
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">moduleWithoutTesteeFunction</span> = copyOfModuleWithoutFunction(testee.module, testee)
-
-    <span style="color: #408080; font-style: italic">/*</span>
-
-<span style="color: #408080; font-style: italic">        Now we can create JIT engine using all modules, excluding the module of testee.</span>
-<span style="color: #408080; font-style: italic">        In fact the latter one if replaced by &#39;moduleWithoutTesteeFunction&#39;</span>
-
-<span style="color: #408080; font-style: italic">    */</span>
-
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">modulesWithoutTesteeModule</span> = modules.without(testee.module)
-    <span style="color: #008000; font-weight: bold">var</span> <span style="color: #19177C">executionEngine</span> = executionEngineWithModules(modulesWithoutTesteeModule)
+    <span style="color:#fff;font-weight:bold">let</span> modulesWithoutTesteeModule = modules.without(testee.module)
+    <span style="color:#fff;font-weight:bold">var</span> executionEngine = executionEngineWithModules(modulesWithoutTesteeModule)
     executionEngine.addModule(moduleWithoutTesteeFunction)
 
-    <span style="color: #408080; font-style: italic">/*</span>
-
-<span style="color: #408080; font-style: italic">        Having JIT engine in place we can run the test against original implementation of testee</span>
-
-<span style="color: #408080; font-style: italic">    */</span>
+    <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        Having JIT engine in place we can run the test against original implementation of testee
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    */</span>
 
     executionEngine.addModule(moduleWithOriginal)
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">originalResult</span> = executionEngine.runTest(test)
+    <span style="color:#fff;font-weight:bold">let</span> originalResult = executionEngine.runTest(test)
     executionEngine.removeModule(moduleWithOriginal)
 
-    <span style="color: #408080; font-style: italic">/*</span>
+    <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        Now we need to find all places where we can apply mutation
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">    */</span>
 
-<span style="color: #408080; font-style: italic">        Now we need to find all places where we can apply mutation</span>
+    <span style="color:#fff;font-weight:bold">let</span> mutationPoints = mutationFinder.findAllMutationPoints(functino)
+    <span style="color:#fff;font-weight:bold">for</span> point <span style="color:#fff;font-weight:bold">in</span> mutationPoints {
+        <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">            And for each such place we are getting copy of &#39;moduleWithOriginal&#39;
+</span><span style="color:#007f7f">            within applied mutation
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        */</span>
 
-<span style="color: #408080; font-style: italic">    */</span>
+        <span style="color:#fff;font-weight:bold">let</span> moduleWithMutation = applyMutationOnModule(point, moduleWithOriginal)
 
-    <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">mutationPoints</span> = mutationFinder.findAllMutationPoints(functino)
-    <span style="color: #008000; font-weight: bold">for</span> point <span style="color: #008000; font-weight: bold">in</span> mutationPoints {
-        <span style="color: #408080; font-style: italic">/*</span>
-
-<span style="color: #408080; font-style: italic">            And for each such place we are getting copy of &#39;moduleWithOriginal&#39;</span>
-<span style="color: #408080; font-style: italic">            within applied mutation</span>
-
-<span style="color: #408080; font-style: italic">        */</span>
-
-        <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">moduleWithMutation</span> = applyMutationOnModule(point, moduleWithOriginal)
-
-        <span style="color: #408080; font-style: italic">/*</span>
-
-<span style="color: #408080; font-style: italic">            Now we run the test against the mutant</span>
-
-<span style="color: #408080; font-style: italic">        */</span>
+        <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">            Now we run the test against the mutant
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        */</span>
 
         executionEngine.addModule(moduleWithMutation)
-        <span style="color: #008000; font-weight: bold">let</span> <span style="color: #19177C">mutationResult</span> = executionEngine.runTest(test)
+        <span style="color:#fff;font-weight:bold">let</span> mutationResult = executionEngine.runTest(test)
         executionEngine.removeModule(moduleWithMutation)
 
-        <span style="color: #408080; font-style: italic">/*</span>
-
-<span style="color: #408080; font-style: italic">            And finally compare results</span>
-
-<span style="color: #408080; font-style: italic">        */</span>
+        <span style="color:#007f7f">/*
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">            And finally compare results
+</span><span style="color:#007f7f">
+</span><span style="color:#007f7f">        */</span>
 
         analyzeResults(originalResult, mutationResult)
     }
   }
-}
-</pre></div>
-
+}</code></pre></div>
 <p>As you can see the starting point here is a bitcode, which means the system is language agnostic.</p>
 
 <p>However this approach has it&rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.</p>
@@ -910,7 +903,7 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
         </li>
       
         <li>
@@ -918,11 +911,11 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
         </li>
       
         <li>
@@ -942,27 +935,7 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
-        </li>
-      
-        <li>
           <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -971,6 +944,26 @@ It is a swift-like pseudocode. Please, follow the comments!</p>
       
         <li>
           <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
         </li>
       
       </ul>
