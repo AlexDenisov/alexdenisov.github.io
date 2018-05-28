@@ -116,7 +116,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div>
           
 
-<p>Building a tool for mutation testing has many challenges in it.
+<p>Building a <a href="https://github.com/mull-project/mull">tool for mutation testing</a> has many challenges in it.
 Sandboxing is one of them. We do trust original code of a program, but we cannot trust mutated code: a mutant can crash or simply run into an infinite loop.
 The most obvious solution for this problem is to run this code in a child process and limit its execution time.</p>
 
@@ -205,11 +205,17 @@ happen is <code>EINTR</code>, or &lsquo;interrupted function call&rsquo;. You ca
 <p>In our case there is no need for some special treatment - we just keep calling
 waitpid until it succeeds or fails with some other reason.</p>
 
-<p>This solution is elegant and easy to understand, though it has one
-disadvantage: we need to create an extra process, thus wasting system&rsquo;
-resources. Fortunately, there is another approach.</p>
+<p>This solution is elegant and easy to understand, though it has one disadvantage: we need to create an extra process, thus wasting system&rsquo; resources. Fortunately, there is another approach.</p>
 
 <h2 id="system-timers">System timers</h2>
+
+<p>Programs on Linux and macOS can ask operating system to send them a signal as
+soon as a given time elapses.</p>
+
+<p>Programs on Linux and macOS can receive a signal after some time passes.
+To do that a program manipulates one of the three timers provided by an
+operating system: real, virtual, and profiling. For this task we are interested
+in the first two</p>
 
         </div>
       </article>
@@ -741,15 +747,15 @@ resources. Fortunately, there is another approach.</p>
         </li>
       
         <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
         </li>
       
         <li>
@@ -769,19 +775,11 @@ resources. Fortunately, there is another approach.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
         </li>
       
         <li>
           <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
         <li>
@@ -797,7 +795,15 @@ resources. Fortunately, there is another approach.</p>
         </li>
       
         <li>
-          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
         </li>
       
       </ul>
