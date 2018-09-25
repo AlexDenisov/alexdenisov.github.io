@@ -906,6 +906,19 @@ aside.aside-column article.widget header h1 {
   text-align: left;
 }
 
+.post-page-date {
+	/*color:#494e55;*/
+	font-family: 'Open Sans', sans-serif;
+	font-size: 16px;
+	font-weight:300;
+	line-height: 120%;
+	margin-left: 0px;
+	margin-right: 2px;
+	padding-right: 0px;
+	text-decoration: none;
+  text-align: left;
+}
+
 .post-list-category {
 	font-family: 'Open Sans', sans-serif;
 	font-size: 16px;

@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://lowlevelbits.org/draft/mull-it-over/</loc>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/talks/</loc>
     <lastmod>2017-08-22T11:30:00+01:00</lastmod>
   </url>
@@ -390,7 +395,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/draft/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -528,19 +533,19 @@
   
   <url>
     <loc>https://lowlevelbits.org/tags/llvm/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://lowlevelbits.org/categories/llvm/</loc>
-    <lastmod>2016-11-16T07:02:36+01:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2017-08-22T11:30:00+01:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -612,19 +617,19 @@
   
   <url>
     <loc>https://lowlevelbits.org/tags/mull/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://lowlevelbits.org/tags/mutation-testing/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://lowlevelbits.org/categories/mutation-testing/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -749,6 +754,12 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/research/</loc>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/reverse-engineering/</loc>
     <lastmod>2017-02-13T11:23:48+01:00</lastmod>
     <priority>0</priority>
@@ -793,6 +804,12 @@
   <url>
     <loc>https://lowlevelbits.org/tags/shared-libraries/</loc>
     <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/software-testing/</loc>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Software Testing on Low Level Bits</title>
+    <link>https://lowlevelbits.org/tags/software-testing/</link>
+    <description>Recent content in Software Testing on Low Level Bits</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
+    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <lastBuildDate>Fri, 20 Jul 2018 00:00:00 +0100</lastBuildDate>
+    <atom:link href="/tags/software-testing/" rel="self" type="application/rss+xml" />
+    
+  </channel>
+</rss>

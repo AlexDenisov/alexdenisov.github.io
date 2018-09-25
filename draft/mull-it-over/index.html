@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+  
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MGGGP5W');</script>
+  
+
+  <meta charset="UTF-8">
+
+  
+
+
+  
+    <title>Mull it over: mutation testing based on LLVM - Low Level Bits</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+    <meta name="keywords" content="llvm,mutation testing,mull,research,software testing" />
+  
+
+  
+    <meta name="description" content="Short summary of our paper on LLVM based mutation testing" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/share_buttons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+    
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Mull it over: mutation testing based on LLVM" />
+<meta name="twitter:description" content="Short summary of our paper on LLVM based mutation testing" />
+  
+    <meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+  
+
+
+
+
+</head>
+
+
+<script type="text/javascript">
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = 'https://alex-denisov.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<body>
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MGGGP5W"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+
+<div class="container">
+
+    <div class="masthead clearfix">
+
+    
+
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+      <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+        <li><a href="https://lowlevelbits.org/talks">Talks</a></li>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Subscribe</a>
+          <ul class="dropdown-menu">
+            <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+            <li><a href="https://lowlevelbits.org/subscribe">Email</a></li>
+          </ul>
+        </li>
+
+        <li><a href="https://twitter.com/1101_debian" target="_blank">Follow</a></li>
+        <li><a href="https://lowlevelbits.org/about">About</a></li>
+      </ul>
+
+  </div>
+
+
+
+  <hr>
+
+  <div class="row main-content">
+    <div class="offset3 span7 zone-content">
+      <article>
+        <h1>Mull it over: mutation testing based on LLVM</h1>
+        <div>
+          <p class="post-page-date">
+          <i>Published on <time datetime="2018-07-20 00:00:00 &#43;0100 &#43;0100" pubdate>Jul 20, 2018</time></i>
+          </p>
+
+        </div>
+
+        <div>
+          
+
+<p>Somewhere in December of 2017 I found an academic event called
+<a href="http://www.es.mdh.se/icst2018/">11th IEEE Conference on Software Testing, Validation and Verification</a>.
+What is interesting is that this conference included several workshops, one of
+which covered latest research in the area of mutation testing: <a href="https://mutation-workshop.github.io">The 13th International Workshop on Mutation Analysis</a>.
+It was too late to submit papers for the main event, but CFP for the workshop
+was still open. I thought it is a good idea to submit a paper about <a href="https://github.com/mull-project/mull">our tool</a> there.
+Especially, given that they also accept papers from industry folks, not only
+academics.</p>
+
+<p>Recently the paper became available online: <a href="http://conferences.computer.org/icst/2018/pdfs/ICSTW2018-5BPslL5kDKSjDzJaHtElD4/7JcPwP8tCljgqI0oP59l5a/2TOunSUW31uL6hRCh2A3xk.pdf">Mull it over: mutation testing based on LLVM</a>.
+This article shortly highlights the key ideas from this paper.</p>
+
+<h3 id="introduction">Introduction</h3>
+
+<h4 id="what-is-mutation-testing">What is Mutation Testing?</h4>
+
+<p>Mutation Testing, a fault-based software testing technique, serves as a way to
+evaluate and improve quality of software tests. A tool for mutation testing
+creates many slightly modified versions of original program and then runs a
+test suite against each version, which is called a <em>mutant</em>. A mutant is said
+to be <em>killed</em> if the test suite detects a change to the program introduced by
+this mutant, i.e., at least one of the tests starts to fail, or <em>survived</em>
+otherwise.</p>
+
+<p>Each mutation of original program is created based on one of the
+predefined rules for program modification called <em>mutation operators</em>. Each
+mutant is represented by a <em>mutation point</em>: a combination of mutation operator
+and location of a mutation in the program’s source code. To assess the quality
+of a test suite mutation testing uses a metric called <em>mutation score</em>, or
+<em>mutation coverage</em>.</p>
+
+<h4 id="what-is-mull">What is Mull?</h4>
+
+<p>The Mull project is our attempt to build a general-purpose mutation testing
+tool targeting compiled languages. Mull is built on top of the LLVM compiler
+framework: it uses LLVM IR or Bitcode to perform mutations, and LLVM JIT engine
+to execute original and mutated programs.</p>
+
+<p>Mull&rsquo;s primary focus is C and C++, but due to its LLVM nature it can be applied
+for other languages such as Swift, Rust, Objective-C.</p>
+
+<p>Mull is a command line tool. It takes a configuration file as an input and
+produces an SQLite database with the results as output. Configuration file
+contains list of tested program&rsquo;s bitcode files, a set of mutation operators,
+a test framework, and few other things. The SQLite database contains
+information gathered during the run, such as tests, mutation points, mutants
+(killed or survided), and more.</p>
+
+<h3 id="algorithm">Algorithm</h3>
+
+<p>The following are the steps that Mull performs during a session:</p>
+
+<ul>
+<li>Step 1: Mull loads LLVM Bitcode into memory.</li>
+<li>Step 2: Mull inserts instrumentation code into each function.
+This code is used to collect code coverage information.
+We describe our approach to instrumentation later.</li>
+<li>Step 3: Mull compiles instrumented LLVM Bitcode to machine code and
+prepares the machine code for execution by LLVM JIT engine.</li>
+<li>Step 4: In the LLVM IR code Mull finds the tests according to a test
+framework specified in the configuration file.</li>
+<li>Step 5: Mull runs each test using LLVM JIT engine and collects code
+coverage information.</li>
+<li>Step 6: Mull finds mutations in the LLVM IR code based on a code
+coverage information collected for each test. A set of mutation
+points is created.</li>
+<li>Step 7: For each mutation point, Mull creates a mutant and runs each test
+that can possibly kill the mutant. For each mutant, only part of bitcode
+is recompiled into machine code. We describe our approach to runtime
+compilation later.</li>
+<li>Step 8: All information collected during the session is written to the
+SQLite database. This is the final step.
+Mull finishes its execution at this point.</li>
+</ul>
+
+<h3 id="implementation">Implementation</h3>
+
+<h4 id="instrumentation-and-dynamic-call-tree">Instrumentation and Dynamic Call Tree</h4>
+
+        </div>
+      </article>
+
+      <div>
+      <span class="post-list-category tags">
+
+
+
+
+  
+  <a href="https://lowlevelbits.org/categories/llvm/">llvm</a>,
+
+  
+  <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing</a>
+
+</span>
+
+
+      </div>
+
+      <div>
+
+      
+<a class="resp-sharing-button__link" href="https://twitter.com/intent/tweet/?text=Mull%20it%20over%3a%20mutation%20testing%20based%20on%20LLVM&amp;url=https%3a%2f%2flowlevelbits.org%2fdraft%2fmull-it-over%2f&amp;via=1101_debian" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--twitter resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M23.44 4.83c-.8.37-1.5.38-2.22.02.93-.56.98-.96 1.32-2.02-.88.52-1.86.9-2.9 1.1-.82-.88-2-1.43-3.3-1.43-2.5 0-4.55 2.04-4.55 4.54 0 .36.03.7.1 1.04-3.77-.2-7.12-2-9.36-4.75-.4.67-.6 1.45-.6 2.3 0 1.56.8 2.95 2 3.77-.74-.03-1.44-.23-2.05-.57v.06c0 2.2 1.56 4.03 3.64 4.44-.67.2-1.37.2-2.06.08.58 1.8 2.26 3.12 4.25 3.16C5.78 18.1 3.37 18.74 1 18.46c2 1.3 4.4 2.04 6.97 2.04 8.35 0 12.92-6.92 12.92-12.93 0-.2 0-.4-.02-.6.9-.63 1.96-1.22 2.56-2.14z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://facebook.com/sharer/sharer.php?u=https://lowlevelbits.org/draft/mull-it-over/" target="_blank" aria-label="" />
+  <div class="resp-sharing-button resp-sharing-button--facebook resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18.77 7.46H14.5v-1.9c0-.9.6-1.1 1-1.1h3V.5h-4.33C10.24.5 9.5 3.44 9.5 5.32v2.15h-3v4h3v12h5v-12h3.85l.42-4z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="mailto:?subject=Mull%20it%20over%3a%20mutation%20testing%20based%20on%20LLVM&amp;body=Short%20summary%20of%20our%20paper%20on%20LLVM%20based%20mutation%20testing%0a%0ahttps%3a%2f%2flowlevelbits.org%2fdraft%2fmull-it-over%2f" target="_self" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--email resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 4H2C.9 4 0 4.9 0 6v12c0 1.1.9 2 2 2h20c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zM7.25 14.43l-3.5 2c-.08.05-.17.07-.25.07-.17 0-.34-.1-.43-.25-.14-.24-.06-.55.18-.68l3.5-2c.24-.14.55-.06.68.18.14.24.06.55-.18.68zm4.75.07c-.1 0-.2-.03-.27-.08l-8.5-5.5c-.23-.15-.3-.46-.15-.7.15-.22.46-.3.7-.14L12 13.4l8.23-5.32c.23-.15.54-.08.7.15.14.23.07.54-.16.7l-8.5 5.5c-.08.04-.17.07-.27.07zm8.93 1.75c-.1.16-.26.25-.43.25-.08 0-.17-.02-.25-.07l-3.5-2c-.24-.13-.32-.44-.18-.68s.44-.32.68-.18l3.5 2c.24.13.32.44.18.68z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://reddit.com/submit/?url=https%3a%2f%2flowlevelbits.org%2fdraft%2fmull-it-over%2f&amp;title=Mull%20it%20over%3a%20mutation%20testing%20based%20on%20LLVM" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--reddit resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M24 11.5c0-1.65-1.35-3-3-3-.96 0-1.86.48-2.42 1.24-1.64-1-3.75-1.64-6.07-1.72.08-1.1.4-3.05 1.52-3.7.72-.4 1.73-.24 3 .5C17.2 6.3 18.46 7.5 20 7.5c1.65 0 3-1.35 3-3s-1.35-3-3-3c-1.38 0-2.54.94-2.88 2.22-1.43-.72-2.64-.8-3.6-.25-1.64.94-1.95 3.47-2 4.55-2.33.08-4.45.7-6.1 1.72C4.86 8.98 3.96 8.5 3 8.5c-1.65 0-3 1.35-3 3 0 1.32.84 2.44 2.05 2.84-.03.22-.05.44-.05.66 0 3.86 4.5 7 10 7s10-3.14 10-7c0-.22-.02-.44-.05-.66 1.2-.4 2.05-1.54 2.05-2.84zM2.3 13.37C1.5 13.07 1 12.35 1 11.5c0-1.1.9-2 2-2 .64 0 1.22.32 1.6.82-1.1.85-1.92 1.9-2.3 3.05zm3.7.13c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9.8 4.8c-1.08.63-2.42.96-3.8.96-1.4 0-2.74-.34-3.8-.95-.24-.13-.32-.44-.2-.68.15-.24.46-.32.7-.18 1.83 1.06 4.76 1.06 6.6 0 .23-.13.53-.05.67.2.14.23.06.54-.18.67zm.2-2.8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm5.7-2.13c-.38-1.16-1.2-2.2-2.3-3.05.38-.5.97-.82 1.6-.82 1.1 0 2 .9 2 2 0 .84-.53 1.57-1.3 1.87z"/></svg>
+    </div>
+  </div>
+</a>
+
+
+<a class="resp-sharing-button__link" href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2flowlevelbits.org%2fdraft%2fmull-it-over%2f&amp;t=Mull%20it%20over%3a%20mutation%20testing%20based%20on%20LLVM" target="_blank" aria-label="">
+  <div class="resp-sharing-button resp-sharing-button--hackernews resp-sharing-button--small"><div aria-hidden="true" class="resp-sharing-button__icon resp-sharing-button__icon--solid">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140"><path fill-rule="evenodd" d="M60.94 82.314L17 0h20.08l25.85 52.093c.397.927.86 1.888 1.39 2.883.53.994.995 2.02 1.393 3.08.265.4.463.764.596 1.095.13.334.262.63.395.898.662 1.325 1.26 2.618 1.79 3.877.53 1.26.993 2.42 1.39 3.48 1.06-2.254 2.22-4.673 3.48-7.258 1.26-2.585 2.552-5.27 3.877-8.052L103.49 0h18.69L77.84 83.308v53.087h-16.9v-54.08z"></path></svg>
+    </div>
+  </div>
+</a>
+
+
+
+      </div>
+
+      <h3>Comments</h3>
+      <div id="disqus_thread" aria-live="polite"></div>
+
+    </div>
+
+  </div>
+
+  <hr>
+
+  <div class="row triple-row">
+
+    <div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
+      
+
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/system-under-test/" >system under test (4)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mach-o/" >mach-o (3)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+      </ul>
+</article>
+</div>
+
+
+    </div>
+
+    <div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="https://lowlevelbits.org/mutation-testing-implementation-details/"> Mutation Testing: implementation details</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/reverse-engineering-stickies.app/"> Reverse Engineering Stickies.app</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/java-papers/"> Java Papers</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/system-under-test-gnu-make/"> System Under Test: GNU Make</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/"> LLVM-based Mutation Testing System. Request For Comments</a>
+        </li>
+      
+      </ul>
+
+</article>
+</div>
+
+
+
+    </div>
+
+    <div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+    <div>
+    <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscribe</button></div>
+    </div>
+</form>
+</div>
+
+
+
+
+</article>
+</div>
+
+
+    </div>
+  </div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2018 - Alex Denisov</div>
+</div>
+
+
+
+</div>  
+
+
+
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+<script src="https://lowlevelbits.org/js/aws-sdk-2.65.0.min.js"></script>
+
+
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+
+
+
+
+</body>
+</html>
+
