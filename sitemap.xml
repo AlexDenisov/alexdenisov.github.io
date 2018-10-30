@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://lowlevelbits.org/handling-timeouts-in-child-processes/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/draft/mull-it-over/</loc>
     <lastmod>2018-07-20T00:00:00+01:00</lastmod>
   </url>
@@ -10,11 +15,6 @@
   <url>
     <loc>https://lowlevelbits.org/talks/</loc>
     <lastmod>2017-08-22T11:30:00+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://lowlevelbits.org/draft/timeouts/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
   </url>
   
   <url>
@@ -406,6 +406,12 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/fork/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/forward-declaration/</loc>
     <lastmod>2013-08-09T00:00:00+00:00</lastmod>
     <priority>0</priority>
@@ -419,7 +425,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/tags/freebsd/</loc>
-    <lastmod>2016-03-31T17:22:59+02:00</lastmod>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -526,6 +532,12 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/linux/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/lldb/</loc>
     <lastmod>2017-02-13T11:23:48+01:00</lastmod>
     <priority>0</priority>
@@ -545,7 +557,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -570,6 +582,12 @@
   <url>
     <loc>https://lowlevelbits.org/tags/macho/</loc>
     <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/macos/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -730,6 +748,12 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/posix/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/postgresql/</loc>
     <lastmod>2016-03-24T23:03:35+01:00</lastmod>
     <priority>0</priority>
@@ -737,7 +761,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/post/</loc>
-    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -802,8 +826,26 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/setitimer/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/shared-libraries/</loc>
     <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/sigaction/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/signal/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -834,6 +876,18 @@
   <url>
     <loc>https://lowlevelbits.org/categories/system-under-test/</loc>
     <lastmod>2016-06-12T21:05:00+02:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/systems-programming/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/systems-programming/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -874,8 +928,26 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/timer/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/ualarm/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/unit-testing/</loc>
     <lastmod>2016-03-24T23:18:29+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/unix/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
