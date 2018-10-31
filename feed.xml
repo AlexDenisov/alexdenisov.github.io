@@ -118,7 +118,7 @@ To do that a program manipulates one of the three timers provided by an
 operating system: real, virtual, and profiling.&lt;/p&gt;
 
 &lt;p&gt;But which one to pick? Look at the following illustration.
-For simplicity, let&amp;rsquo;s assume that each &amp;lsquo;brick&amp;rsquo; takes on second to run.&lt;/p&gt;
+For simplicity, let&amp;rsquo;s assume that each &amp;lsquo;brick&amp;rsquo; takes one second to run.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/timeouts/timers.png&#34;
   style=&#34; display: block;
