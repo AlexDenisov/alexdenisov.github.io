@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+  
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+  })(window,document,'script','dataLayer','GTM-MGGGP5W');</script>
+  
+
+  <meta charset="UTF-8">
+
+  
+
+
+  
+    <title>Mojave - Low Level Bits</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+    <meta name="keywords" content="clang,llvm,compilers,ios development,developer tools,mutation testing" />
+  
+
+  
+    <meta name="description" content="Compilers, developer tools, low-level hacking, software testing" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/share_buttons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+    
+
+  
+
+
+
+</head>
+
+
+<body>
+
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MGGGP5W"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+
+
+<div class="container">
+    <div class="masthead clearfix">
+
+    
+
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.svg" alt="Low Level Bits"></a>
+      <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+        <li><a href="https://lowlevelbits.org/talks">Talks</a></li>
+        <li class="dropdown"><a href="#" class="dropdown-toggle" data-toggle="dropdown">Subscribe</a>
+          <ul class="dropdown-menu">
+            <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+            <li><a href="https://lowlevelbits.org/subscribe">Email</a></li>
+          </ul>
+        </li>
+
+        <li><a href="https://twitter.com/1101_debian" target="_blank">Follow</a></li>
+        <li><a href="https://lowlevelbits.org/about">About</a></li>
+      </ul>
+
+  </div>
+
+
+  <hr>
+
+  <div class="row main-content">
+    <div class="offset3 span6 zone-content">
+      <h1> Mojave </h1>
+
+      
+
+  
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/debugging-dyld/">Debugging Dyld</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2018-11-13 08:00:00 &#43;0100 CET" pubdate>Nov 13, 2018</time>
+                  </span>
+                  <span class="post-list-category tags">
+
+
+
+
+  
+  <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming</a>,
+
+  
+  <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering</a>
+
+</span>
+
+
+          </footer>
+  </li>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="row triple-row">
+
+    <div id="triple-first" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Categories</h1>
+    </header>
+
+      
+
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+          
+          
+
+          
+
+          
+        
+      
+        
+      
+
+      <ul>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/iosdev/" >iosdev (9)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/objc/" >objc (6)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/swift/" >swift (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/llvm/" >llvm (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/clang/" >clang (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/railsware/" >railsware (5)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/system-under-test/" >system under test (4)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mach-o/" >mach-o (3)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/testing/" >testing (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/systems-programming/" >systems programming (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/components/" >components (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/blacklane/" >blacklane (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/freebsd/" >freebsd (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/make/" >make (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/scientific-papers/" >scientific papers (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/java/" >java (1)</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/categories/di/" >di (1)</a>
+        </li>
+      
+      </ul>
+</article>
+</div>
+
+
+    </div>
+
+    <div id="triple-second" class="span4 triple">
+      <div class="zone">
+<article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+      <ul>
+      
+        <li>
+          <a href="https://lowlevelbits.org/debugging-dyld/"> Debugging Dyld</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/handling-timeouts-in-child-processes/"> Handling timeouts in child processes</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/mutation-testing-implementation-details/"> Mutation Testing: implementation details</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/reverse-engineering-stickies.app/"> Reverse Engineering Stickies.app</a>
+        </li>
+      
+        <li>
+          <a href="https://lowlevelbits.org/java-papers/"> Java Papers</a>
+        </li>
+      
+      </ul>
+
+</article>
+</div>
+
+
+
+    </div>
+
+    <div id="triple-third" class="span4 triple">
+      
+
+<div class="zone">
+<article class="widget widget-html-widget share-connect-widget">
+    <header>
+        <h1>Connect</h1>
+    </header>
+    <p>
+    <a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank"><i class="smicon-rss"></i></a>
+    <a href="mailto:1101.debian@gmail.com"><i class="smicon-mail"></i></a>
+    <a href="https://twitter.com/1101_debian"><i class="smicon-twitter"></i></a>
+    <a href="https://github.com/AlexDenisov"><i class="smicon-github"></i></a>
+    <a href="http://reddit.com/user/1101_debian"><i class="smicon-reddit"></i></a>
+    </p>
+
+
+<div id="mc_embed_signup">
+<form action="//github.us10.list-manage.com/subscribe/post?u=aaa39cd123ecae87821d0d66a&amp;id=d2ec0322b7" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+    <div id="mc_embed_signup_scroll">
+    <div>
+    <input type="email" value="" name="EMAIL" class="email text" id="mce-EMAIL" placeholder="Email" required>
+    </div>
+    
+    <div style="position: absolute; left: -5000px;"><input type="text" name="b_aaa39cd123ecae87821d0d66a_d2ec0322b7" tabindex="-1" value=""></div>
+    <div class="clear"><button type="submit" value="Subscribe →" name="subscribe" id="mc-embedded-subscribe" class="button-link subscribe">Subscribe</button></div>
+    </div>
+</form>
+</div>
+
+
+
+
+</article>
+</div>
+
+
+    </div>
+  </div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2018 - Alex Denisov</div>
+</div>
+
+
+
+</div>  
+
+
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+<script src="https://lowlevelbits.org/js/aws-sdk-2.65.0.min.js"></script>
+
+
+<script>
+window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+ga('create', 'UA-58043349-1', 'auto');
+ga('send', 'pageview');
+</script>
+<script async src='//www.google-analytics.com/analytics.js'></script>
+
+
+
+
+</body>
+</html>
+
+

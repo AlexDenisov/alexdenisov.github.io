@@ -3,6 +3,11 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
+    <loc>https://lowlevelbits.org/debugging-dyld/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/handling-timeouts-in-child-processes/</loc>
     <lastmod>2018-10-30T21:50:00+01:00</lastmod>
   </url>
@@ -35,11 +40,6 @@
   <url>
     <loc>https://lowlevelbits.org/java-papers/</loc>
     <lastmod>2016-11-23T11:18:07+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://lowlevelbits.org/draft/sandboxing-processes/</loc>
-    <lastmod>2016-11-16T07:02:36+01:00</lastmod>
   </url>
   
   <url>
@@ -352,6 +352,12 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/debugging/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/defensive-programming/</loc>
     <lastmod>2015-05-05T23:08:13+02:00</lastmod>
     <priority>0</priority>
@@ -396,6 +402,60 @@
   <url>
     <loc>https://lowlevelbits.org/draft/</loc>
     <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld-closure/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld3/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld_framework_path/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld_print_apis/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld_print_libraries/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dyld_print_warnings/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dynamic-linker/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/dynamic-loader/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -526,8 +586,14 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/libdyld.dylib/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/linker/</loc>
-    <lastmod>2015-08-20T18:30:00+02:00</lastmod>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -556,8 +622,14 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/loader/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -587,7 +659,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/tags/macos/</loc>
-    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -630,6 +702,12 @@
   <url>
     <loc>https://lowlevelbits.org/tags/modules/</loc>
     <lastmod>2014-06-26T00:00:00+00:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/mojave/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -761,7 +839,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/post/</loc>
-    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -791,7 +869,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/categories/reverse-engineering/</loc>
-    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -887,7 +965,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/categories/systems-programming/</loc>
-    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
