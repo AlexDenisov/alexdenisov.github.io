@@ -21,7 +21,7 @@
 
 &lt;p&gt;Recently, I was debugging an interesting issue: a program crashes whenever it tries to call a particular function from a dynamic library. It was not clear how to debug this issue. Eventually, I did resolve the problem: the key was in the dynamic linker, dyld.&lt;/p&gt;
 
-&lt;p&gt;In this article, I want to make a short intro on where to start if you have a similar issue. It is by no means an exhaustive guide, but rather a starting point that could have saved me a few hours would I knew this information before.&lt;/p&gt;
+&lt;p&gt;In this article, I want to make a short intro on where to start if you have a similar issue. It is by no means an exhaustive guide, but rather a starting point that could have saved me a few hours would I have known this information before.&lt;/p&gt;
 
 &lt;h2 id=&#34;inspect-the-dyld-from-inside&#34;&gt;Inspect the dyld from inside&lt;/h2&gt;
 
