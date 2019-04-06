@@ -6,8 +6,8 @@
     <description>Recent content in Security on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Sat, 05 Sep 2015 12:25:00 +0200</lastBuildDate>
     <atom:link href="/tags/security/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 

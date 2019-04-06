@@ -6,8 +6,8 @@
     <description>Recent content in Nsarray on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 13 Apr 2015 22:44:26 +0200</lastBuildDate>
     <atom:link href="/tags/nsarray/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 

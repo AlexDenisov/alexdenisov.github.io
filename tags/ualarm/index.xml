@@ -6,8 +6,8 @@
     <description>Recent content in Ualarm on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Tue, 30 Oct 2018 21:50:00 +0100</lastBuildDate>
     <atom:link href="/tags/ualarm/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Handling timeouts in child processes</title>
       <link>https://lowlevelbits.org/handling-timeouts-in-child-processes/</link>
       <pubDate>Tue, 30 Oct 2018</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/handling-timeouts-in-child-processes/</guid>
       <description>
 

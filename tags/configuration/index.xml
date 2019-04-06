@@ -6,8 +6,8 @@
     <description>Recent content in Configuration on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 06 Feb 2015 00:43:11 +0100</lastBuildDate>
     <atom:link href="/tags/configuration/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 

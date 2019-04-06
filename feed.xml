@@ -6,16 +6,16 @@
     <description>Recent content in Low Level Bits on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
-    <lastBuildDate>Tue, 13 Nov 2018 08:00:00 +0100</lastBuildDate>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Sat, 06 Apr 2019 19:00:00 +0100</lastBuildDate>
     <atom:link href="/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Debugging Dyld</title>
       <link>https://lowlevelbits.org/debugging-dyld/</link>
       <pubDate>Tue, 13 Nov 2018</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/debugging-dyld/</guid>
       <description>
 
@@ -102,7 +102,7 @@ export DYLD_LIBRARY_PATH=
       <title>Handling timeouts in child processes</title>
       <link>https://lowlevelbits.org/handling-timeouts-in-child-processes/</link>
       <pubDate>Tue, 30 Oct 2018</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/handling-timeouts-in-child-processes/</guid>
       <description>
 
@@ -393,7 +393,7 @@ at the moment.&lt;/p&gt;
       <title>Mutation Testing: implementation details</title>
       <link>https://lowlevelbits.org/mutation-testing-implementation-details/</link>
       <pubDate>Wed, 14 Jun 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/mutation-testing-implementation-details/</guid>
       <description>
 
@@ -616,7 +616,7 @@ program without restarting potentially long running process.&lt;/p&gt;
       <title>Reverse Engineering Stickies.app</title>
       <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
       <pubDate>Mon, 13 Feb 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
       <description>
 
@@ -969,7 +969,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       <title>Java Papers</title>
       <link>https://lowlevelbits.org/java-papers/</link>
       <pubDate>Wed, 23 Nov 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/java-papers/</guid>
       <description>
 
@@ -1161,15 +1161,15 @@ We show how some widespread false beliefs about these guarantees can be exploite
     
     <item>
       <title>System Under Test: GNU Make</title>
-      <link>http://systemundertest.org/gnu-make/</link>
+      <link>https://lowlevelbits.org/system-under-test-gnu-make/</link>
       <pubDate>Sun, 12 Jun 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://systemundertest.org/gnu-make/</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/system-under-test-gnu-make/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/gnu-make&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
 
-&lt;p&gt;&lt;em&gt;Note: This is a guest post written by good friend and colleague of mine &lt;a href=&#34;https://twitter.com/sbpankevich&#34;&gt;Stanislav Pankevich&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: This is a guest post written by a good friend and colleague of mine &lt;a href=&#34;https://twitter.com/sbpankevich&#34;&gt;Stanislav Pankevich&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
 
 &lt;h3 id=&#34;introduction&#34;&gt;Introduction&lt;/h3&gt;
 
@@ -1612,7 +1612,7 @@ can impact future tests.&lt;/p&gt;
       <title>LLVM-based Mutation Testing System. Request For Comments</title>
       <link>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
       <pubDate>Thu, 14 Apr 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
       <description>
 
@@ -1878,10 +1878,10 @@ It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
     
     <item>
       <title>System Under Test: FreeBSD</title>
-      <link>http://systemundertest.org/freebsd/</link>
+      <link>https://lowlevelbits.org/system-under-test-freebsd/</link>
       <pubDate>Thu, 31 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://systemundertest.org/freebsd/</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/system-under-test-freebsd/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/freebsd&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -2022,10 +2022,10 @@ get any answer so far.&lt;/p&gt;
     
     <item>
       <title>System Under Test: LLVM</title>
-      <link>http://systemundertest.org/llvm/</link>
+      <link>https://lowlevelbits.org/system-under-test-llvm/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://systemundertest.org/llvm/</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/system-under-test-llvm/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -2253,7 +2253,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       <title>System Under Test</title>
       <link>https://lowlevelbits.org/system-under-test/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/system-under-test/</guid>
       <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; After a while we made decision to convert the series of posts into an independent project: &lt;a href=&#34;http://systemundertest.org&#34;&gt;System Under Test&lt;/a&gt;. For updates please subscribe for &lt;a href=&#34;http://systemundertest.org/index.xml&#34;&gt;RSS&lt;/a&gt; or follow us on twitter: &lt;a href=&#34;https://twitter.com/systemundertest&#34;&gt;@systemundertest&lt;/a&gt;.&lt;/p&gt;
 
@@ -2280,10 +2280,10 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
+      <link>https://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
       <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
 
@@ -2472,7 +2472,7 @@ I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexD
       <title>How to use LLVM API with Swift. Addendum</title>
       <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
       <pubDate>Wed, 27 Jan 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
       <description>
 
@@ -2632,7 +2632,7 @@ print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span s
       <title>How to use LLVM API with Swift</title>
       <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
       <pubDate>Mon, 30 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
       <description>
 
@@ -2896,7 +2896,7 @@ LLVMDisposeModule(module)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
       <title>Components: taking a step back from Dependency Management</title>
       <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
@@ -3378,7 +3378,7 @@ Alex.
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 

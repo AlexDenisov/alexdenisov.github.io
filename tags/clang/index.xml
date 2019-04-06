@@ -6,8 +6,8 @@
     <description>Recent content in Clang on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Wed, 14 Jun 2017 23:18:59 +0200</lastBuildDate>
     <atom:link href="/tags/clang/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Mutation Testing: implementation details</title>
       <link>https://lowlevelbits.org/mutation-testing-implementation-details/</link>
       <pubDate>Wed, 14 Jun 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/mutation-testing-implementation-details/</guid>
       <description>
 
@@ -238,7 +238,7 @@ program without restarting potentially long running process.&lt;/p&gt;
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
@@ -412,7 +412,7 @@ Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -490,7 +490,7 @@ CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
@@ -572,7 +572,7 @@ CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&
       <title>Getting Started With LLVM/Clang on OS X</title>
       <link>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
       <pubDate>Sat, 27 Dec 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
       <description>
 
@@ -770,15 +770,6 @@ cmake -G Xcode CMAKE_BUILD_TYPE&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/s
 
 &lt;p&gt;&lt;strong&gt;Happy hacking!&lt;/strong&gt;&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Creating and using Clang plugin with Xcode</title>
-      <link>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</link>
-      <pubDate>Fri, 28 Feb 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2014/02/28/creation-and-using-clang-plugin-with-xcode/</guid>
-      <description></description>
     </item>
     
   </channel>

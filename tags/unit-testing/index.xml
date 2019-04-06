@@ -6,17 +6,17 @@
     <description>Recent content in Unit Testing on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Thu, 24 Mar 2016 23:18:29 +0100</lastBuildDate>
     <atom:link href="/tags/unit-testing/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: LLVM</title>
-      <link>http://systemundertest.org/llvm/</link>
+      <link>https://lowlevelbits.org/system-under-test-llvm/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://systemundertest.org/llvm/</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/system-under-test-llvm/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -244,7 +244,7 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       <title>Getting Rid of Asynchronous Tests</title>
       <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 

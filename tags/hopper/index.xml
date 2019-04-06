@@ -6,8 +6,8 @@
     <description>Recent content in Hopper on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
     <atom:link href="/tags/hopper/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Reverse Engineering Stickies.app</title>
       <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
       <pubDate>Mon, 13 Feb 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
       <description>
 
@@ -362,15 +362,6 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
 
 &lt;p&gt;Happy Hacking!&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Global variables in Swift are not variables</title>
-      <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
-      <pubDate>Wed, 11 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
-      <description></description>
     </item>
     
   </channel>

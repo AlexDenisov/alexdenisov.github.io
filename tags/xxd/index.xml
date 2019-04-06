@@ -6,8 +6,8 @@
     <description>Recent content in Xxd on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
     <atom:link href="/tags/xxd/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Reverse Engineering Stickies.app</title>
       <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
       <pubDate>Mon, 13 Feb 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
       <description>
 

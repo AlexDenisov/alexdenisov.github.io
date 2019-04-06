@@ -6,8 +6,8 @@
     <description>Recent content in Mull on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 20 Jul 2018 00:00:00 +0100</lastBuildDate>
     <atom:link href="/tags/mull/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Mutation Testing: implementation details</title>
       <link>https://lowlevelbits.org/mutation-testing-implementation-details/</link>
       <pubDate>Wed, 14 Jun 2017</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/mutation-testing-implementation-details/</guid>
       <description>
 

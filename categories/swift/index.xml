@@ -6,8 +6,8 @@
     <description>Recent content in Swift on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Wed, 27 Jan 2016 21:33:12 +0100</lastBuildDate>
     <atom:link href="/categories/swift/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>How to use LLVM API with Swift. Addendum</title>
       <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</link>
       <pubDate>Wed, 27 Jan 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift.-addendum/</guid>
       <description>
 
@@ -175,7 +175,7 @@ print(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;&lt;span s
       <title>How to use LLVM API with Swift</title>
       <link>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</link>
       <pubDate>Mon, 30 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/how-to-use-llvm-api-with-swift/</guid>
       <description>
 
@@ -439,7 +439,7 @@ LLVMDisposeModule(module)&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
       <title>Bitcode Demystified</title>
       <link>https://lowlevelbits.org/bitcode-demystified/</link>
       <pubDate>Sat, 05 Sep 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
       <description>
 
@@ -607,24 +607,6 @@ Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built
 &lt;li&gt;&lt;a href=&#34;https://github.com/obfuscator-llvm/obfuscator/wiki&#34;&gt;o-llvm&lt;/a&gt; - obfuscator based on LLVM&lt;/li&gt;
 &lt;/ul&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Creation of pure Swift module</title>
-      <link>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</link>
-      <pubDate>Thu, 26 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2014/06/26/creation-of-pure-swift-module/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Global variables in Swift are not variables</title>
-      <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
-      <pubDate>Wed, 11 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
-      <description></description>
     </item>
     
   </channel>

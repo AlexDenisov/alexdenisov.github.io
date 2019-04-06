@@ -6,8 +6,8 @@
     <description>Recent content in Cocoa on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 26 Jun 2015 09:22:57 +0200</lastBuildDate>
     <atom:link href="/tags/cocoa/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -93,7 +93,7 @@ CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&
       <title>Getting Rid of Asynchronous Tests</title>
       <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
@@ -273,7 +273,7 @@ describe(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Client&amp;#34;&lt;
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
@@ -355,7 +355,7 @@ describe(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Client&amp;#34;&lt;
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 

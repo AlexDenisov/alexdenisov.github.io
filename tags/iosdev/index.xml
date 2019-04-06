@@ -6,8 +6,8 @@
     <description>Recent content in Iosdev on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Mon, 23 Nov 2015 17:05:00 +0000</lastBuildDate>
     <atom:link href="/tags/iosdev/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Components: taking a step back from Dependency Management</title>
       <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
@@ -491,15 +491,6 @@ Best regards, &lt;br /&gt;
 Alex.
 &lt;/span&gt;&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Global variables in Swift are not variables</title>
-      <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
-      <pubDate>Wed, 11 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
-      <description></description>
     </item>
     
   </channel>

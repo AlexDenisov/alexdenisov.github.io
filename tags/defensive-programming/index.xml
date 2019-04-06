@@ -6,8 +6,8 @@
     <description>Recent content in Defensive Programming on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Tue, 05 May 2015 23:08:13 +0200</lastBuildDate>
     <atom:link href="/tags/defensive-programming/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>&#39;if (self)&#39; and Sanity</title>
       <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 

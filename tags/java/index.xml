@@ -6,8 +6,8 @@
     <description>Recent content in Java on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Wed, 23 Nov 2016 11:18:07 +0100</lastBuildDate>
     <atom:link href="/tags/java/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Java Papers</title>
       <link>https://lowlevelbits.org/java-papers/</link>
       <pubDate>Wed, 23 Nov 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/java-papers/</guid>
       <description>
 

@@ -6,8 +6,8 @@
     <description>Recent content in Objc on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 26 Jun 2015 09:22:57 +0200</lastBuildDate>
     <atom:link href="/categories/objc/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -93,7 +93,7 @@ CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&
       <title>&#39;if (self)&#39; and Sanity</title>
       <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
@@ -185,7 +185,7 @@ return self;
       <title>Circular Containers in Objective-C</title>
       <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
       <pubDate>Mon, 13 Apr 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
       <description>
 
@@ -267,7 +267,7 @@ return self;
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
@@ -431,24 +431,6 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 
 &lt;p&gt;P.S. Pull Requests are welcome! :)&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Dependency Injection in Objective-C with Blood and Magic</title>
-      <link>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</link>
-      <pubDate>Tue, 15 Oct 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Using Forward Declaration In Your Objective-C Projects</title>
-      <link>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</link>
-      <pubDate>Fri, 09 Aug 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</guid>
-      <description></description>
     </item>
     
   </channel>

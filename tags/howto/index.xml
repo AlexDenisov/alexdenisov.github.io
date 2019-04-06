@@ -6,8 +6,8 @@
     <description>Recent content in Howto on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Sat, 27 Dec 2014 23:03:50 +0100</lastBuildDate>
     <atom:link href="/tags/howto/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Getting Started With LLVM/Clang on OS X</title>
       <link>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</link>
       <pubDate>Sat, 27 Dec 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/</guid>
       <description>
 

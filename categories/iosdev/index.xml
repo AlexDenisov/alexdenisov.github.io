@@ -6,17 +6,17 @@
     <description>Recent content in Iosdev on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 11 Mar 2016 14:34:22 +0100</lastBuildDate>
     <atom:link href="/categories/iosdev/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
+      <link>https://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
       <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
 
@@ -205,7 +205,7 @@ I will be more than happy to review the &lt;a href=&#34;https://github.com/AlexD
       <title>Components: taking a step back from Dependency Management</title>
       <link>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</link>
       <pubDate>Mon, 23 Nov 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</guid>
       <description>
 
@@ -687,7 +687,7 @@ Alex.
       <title>NSValue and Boxed Expressions</title>
       <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
       <pubDate>Fri, 26 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
       <description>
 
@@ -765,7 +765,7 @@ CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&
       <title>Getting Rid of Asynchronous Tests</title>
       <link>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</link>
       <pubDate>Wed, 17 Jun 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/getting-rid-of-asynchronous-tests/</guid>
       <description>
 
@@ -945,7 +945,7 @@ describe(&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;Client&amp;#34;&lt;
       <title>&#39;if (self)&#39; and Sanity</title>
       <link>https://lowlevelbits.org/if-self-and-sanity/</link>
       <pubDate>Tue, 05 May 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/if-self-and-sanity/</guid>
       <description>
 
@@ -1037,7 +1037,7 @@ return self;
       <title>YAML-based Configuration for ObjC Projects</title>
       <link>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</link>
       <pubDate>Fri, 06 Feb 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/</guid>
       <description>
 
@@ -1201,33 +1201,6 @@ Also, we need to specify output file, otherwise it won&amp;rsquo;t work:
 
 &lt;p&gt;P.S. Pull Requests are welcome! :)&lt;/p&gt;
 </description>
-    </item>
-    
-    <item>
-      <title>Global variables in Swift are not variables</title>
-      <link>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</link>
-      <pubDate>Wed, 11 Jun 2014</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2014/06/11/global-variables-in-swift-are-not-variables/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Dependency Injection in Objective-C with Blood and Magic</title>
-      <link>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</link>
-      <pubDate>Tue, 15 Oct 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2013/10/15/dependency-injection-in-objective-c-with-blood-and-magic/</guid>
-      <description></description>
-    </item>
-    
-    <item>
-      <title>Using Forward Declaration In Your Objective-C Projects</title>
-      <link>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</link>
-      <pubDate>Fri, 09 Aug 2013</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://railsware.com/blog/2013/08/09/using-forward-declaration-in-your-objective-c-projects/</guid>
-      <description></description>
     </item>
     
   </channel>

@@ -918,6 +918,18 @@ aside.aside-column article.widget header h1 {
 	text-decoration: none;
   text-align: left;
 }
+.post-page-rfc {
+	/*color:#494e55;*/
+	font-family: 'Open Sans', sans-serif;
+	font-size: 18px;
+	font-weight:500;
+	line-height: 120%;
+	margin-left: 0px;
+	margin-right: 2px;
+	padding-right: 0px;
+	text-decoration: none;
+  text-align: left;
+}
 
 .post-list-category {
 	font-family: 'Open Sans', sans-serif;

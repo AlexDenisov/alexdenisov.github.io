@@ -6,17 +6,17 @@
     <description>Recent content in Fuzz Testing on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Thu, 24 Mar 2016 23:18:29 +0100</lastBuildDate>
     <atom:link href="/tags/fuzz-testing/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>System Under Test: LLVM</title>
-      <link>http://systemundertest.org/llvm/</link>
+      <link>https://lowlevelbits.org/system-under-test-llvm/</link>
       <pubDate>Thu, 24 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>http://systemundertest.org/llvm/</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/system-under-test-llvm/</guid>
       <description>
 
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
@@ -242,10 +242,10 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
+      <link>https://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
       <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
 

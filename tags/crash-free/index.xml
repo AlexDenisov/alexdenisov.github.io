@@ -6,17 +6,17 @@
     <description>Recent content in Crash Free on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Fri, 11 Mar 2016 14:34:22 +0100</lastBuildDate>
     <atom:link href="/tags/crash-free/" rel="self" type="application/rss+xml" />
     
     <item>
       <title>Crash-free code with Fuzzer</title>
-      <link>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</link>
+      <link>https://lowlevelbits.org/crash-free-code-with-fuzzer/</link>
       <pubDate>Fri, 11 Mar 2016</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
-      <guid>https://tech.blacklane.com/2016/03/11/crash-free-code-with-fuzzer</guid>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
+      <guid>https://lowlevelbits.org/crash-free-code-with-fuzzer/</guid>
       <description>&lt;p&gt;We all know that the API has a specification.
 We all write tests to cover &amp;ldquo;happy paths&amp;rdquo; and to cover &amp;ldquo;unhappy paths&amp;rdquo; when work with the API.&lt;/p&gt;
 

@@ -6,8 +6,8 @@
     <description>Recent content in Parse Mach O on Low Level Bits</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <managingEditor>1101.debian@gmail.com (Alex Denisov)</managingEditor>
-    <webMaster>1101.debian@gmail.com (Alex Denisov)</webMaster>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
     <lastBuildDate>Thu, 20 Aug 2015 18:30:00 +0200</lastBuildDate>
     <atom:link href="/tags/parse-mach-o/" rel="self" type="application/rss+xml" />
     
@@ -15,7 +15,7 @@
       <title>Parsing Mach-O files</title>
       <link>https://lowlevelbits.org/parsing-mach-o-files/</link>
       <pubDate>Thu, 20 Aug 2015</pubDate>
-      <author>1101.debian@gmail.com (Alex Denisov)</author>
+      <author>alex@lowlevelbits.org (Alex Denisov)</author>
       <guid>https://lowlevelbits.org/parsing-mach-o-files/</guid>
       <description>
 
