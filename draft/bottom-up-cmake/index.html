@@ -110,11 +110,14 @@ essentials you&rsquo;ll need to start:</p>
 <p>In the next few minutes we will reimplement some CMake&rsquo;s builtin functionality
 using the CMake itself.</p>
 
-<p><em>Make sure you also read the disclaimer at the end.</em></p>
+<p><strong>Disclaimer:</strong> there are several very inaccurate statements about CMake in
+this article. Most of them are here on purpose: the goal is to build an
+intuition of how CMake works, not to be 100% correct.</p>
 
 <h3 id="what-is-cmake">What is CMake?</h3>
 
-<p>CMake is not a build system as you may think. CMake is a <em>build system generator</em>.
+<p>CMake is not a build system as many think of it. CMake is a <em>build system
+generator</em>.
 Basically, you can see it as a compiler that compiles CMake scripts into
 Makefiles. Or several other build systems including <a href="https://ninja-build.org">Ninja</a>
 and Xcode, Eclipse, and Visual Studio projects.</p>
@@ -151,8 +154,8 @@ something you can <em>build</em> or <em>call</em>.</p>
 Scanning dependencies of target hello-target
 Hello, CMake World
 Built target hello-target</code></pre></div>
-<p>CMake tells us that it has built the target <code>hello-target</code>, even though it just
-called <code>echo</code> command and did not build any artefacts.</p>
+<p>Here, the <code>make</code> tells us that it has built the target <code>hello-target</code>, even
+though it just called <code>echo</code> command and did not produce any artefacts.</p>
 
 <h4 id="build-targets">Build targets</h4>
 
@@ -274,7 +277,7 @@ CMake script:</p>
 </span><span style="color:#75715e"></span>else()<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#75715e"># ...
 </span><span style="color:#75715e"></span>endif()</code></pre></div>
-<p><code>if</code>, <code>else</code>, and <code>elif</code> are functions.</p>
+<p><code>if</code>, <code>else</code>, and <code>endif</code> are functions.</p>
 
 <p><code>add_custom_target</code> and <code>add_custom_command</code> are also functions.</p>
 
@@ -305,7 +308,7 @@ hardcoded. Let&rsquo;s go a bit deeper and fix this issue.</p>
 <p>In CMake, everything is a function! Except macros.</p>
 
 <p>Macros are like functions, with one exception: they are inlined whenever they
-called. We can extract compilation into the macro</p>
+called. We can extract compilation into the macro:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmake" data-lang="cmake">macro(<span style="color:#e6db74">compile</span> <span style="color:#e6db74">source_file</span>)<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>  get_filename_component(<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span> <span style="color:#e6db74">NAME_WE</span>)<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span><span style="color:#e6db74">.o</span>)<span style="color:#960050;background-color:#1e0010">
@@ -424,14 +427,24 @@ your own:</p>
 </span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">CMAKE_C_FLAGS</span> <span style="color:#e6db74">-g</span> <span style="color:#e6db74">-O0</span>)<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>add_executable(<span style="color:#e6db74">hello</span> <span style="color:#e6db74">main.c</span> <span style="color:#e6db74">hello.c</span>)</code></pre></div>
-<p><strong>Disclaimer:</strong> there are several very inaccurate statements about CMake in
-this article. Most of them are here on purpose: the goal was to build an
-intuition of how CMake works, not to be 100% correct.</p>
-
 <h3 id="what-s-next">What&rsquo;s next?</h3>
 
 <p>Go and learn about other CMake <a href="https://cmake.org/cmake/help/latest/manual/cmake-commands.7.html">functions</a>
-(that are confusingly called <em>commands</em>), you are ready now! :)</p>
+(that are confusingly called <em>commands</em>), you are ready now!</p>
+
+<p>I would highly recommend learning about the following concepts:</p>
+
+<ul>
+<li><a href="https://cmake.org/cmake/help/latest/command/add_subdirectory.html">add_subdirectory</a></li>
+<li><a href="https://cmake.org/cmake/help/latest/command/include.html">include</a></li>
+<li><a href="https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html">properties</a>
+
+<ul>
+<li><a href="https://cmake.org/cmake/help/latest/command/get_property.html">get_property</a></li>
+<li><a href="https://cmake.org/cmake/help/latest/command/set_property.html">set_property</a></li>
+</ul></li>
+<li><a href="https://cmake.org/cmake/help/latest/index.html">All the rest</a></li>
+</ul>
 
         </div>
       </article>
@@ -847,6 +860,14 @@ intuition of how CMake works, not to be 100% correct.</p>
       
         
           <li>
+            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
+          </li>
+        
+      
+        
+      
+        
+          <li>
             <a href="https://lowlevelbits.org/categories/systems-programming/" >systems programming (2)</a>
           </li>
         
@@ -854,14 +875,6 @@ intuition of how CMake works, not to be 100% correct.</p>
         
           <li>
             <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
-          </li>
-        
-      
-        
-      
-        
-          <li>
-            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
           </li>
         
       
