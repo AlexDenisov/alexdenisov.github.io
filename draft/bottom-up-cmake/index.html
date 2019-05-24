@@ -16,11 +16,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   
-    <meta name="keywords" content="cmake,build system,introduction" />
+    <meta name="keywords" content="cmake,build system,introduction,ninja,xcode,eclipse,visual studio,cmake macro,cmake function" />
   
 
   
-    <meta name="description" content="Short article that helps to build intuition for CMake" />
+    <meta name="description" content="If you want to learn CMake, but do not have time to go through all the resources on the internet, then this article is for you." />
   
 
   <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
@@ -85,15 +85,13 @@
         <h1>Bottom-up CMake introduction</h1>
         <div>
           <p class="post-page-date">
-          <i>Published on <time datetime="2019-05-23 08:00:00 &#43;0100 &#43;0100" pubdate>May 23, 2019</time></i>
+          <i>Published on <time datetime="2019-05-24 08:00:00 &#43;0100 &#43;0100" pubdate>May 24, 2019</time></i>
           </p>
 
         </div>
 
         <div>
           
-
-<p><strong>No proof-reads, written in one go so far.</strong></p>
 
 <p>If you want to learn CMake, but do not have time to go through all the
 resources on the internet, then this article is for you. I will cover
@@ -107,7 +105,7 @@ essentials you&rsquo;ll need to start:</p>
 <li>macros</li>
 </ul>
 
-<p>In the next few minutes we will reimplement some CMake&rsquo;s builtin functionality
+<p>In the next few minutes, we will reimplement some CMake&rsquo;s builtin functionality
 using the CMake itself.</p>
 
 <p><strong>Disclaimer:</strong> there are several very inaccurate statements about CMake in
@@ -116,7 +114,7 @@ intuition of how CMake works, not to be 100% correct.</p>
 
 <h3 id="what-is-cmake">What is CMake?</h3>
 
-<p>CMake is not a build system as many think of it. CMake is a <em>build system
+<p>CMake is not a build system as many thinks of it. CMake is a <em>build system
 generator</em>.
 Basically, you can see it as a compiler that compiles CMake scripts into
 Makefiles. Or several other build systems including <a href="https://ninja-build.org">Ninja</a>
@@ -155,7 +153,7 @@ Scanning dependencies of target hello-target
 Hello, CMake World
 Built target hello-target</code></pre></div>
 <p>Here, the <code>make</code> tells us that it has built the target <code>hello-target</code>, even
-though it just called <code>echo</code> command and did not produce any artefacts.</p>
+though it just called <code>echo</code> command and did not produce any artifacts.</p>
 
 <h4 id="build-targets">Build targets</h4>
 
@@ -184,7 +182,7 @@ files:</p>
 -- Generating <span style="color:#66d9ef">done</span>
 Built target hello-target</code></pre></div>
 <p>As you can see <code>make</code> detected the change and reconfigured CMake. If everything
-is right you should have the <code>hello</code> executable:</p>
+is right, you should have the <code>hello</code> executable:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">&gt; ./hello
 Hello, CMake world</code></pre></div>
 <p>Great success!!!</p>
@@ -208,10 +206,10 @@ completely even when nothing has changed.</p>
 </span><span style="color:#960050;background-color:#1e0010"></span>add_custom_target(<span style="color:#e6db74">hello-target</span>
                   <span style="color:#e6db74">COMMAND</span> <span style="color:#e6db74">gcc</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
                   <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span>)</code></pre></div>
-<p>Important point here is the <code>DEPENDS</code>. This construct lets describe the build
-process in a form of a (direct acyclic) graph: A depends on B, B depends on
+<p>The important point here is the <code>DEPENDS</code>. This construct describes the build
+process in the form of a (direct acyclic) graph: A depends on B, B depends on
 C and D, and so forth. Then, a change of D or C means that B is changed, which
-means that A is also changed, and therefore all the changed items should be
+means that A is also changed, and therefore, all the changed items should be
 re-created.</p>
 
 <p>Now try the following: build the program, add some change to one of the files,
@@ -305,7 +303,7 @@ hardcoded. Let&rsquo;s go a bit deeper and fix this issue.</p>
 
 <h3 id="macros">Macros</h3>
 
-<p>In CMake, everything is a function! Except macros.</p>
+<p>In CMake, everything is a function! Except for macros.</p>
 
 <p>Macros are like functions, with one exception: they are inlined whenever they
 called. We can extract compilation into the macro:</p>
@@ -358,7 +356,7 @@ the list of object files for the custom target. I hope it is clearer now.</p>
 
 <h3 id="loops">Loops</h3>
 
-<p>It obviously follows &copy; that we can use a loop to handle variable amount of
+<p>It obviously follows &copy; that we can use a loop to handle a variable amount of
 source files passed to this function:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-cmake" data-lang="cmake">function(<span style="color:#e6db74">create_executable</span> <span style="color:#e6db74">name</span>)<span style="color:#960050;background-color:#1e0010">
 </span><span style="color:#960050;background-color:#1e0010"></span>  foreach(<span style="color:#e6db74">file</span> <span style="color:#f92672">${</span>ARGN<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
@@ -377,7 +375,7 @@ source files passed to this function:</p>
 
 <h3 id="final-touches">Final touches</h3>
 
-<p>I added few more things to the final version:</p>
+<p>I added three more things to the final version:</p>
 
 <ul>
 <li>I added another variable <code>C_FLAGS</code> that stores some additional compile flags
@@ -485,6 +483,15 @@ your own:</p>
 
       
 
+      
+        
+          
+          
+
+          
+
+          
+        
       
         
           
@@ -845,10 +852,6 @@ your own:</p>
         
       
         
-      
-        
-      
-        
           <li>
             <a href="https://lowlevelbits.org/categories/clang/" >clang (4)</a>
           </li>
@@ -859,9 +862,7 @@ your own:</p>
         
       
         
-          <li>
-            <a href="https://lowlevelbits.org/categories/systems-programming/" >systems programming (2)</a>
-          </li>
+      
         
       
         
@@ -871,11 +872,19 @@ your own:</p>
         
       
         
-      
-        
           <li>
             <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
           </li>
+        
+      
+        
+      
+        
+          <li>
+            <a href="https://lowlevelbits.org/categories/systems-programming/" >systems programming (2)</a>
+          </li>
+        
+      
         
       
         
@@ -908,6 +917,10 @@ your own:</p>
       <ul>
       
         <li>
+          <a href="https://lowlevelbits.org/bottom-up-cmake-introduction/"> Bottom-up CMake introduction</a>
+        </li>
+      
+        <li>
           <a href="https://lowlevelbits.org/debugging-dyld/"> Debugging Dyld</a>
         </li>
       
@@ -921,10 +934,6 @@ your own:</p>
       
         <li>
           <a href="https://lowlevelbits.org/reverse-engineering-stickies.app/"> Reverse Engineering Stickies.app</a>
-        </li>
-      
-        <li>
-          <a href="https://lowlevelbits.org/java-papers/"> Java Papers</a>
         </li>
       
       </ul>
