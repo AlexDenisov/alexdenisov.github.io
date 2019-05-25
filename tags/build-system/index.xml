@@ -40,7 +40,7 @@ intuition of how CMake works, not to be 100% correct.&lt;/p&gt;
 
 &lt;h3 id=&#34;what-is-cmake&#34;&gt;What is CMake?&lt;/h3&gt;
 
-&lt;p&gt;CMake is not a build system as many thinks of it. CMake is a &lt;em&gt;build system
+&lt;p&gt;CMake is not a build system as many think of it. CMake is a &lt;em&gt;build system
 generator&lt;/em&gt;.
 Basically, you can see it as a compiler that compiles CMake scripts into
 Makefiles. Or several other build systems including &lt;a href=&#34;https://ninja-build.org&#34;&gt;Ninja&lt;/a&gt;
