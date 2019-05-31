@@ -38,7 +38,7 @@ For more information consider reading official documentation and header files pr
 
 &lt;p&gt;Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.&lt;/p&gt;
 
-&lt;p&gt;Typical Mach-O file (corresponding to the &lt;a href=&#34;https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html&#34;&gt;official documentation&lt;/a&gt;) consists of a three regions:&lt;/p&gt;
+&lt;p&gt;Typical Mach-O file (&lt;a href=&#34;https://github.com/aidansteele/osx-abi-macho-file-format-reference&#34;&gt;copy of the (now removed) official documentation&lt;/a&gt;) consists of a three regions:&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;Header - contains general information about the binary: byte order (magic number), cpu type, amount of load commands etc.&lt;/li&gt;

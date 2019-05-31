@@ -120,7 +120,7 @@ For more information consider reading official documentation and header files pr
 
 <p>Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.</p>
 
-<p>Typical Mach-O file (corresponding to the <a href="https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html">official documentation</a>) consists of a three regions:</p>
+<p>Typical Mach-O file (<a href="https://github.com/aidansteele/osx-abi-macho-file-format-reference">copy of the (now removed) official documentation</a>) consists of a three regions:</p>
 
 <ol>
 <li>Header - contains general information about the binary: byte order (magic number), cpu type, amount of load commands etc.</li>
@@ -851,8 +851,6 @@ free(header);</code></pre></div>
         
       
         
-      
-        
           <li>
             <a href="https://lowlevelbits.org/categories/clang/" >clang (4)</a>
           </li>
@@ -863,8 +861,10 @@ free(header);</code></pre></div>
         
       
         
+      
+        
           <li>
-            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
+            <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
           </li>
         
       
@@ -876,7 +876,7 @@ free(header);</code></pre></div>
       
         
           <li>
-            <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
+            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
           </li>
         
       
