@@ -48,13 +48,10 @@ What makes it interesting?&lt;/p&gt;
 
 &lt;ol&gt;
 &lt;li&gt;&lt;p&gt;The compiler flags: &lt;code&gt;llvm-config --cxxflags&lt;/code&gt; gives you the flags the LLVM was compiled with, these are not the flags you necessarily want for your project. Let&amp;rsquo;s look at the example:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;-I/opt/llvm/6.0.0/include
--Werror=unguarded-availability-new
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;-I/opt/llvm/6.0.0/include
+-Werror&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;unguarded-availability-new
 -O3 -DNDEBUG
-...
-&lt;/code&gt;&lt;/pre&gt;
-
+...&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;The first flag is correct, and you need it. The second one is specific to Clang: it may not work with gcc, and it may not work with an older of Clang itself. The rest (&lt;code&gt;-O3 -NDEBUG&lt;/code&gt;) will force you to compile your project in the release mode. It&amp;rsquo;s fine, but not always desirable.&lt;/p&gt;&lt;/li&gt;
 
 &lt;li&gt;&lt;p&gt;The linker flags. &lt;code&gt;llvm-config --ldflags&lt;/code&gt; does the right job. It tells where to look for the libraries and tweaks some other linker settings.

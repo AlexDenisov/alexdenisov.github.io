@@ -123,13 +123,10 @@ What makes it interesting?</p>
 
 <ol>
 <li><p>The compiler flags: <code>llvm-config --cxxflags</code> gives you the flags the LLVM was compiled with, these are not the flags you necessarily want for your project. Let&rsquo;s look at the example:</p>
-
-<pre><code>-I/opt/llvm/6.0.0/include
--Werror=unguarded-availability-new
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sh" data-lang="sh">-I/opt/llvm/6.0.0/include
+-Werror<span style="color:#f92672">=</span>unguarded-availability-new
 -O3 -DNDEBUG
-...
-</code></pre>
-
+...</code></pre></div>
 <p>The first flag is correct, and you need it. The second one is specific to Clang: it may not work with gcc, and it may not work with an older of Clang itself. The rest (<code>-O3 -NDEBUG</code>) will force you to compile your project in the release mode. It&rsquo;s fine, but not always desirable.</p></li>
 
 <li><p>The linker flags. <code>llvm-config --ldflags</code> does the right job. It tells where to look for the libraries and tweaks some other linker settings.
@@ -928,8 +925,10 @@ prepare_package ubuntu <span style="color:#ae81ff">8</span>.0.0</code></pre></di
         
       
         
+      
+        
           <li>
-            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
+            <a href="https://lowlevelbits.org/categories/systems-programming/" >systems programming (2)</a>
           </li>
         
       
@@ -940,10 +939,8 @@ prepare_package ubuntu <span style="color:#ae81ff">8</span>.0.0</code></pre></di
         
       
         
-      
-        
           <li>
-            <a href="https://lowlevelbits.org/categories/systems-programming/" >systems programming (2)</a>
+            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
           </li>
         
       
