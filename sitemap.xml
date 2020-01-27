@@ -3,13 +3,13 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/</loc>
-    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/draft/llvm-type-equality/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/draft/bottom-up-cmake/</loc>
-    <lastmod>2019-05-24T08:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/</loc>
+    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
   </url>
   
   <url>
@@ -273,14 +273,14 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/clang/</loc>
-    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/clang/</loc>
+    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/clang/</loc>
-    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/clang/</loc>
+    <lastmod>2015-09-05T12:25:00+02:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -321,13 +321,13 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/components/</loc>
+    <loc>https://lowlevelbits.org/tags/components/</loc>
     <lastmod>2015-11-23T17:05:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/components/</loc>
+    <loc>https://lowlevelbits.org/categories/components/</loc>
     <lastmod>2015-11-23T17:05:00+00:00</lastmod>
     <priority>0</priority>
   </url>
@@ -376,7 +376,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/draft/</loc>
-    <lastmod>2019-05-24T08:00:00+01:00</lastmod>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -453,14 +453,14 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/freebsd/</loc>
-    <lastmod>2016-03-31T17:22:59+02:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/freebsd/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/freebsd/</loc>
-    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/freebsd/</loc>
+    <lastmod>2016-03-31T17:22:59+02:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -501,25 +501,25 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/iosdev/</loc>
-    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://lowlevelbits.org/tags/iosdev/</loc>
     <lastmod>2015-11-23T17:05:00+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/java/</loc>
-    <lastmod>2016-11-23T11:18:07+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/iosdev/</loc>
+    <lastmod>2016-03-11T14:34:22+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://lowlevelbits.org/tags/java/</loc>
+    <lastmod>2016-11-23T11:18:07+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/java/</loc>
     <lastmod>2016-11-23T11:18:07+01:00</lastmod>
     <priority>0</priority>
   </url>
@@ -555,14 +555,14 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/llvm/</loc>
-    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/llvm/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/llvm/</loc>
-    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/llvm/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -586,18 +586,18 @@
   
   <url>
     <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://lowlevelbits.org/categories/mach-o/</loc>
-    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
     <loc>https://lowlevelbits.org/tags/mach-o/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/categories/mach-o/</loc>
     <lastmod>2017-02-13T11:23:48+01:00</lastmod>
     <priority>0</priority>
   </url>
@@ -621,13 +621,13 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/make/</loc>
+    <loc>https://lowlevelbits.org/tags/make/</loc>
     <lastmod>2016-06-12T21:05:00+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/make/</loc>
+    <loc>https://lowlevelbits.org/categories/make/</loc>
     <lastmod>2016-06-12T21:05:00+02:00</lastmod>
     <priority>0</priority>
   </url>
@@ -663,14 +663,14 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/mutation-testing/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/mutation-testing/</loc>
+    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/mutation-testing/</loc>
-    <lastmod>2019-07-04T09:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/mutation-testing/</loc>
+    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -693,13 +693,13 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/objc/</loc>
+    <loc>https://lowlevelbits.org/tags/objc/</loc>
     <lastmod>2015-06-26T09:22:57+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/objc/</loc>
+    <loc>https://lowlevelbits.org/categories/objc/</loc>
     <lastmod>2015-06-26T09:22:57+02:00</lastmod>
     <priority>0</priority>
   </url>
@@ -747,6 +747,18 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/opaque-structs/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/opaque-types/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/parallelization/</loc>
     <lastmod>2019-07-04T09:00:00+01:00</lastmod>
     <priority>0</priority>
@@ -789,6 +801,12 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/tags/ranked-alphabet/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/tags/regression-testing/</loc>
     <lastmod>2016-03-24T23:18:29+01:00</lastmod>
     <priority>0</priority>
@@ -801,14 +819,14 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/reverse-engineering/</loc>
-    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/reverse-engineering/</loc>
+    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/reverse-engineering/</loc>
-    <lastmod>2017-02-13T11:23:48+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/reverse-engineering/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -819,13 +837,13 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/scientific-papers/</loc>
+    <loc>https://lowlevelbits.org/tags/scientific-papers/</loc>
     <lastmod>2016-11-23T11:18:07+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/scientific-papers/</loc>
+    <loc>https://lowlevelbits.org/categories/scientific-papers/</loc>
     <lastmod>2016-11-23T11:18:07+01:00</lastmod>
     <priority>0</priority>
   </url>
@@ -873,8 +891,8 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/swift/</loc>
-    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/structural-equality/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -885,20 +903,26 @@
   </url>
   
   <url>
+    <loc>https://lowlevelbits.org/categories/swift/</loc>
+    <lastmod>2016-01-27T21:33:12+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://lowlevelbits.org/categories/system-under-test/</loc>
     <lastmod>2016-06-12T21:05:00+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/systems-programming/</loc>
-    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/tags/systems-programming/</loc>
+    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/systems-programming/</loc>
-    <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <loc>https://lowlevelbits.org/categories/systems-programming/</loc>
+    <lastmod>2018-11-13T08:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -921,13 +945,13 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/categories/testing/</loc>
+    <loc>https://lowlevelbits.org/tags/testing/</loc>
     <lastmod>2016-06-12T21:05:00+02:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/testing/</loc>
+    <loc>https://lowlevelbits.org/categories/testing/</loc>
     <lastmod>2016-06-12T21:05:00+02:00</lastmod>
     <priority>0</priority>
   </url>
@@ -947,6 +971,18 @@
   <url>
     <loc>https://lowlevelbits.org/tags/timer/</loc>
     <lastmod>2018-10-30T21:50:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/tree-automata/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://lowlevelbits.org/tags/types/</loc>
+    <lastmod>2020-01-27T09:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
