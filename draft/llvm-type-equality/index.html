@@ -44,6 +44,14 @@
     
 
   
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Type Equality in LLVM" />
+<meta name="twitter:description" content="Solving the type equality problem in LLVM" />
+  
+    <meta name="twitter:image" content="https://lowlevelbits.org/img/llvm-type-equality/tree-automata.png" />
+  
+
 
 
 
@@ -94,14 +102,20 @@
         <div>
           
 
+<p>Some months ago, I joined <a href="https://www.shiftleft.io">ShiftLeft Security</a> to work on the LLVM support for the custom code analysis platform <a href="https://www.shiftleft.io/ocular.html">Ocular</a>. During these months, we have faced and overcame several challenges.</p>
+
+<p>Here I want to share one of them: Type Equality in LLVM.</p>
+
+<h2 id="intro">Intro</h2>
+
 <p>LLVM&rsquo;s type system is a complicated topic. It attempts to solve problems that
 are not so obvious when you look at them from a high-level.
 Recently, I had a chance to dive deeper into the subject and discovered that
-while the current implementation makes some things more straightforward, the other parts are kinda broken.</p>
+while the current implementation makes some things more straightforward, some other parts are counter-intiuitive and may not meet your expectations.</p>
 
 <p>In this article, I want to describe some limitations of the LLVM type system and share how we solved one particular problem: detecting equivalent types in LLVM.
-The article is organized as follows: I start with the problem statement, then describe how we attempted to solve the issue using existing LLVM features,
-and then conclude with the solution we came up with.</p>
+The article is organized as follows: I start with the recap of the LLVM type system, followed by the problem statement,
+then describe how we attempted to solve the issue using existing LLVM features, and finally conclude with the solution we came up with.</p>
 
 <h2 id="llvm-type-system-recap">LLVM Type System recap</h2>
 
@@ -791,9 +805,13 @@ It is then easy to get a hash of such vector and add some memoization for better
       <ul>
       
         
+      
+        
           <li>
             <a href="https://lowlevelbits.org/categories/llvm/" >llvm (6)</a>
           </li>
+        
+      
         
       
         
@@ -809,12 +827,14 @@ It is then easy to get a hash of such vector and add some memoization for better
         
       
         
-      
+          <li>
+            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
+          </li>
         
       
         
           <li>
-            <a href="https://lowlevelbits.org/categories/reverse-engineering/" >reverse engineering (2)</a>
+            <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
           </li>
         
       
@@ -824,12 +844,6 @@ It is then easy to get a hash of such vector and add some memoization for better
           </li>
         
       
-        
-      
-        
-          <li>
-            <a href="https://lowlevelbits.org/categories/mutation-testing/" >mutation testing (2)</a>
-          </li>
         
       
         
