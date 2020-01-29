@@ -19,7 +19,7 @@
       <guid>https://lowlevelbits.org/type-equality-in-llvm/</guid>
       <description>
 
-&lt;p&gt;Some months ago, I joined &lt;a href=&#34;https://www.shiftleft.io&#34;&gt;ShiftLeft Security&lt;/a&gt; to work on the LLVM support for the custom code analysis platform &lt;a href=&#34;https://www.shiftleft.io/ocular.html&#34;&gt;Ocular&lt;/a&gt;. During these months, we have faced and overcame several challenges.&lt;/p&gt;
+&lt;p&gt;Some months ago, I joined &lt;a href=&#34;https://www.shiftleft.io&#34;&gt;ShiftLeft Security&lt;/a&gt; to work on the LLVM support for the custom code analysis platform &lt;a href=&#34;https://www.shiftleft.io/ocular.html&#34;&gt;Ocular&lt;/a&gt;. During these months, we have faced and overcome several challenges.&lt;/p&gt;
 
 &lt;p&gt;Here I want to share one of them: Type Equality in LLVM.&lt;/p&gt;
 
@@ -64,7 +64,7 @@ considerations that were taken into account when the type system was revised aro
 &lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
 &lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; use &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; Point&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;When &lt;code&gt;foo.c&lt;/code&gt; and &lt;code&gt;bar.c&lt;/code&gt; compiled down to the LLVM IR (&lt;code&gt;foo.ll&lt;/code&gt; and &lt;code&gt;bar.ll&lt;/code&gt;) they both
-have the &lt;code&gt;struct Point&lt;/code&gt;  defined as follows:&lt;/p&gt;
+have the &lt;code&gt;struct Point&lt;/code&gt; defined as follows:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
 &lt;p&gt;Though, when both IR files loaded in one context, the type names changed to prevent name collisions, so they end up being defined as&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
@@ -129,7 +129,7 @@ In this case, the best we can do is to compare the layout of the types and consi
 
 %struct.wrapper = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.Point }
 %struct.wrapper.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.Point.0 }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;According to LLVM, layouts of &lt;code&gt;struct.Point&lt;/code&gt; and &lt;code&gt;struct.Point.0&lt;/code&gt; are identical, while layouts of &lt;code&gt;struct.wrapper&lt;/code&gt; and
+&lt;p&gt;According to LLVM, the layouts of &lt;code&gt;struct.Point&lt;/code&gt; and &lt;code&gt;struct.Point.0&lt;/code&gt; are identical, while the layouts of &lt;code&gt;struct.wrapper&lt;/code&gt; and
 &lt;code&gt;struct.wrapper.0&lt;/code&gt; are not: &lt;code&gt;isLayoutIdentical&lt;/code&gt; returns &lt;code&gt;true&lt;/code&gt; only when all the type elements of the struct are equal.
 And this equality is checked via pointer comparison.&lt;/p&gt;
 
@@ -298,8 +298,8 @@ So both the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; enco
 %foo = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.A* }
 %bar = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.A.0* }
 %buzz = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.B* }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
-&lt;p&gt;Here, the canonical names for opaque structs are &lt;code&gt;A&lt;/code&gt; (&lt;code&gt;%struct.A&lt;/code&gt;, &lt;code&gt;%struct.A.0&lt;/code&gt;) and &lt;code&gt;B&lt;/code&gt; (&lt;code&gt;%struct.B&lt;/code&gt;).
-Therefore, we treat the &lt;code&gt;%struct.A&lt;/code&gt; and &lt;code&gt;%struct.A.0&lt;/code&gt; as equal, while &lt;code&gt;%struct.B&lt;/code&gt; is not equal to either of &lt;code&gt;A&lt;/code&gt;s.
+&lt;p&gt;Here, the canonical names for the opaque structs are &lt;code&gt;A&lt;/code&gt; (&lt;code&gt;%struct.A&lt;/code&gt;, &lt;code&gt;%struct.A.0&lt;/code&gt;) and &lt;code&gt;B&lt;/code&gt; (&lt;code&gt;%struct.B&lt;/code&gt;).
+Therefore, we treat the &lt;code&gt;%struct.A&lt;/code&gt; and &lt;code&gt;%struct.A.0&lt;/code&gt; as equal, while &lt;code&gt;%struct.B&lt;/code&gt; is not equal to the either of &lt;code&gt;A&lt;/code&gt;s.
 Even though all of the 3 structs can point to the same type or completely different types.&lt;/p&gt;
 
 &lt;h3 id=&#34;letter-symbols-and-ids&#34;&gt;Letter, symbols, and IDs&lt;/h3&gt;

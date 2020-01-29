@@ -102,7 +102,7 @@
         <div>
           
 
-<p>Some months ago, I joined <a href="https://www.shiftleft.io">ShiftLeft Security</a> to work on the LLVM support for the custom code analysis platform <a href="https://www.shiftleft.io/ocular.html">Ocular</a>. During these months, we have faced and overcame several challenges.</p>
+<p>Some months ago, I joined <a href="https://www.shiftleft.io">ShiftLeft Security</a> to work on the LLVM support for the custom code analysis platform <a href="https://www.shiftleft.io/ocular.html">Ocular</a>. During these months, we have faced and overcome several challenges.</p>
 
 <p>Here I want to share one of them: Type Equality in LLVM.</p>
 
@@ -147,7 +147,7 @@ considerations that were taken into account when the type system was revised aro
 </span><span style="color:#75715e"></span>
 <span style="color:#f92672">//</span> use <span style="color:#66d9ef">struct</span> Point</code></pre></div>
 <p>When <code>foo.c</code> and <code>bar.c</code> compiled down to the LLVM IR (<code>foo.ll</code> and <code>bar.ll</code>) they both
-have the <code>struct Point</code>  defined as follows:</p>
+have the <code>struct Point</code> defined as follows:</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm">%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }</code></pre></div>
 <p>Though, when both IR files loaded in one context, the type names changed to prevent name collisions, so they end up being defined as</p>
 <div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-llvm" data-lang="llvm">%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
@@ -212,7 +212,7 @@ In this case, the best we can do is to compare the layout of the types and consi
 
 %struct.wrapper = <span style="color:#66d9ef">type</span> { %struct.Point }
 %struct.wrapper.0 = <span style="color:#66d9ef">type</span> { %struct.Point.0 }</code></pre></div>
-<p>According to LLVM, layouts of <code>struct.Point</code> and <code>struct.Point.0</code> are identical, while layouts of <code>struct.wrapper</code> and
+<p>According to LLVM, the layouts of <code>struct.Point</code> and <code>struct.Point.0</code> are identical, while the layouts of <code>struct.wrapper</code> and
 <code>struct.wrapper.0</code> are not: <code>isLayoutIdentical</code> returns <code>true</code> only when all the type elements of the struct are equal.
 And this equality is checked via pointer comparison.</p>
 
@@ -381,8 +381,8 @@ So both the <code>list</code> and <code>node</code> encoded as the following: <c
 %foo = <span style="color:#66d9ef">type</span> { %struct.A* }
 %bar = <span style="color:#66d9ef">type</span> { %struct.A.0* }
 %buzz = <span style="color:#66d9ef">type</span> { %struct.B* }</code></pre></div>
-<p>Here, the canonical names for opaque structs are <code>A</code> (<code>%struct.A</code>, <code>%struct.A.0</code>) and <code>B</code> (<code>%struct.B</code>).
-Therefore, we treat the <code>%struct.A</code> and <code>%struct.A.0</code> as equal, while <code>%struct.B</code> is not equal to either of <code>A</code>s.
+<p>Here, the canonical names for the opaque structs are <code>A</code> (<code>%struct.A</code>, <code>%struct.A.0</code>) and <code>B</code> (<code>%struct.B</code>).
+Therefore, we treat the <code>%struct.A</code> and <code>%struct.A.0</code> as equal, while <code>%struct.B</code> is not equal to the either of <code>A</code>s.
 Even though all of the 3 structs can point to the same type or completely different types.</p>
 
 <h3 id="letter-symbols-and-ids">Letter, symbols, and IDs</h3>
