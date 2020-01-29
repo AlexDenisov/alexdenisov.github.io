@@ -302,7 +302,7 @@ So both the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; enco
 Therefore, we treat the &lt;code&gt;%struct.A&lt;/code&gt; and &lt;code&gt;%struct.A.0&lt;/code&gt; as equal, while &lt;code&gt;%struct.B&lt;/code&gt; is not equal to the either of &lt;code&gt;A&lt;/code&gt;s.
 Even though all of the 3 structs can point to the same type or completely different types.&lt;/p&gt;
 
-&lt;h3 id=&#34;letter-symbols-and-ids&#34;&gt;Letter, symbols, and IDs&lt;/h3&gt;
+&lt;h3 id=&#34;letters-symbols-and-ids&#34;&gt;Letters, symbols, and IDs&lt;/h3&gt;
 
 &lt;p&gt;While IMO, letters and symbols are easier to work with for a human being, I implemented all the encodings as vectors of numbers.
 It is then easy to get a hash of such vector and add some memoization for better performance, even though I didn&amp;rsquo;t spend any time measuring and looking for bottlenecks.&lt;/p&gt;
