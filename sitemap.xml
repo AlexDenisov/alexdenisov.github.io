@@ -48,11 +48,6 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/draft/mull-it-over/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
-  </url>
-  
-  <url>
     <loc>https://lowlevelbits.org/talks/</loc>
     <lastmod>2017-08-22T11:30:00+01:00</lastmod>
   </url>
@@ -95,11 +90,6 @@
   <url>
     <loc>https://lowlevelbits.org/about/</loc>
     <lastmod>2016-10-02T22:54:29+01:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>https://lowlevelbits.org/draft/understanding-jit/</loc>
-    <lastmod>2016-07-10T11:26:15+02:00</lastmod>
   </url>
   
   <url>
@@ -382,12 +372,6 @@
   <url>
     <loc>https://lowlevelbits.org/tags/disassembler/</loc>
     <lastmod>2017-02-13T11:23:48+01:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://lowlevelbits.org/draft/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -687,7 +671,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/tags/mull/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -699,7 +683,7 @@
   
   <url>
     <loc>https://lowlevelbits.org/categories/mutation-testing/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
+    <lastmod>2017-06-14T23:18:59+02:00</lastmod>
     <priority>0</priority>
   </url>
   
@@ -842,12 +826,6 @@
   </url>
   
   <url>
-    <loc>https://lowlevelbits.org/tags/research/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
     <loc>https://lowlevelbits.org/tags/reverse-engineering/</loc>
     <lastmod>2017-02-13T11:23:48+01:00</lastmod>
     <priority>0</priority>
@@ -916,12 +894,6 @@
   <url>
     <loc>https://lowlevelbits.org/tags/software-analysis/</loc>
     <lastmod>2020-02-28T09:00:00+01:00</lastmod>
-    <priority>0</priority>
-  </url>
-  
-  <url>
-    <loc>https://lowlevelbits.org/tags/software-testing/</loc>
-    <lastmod>2018-07-20T00:00:00+01:00</lastmod>
     <priority>0</priority>
   </url>
   
