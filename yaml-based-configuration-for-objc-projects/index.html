@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>YAML-based Configuration for ObjC Projects - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="xcconf ,yaml ,objc ,objective-c ,Cocoa ,CocoaTouch ,configuration ,environment" />
+  
+
+  
+  <meta name="description" content="The most robust way of configuration management for Objective-C projects" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="YAML-based Configuration for ObjC Projects" />
+<meta name="twitter:description" content="The most robust way of configuration management for Objective-C projects" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/yaml-based-configuration-for-objc-projects/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>YAML-based Configuration for ObjC Projects</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2015-02-06 00:43:11 &#43;0100 CET" pubdate>Feb 06, 2015</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>Probably every iOS or OS X app has to deal with configurations such as server address, analytics service API key and so on. Usually these configurations are different for development and production environment, e.g.: &ldquo;<a href="https://staging.example.com">https://staging.example.com</a>&rdquo; and &ldquo;<a href="https://example.com">https://example.com</a>&rdquo;.
+Our toolchain does not provide good solution for this problem, so we have to implement our own.</p>
+<p>When I worked with Ruby On Rails I really loved its approach for database configuration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">development</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user</span>: <span style="color:#ae81ff">dev</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#ae81ff">dev123</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ...</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">production</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">user</span>: <span style="color:#ae81ff">root</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">password</span>: <span style="color:#ae81ff">supersecurepassword</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ...</span>
+</span></span></code></pre></div><p>I wish I can use the same approach in my daily iOS development.</p>
+<p>Fortunately, I can!</p>
+<!-- raw HTML omitted -->
+<p><strong>TL;DR;</strong></p>
+<p>Checkout project <a href="https://github.com/AlexDenisov/xcconf">xcconf</a> and <code>Sample/Sample.xcodeproj</code></p>
+<h3 id="commonly-used-mechanisms">Commonly used mechanisms</h3>
+<p>There are at least two common approaches to separate configurations: preprocessor definitions and plist file.
+Both of them have serious disadvantages.</p>
+<h4 id="preprocessor-definition">Preprocessor Definition</h4>
+<p>You may saw and probably used this approach. It&rsquo;s pretty easy and simple to use:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objectivec" data-lang="objectivec"><span style="display:flex;"><span><span style="color:#75715e">#ifdef DEBUG
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>NSString <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> kServerAddress <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;https://staging.example.com&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>NSString <span style="color:#f92672">*</span><span style="color:#66d9ef">const</span> kServerAddress <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;https://example.com&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span></code></pre></div><p>But let&rsquo;s say that you add one more environment, e.g. &ldquo;Beta&rdquo; for beta testers. It means that you have to add new preprocessor definition and update all your constant declarations. Also, this approach is error prone: it&rsquo;s really easy to make a typo or &ldquo;accidentally&rdquo; drop a definition. Your code will compile, but it&rsquo;d use wrong environment.
+Though, this approach has at least one advantage: your code contains only things that you use, all the private data (addresses, keys) is not exposed.</p>
+<h4 id="plist-file">Plist file</h4>
+<p>This is other commonly used mechanism. This approach described <a href="http://code.tutsplus.com/tutorials/ios-quick-tip-managing-configurations-with-ease--mobile-18324">here</a>.
+It&rsquo;s also has some disadvantages: if you want to add new configuration variable - you have to add it to every subsection, also you need to add a property to class and write (copy-paste?) initialization code.
+Moreover, you will distribute all your keys/endpoints to the end user, or you&rsquo;ll have to cleanup the file right before deploy to the AppStore.
+Still you have to perform way too many actions for such a simple task.</p>
+<p>Thanks god there is more easier and robust way.</p>
+<h3 id="xcconf-and-yaml">XCCONF and YAML</h3>
+<p><a href="https://github.com/AlexDenisov/xcconf">xcconf</a> incorporates only best parts from methods described previously:</p>
+<ul>
+<li>all settings store in one place</li>
+<li>you don&rsquo;t expose private data</li>
+<li>everything done at compile time</li>
+</ul>
+<h5 id="here-is-how-it-looks-like">Here is how it looks like:</h5>
+<p>Configuration file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">principalClass</span>: <span style="color:#ae81ff">Configuration</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Debug</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">serverAddress</span>: <span style="color:#ae81ff">https://staging.example.com</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">APIKey</span>: <span style="color:#ae81ff">qwe123!!qwe</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Release</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">serverAddress</span>: <span style="color:#ae81ff">https://example.com</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">APIKey</span>: <span style="color:#ae81ff">qwe123qwe</span>
+</span></span></code></pre></div><p>ObjC code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objectivec" data-lang="objectivec"><span style="display:flex;"><span>@Interface Configuration : NSObject
+</span></span><span style="display:flex;"><span><span style="color:#f92672">-</span> (NSString <span style="color:#f92672">*</span>)serverAddress;
+</span></span><span style="display:flex;"><span>- (NSString <span style="color:#f92672">*</span>)<span style="color:#a6e22e">APIKey</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">@end</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>Config <span style="color:#f92672">*</span>config <span style="color:#f92672">=</span> [Config new];
+</span></span><span style="display:flex;"><span>NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, config.serverAddress);
+</span></span></code></pre></div><p>No preprocessor, no boilerplate!</p>
+<h4 id="installation-and-usage">Installation and usage</h4>
+<p>To install <code>xcconf</code> you need to clone repo and run one command, it&rsquo;ll build executable and install it into <code>/usr/local/bin</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>git clone git@github.com:AlexDenisov/xcconf.git <span style="color:#f92672">&amp;&amp;</span> cd xcconf
+</span></span><span style="display:flex;"><span>make install
+</span></span></code></pre></div><p>Integration into project looks weird, but don&rsquo;t worry, that&rsquo;s ok :)</p>
+<p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
+<p><!-- raw HTML omitted --></p>
+<p>Put there initial configuration:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">principalClass</span>: <span style="color:#ae81ff">Config</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Debug</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">color</span>: <span style="color:#ae81ff">Green</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">Release</span>:
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">color</span>: <span style="color:#ae81ff">Blue</span>
+</span></span></code></pre></div><p>Prepare class interface for configuration. <strong>But do not create implementation</strong>. Its name should be equal to <code>principalClass</code> and it might contain getter methods for all available parameters, in this case it&rsquo;s just <code>color</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objectivec" data-lang="objectivec"><span style="display:flex;"><span><span style="color:#66d9ef">@interface</span> <span style="color:#a6e22e">Config</span> : <span style="color:#a6e22e">NSObject</span>
+</span></span><span style="display:flex;"><span>- (NSString <span style="color:#f92672">*</span>)<span style="color:#a6e22e">color</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">@end</span>
+</span></span></code></pre></div><p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -&gt; <code>Compile Sources</code> -&gt; <code>+</code> and add <code>config.yaml</code></p>
+<p><!-- raw HTML omitted --></p>
+<p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
+Also, we need to specify output file, otherwise it won&rsquo;t work:
+<code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
+<p><!-- raw HTML omitted --></p>
+<p>Now we&rsquo;re ready to use it:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objectivec" data-lang="objectivec"><span style="display:flex;"><span><span style="color:#75715e">#import &#34;Config.h&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span> argv[]) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">@autoreleasepool</span> {
+</span></span><span style="display:flex;"><span>        Config <span style="color:#f92672">*</span>config <span style="color:#f92672">=</span> [Config new];
+</span></span><span style="display:flex;"><span>        NSLog(<span style="color:#e6db74">@&#34;%@&#34;</span>, config.color);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Build&amp;Run:</p>
+<p><!-- raw HTML omitted --></p>
+<h3 id="summary">Summary</h3>
+<p>The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.</p>
+<p>I&rsquo;d really appreciate any feedback.</p>
+<p>P.S. Pull Requests are welcome! :)</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

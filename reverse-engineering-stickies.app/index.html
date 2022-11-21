@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Reverse Engineering Stickies.app - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="reverse engineering ,mach-o ,lldb ,xxd ,hopper ,disassembler ,assembler ,hopperapp ,tutorial" />
+  
+
+  
+  <meta name="description" content="Reverse-engineering of Stickies.app to modernize default colors" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Reverse Engineering Stickies.app" />
+<meta name="twitter:description" content="Reverse-engineering of Stickies.app to modernize default colors" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/reverse-engineering-stickies/before_after.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/reverse-engineering-stickies.app/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Reverse Engineering Stickies.app</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2017-02-13 11:23:48 &#43;0100 CET" pubdate>Feb 13, 2017</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.</p>
+<p>However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.</p>
+<p>I decided to fix that. Here is the result:</p>
+<p><!-- raw HTML omitted --></p>
+<p><!-- raw HTML omitted --></p>
+<p>The explanation is following.</p>
+<h3 id="reversing-ui">Reversing UI</h3>
+<p>The task becomes easy since the six colors are hardcoded in the binary. I just need to find where exactly and change the values to ones I like more.</p>
+<p>I don&rsquo;t know where to start, but I have an idea.</p>
+<p><!-- raw HTML omitted --></p>
+<p>The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&rsquo;s used. Maybe then I will get another hint.</p>
+<p>Localizations are stored within the app&rsquo;s bundle, at <code>Contents/Resources</code> folder. I am particularly interested in <code>Contents/Resources/English.lproj/Localizable.strings</code>. By default, strings are Binary Plists. One can use <code>plutil</code> to convert them into human-readable XML:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
+</span></span></code></pre></div><p>The <code>Localizable.strings</code> contains many things, but colors are not there.</p>
+<p><!-- raw HTML omitted --></p>
+<p>It looks like the menu was created using Interface Builder.</p>
+<p>Indeed, there is a menu and a view for a sticky note as well:</p>
+<p><!-- raw HTML omitted --></p>
+<p>As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
+</span></span></code></pre></div><p>Unlikely that I can find something useful inside, but let&rsquo;s see.
+The <code>MainMenu</code> contains 20k lines. Also, it is quite cryptic:</p>
+<p><!-- raw HTML omitted --></p>
+<p>The best thing one can do is to try find something. For instance look for a color name:</p>
+<p><!-- raw HTML omitted --></p>
+<p>If I replace &ldquo;Blue&rdquo; with &ldquo;Blur&rdquo; and restart the app, then I see the change:</p>
+<p><!-- raw HTML omitted --></p>
+<p>Ok, I can modify menu entries. It doesn&rsquo;t help me to achieve the initial goal, but at least I know where to look at if I ever decide to change a menu.</p>
+<h3 id="reversing-code">Reversing Code</h3>
+<p>My attempt to find traces from UI has failed.
+What&rsquo;s left? The binary itself!</p>
+<p>I usually use <a href="https://sourceforge.net/projects/machoview/">MachOView</a> if I need to look into a binary. Let&rsquo;s see if I can find a method related to the colors.</p>
+<p>Search for &ldquo;blue&rdquo; shows one hit <code>colorWithDeviceRed:green:blue:alpha:</code> that comes from AppKit&rsquo;s <code>NSColor</code> class. Search for &ldquo;yellow&rdquo; and other colors gives no results.</p>
+<p><!-- raw HTML omitted --></p>
+<p>It feels like a dead end.</p>
+<p>Instead of searching for other words hoping that I will find something useful I can ask <a href="https://github.com/nygard/class-dump">class-dump</a> for help.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>class-dump Contents/MacOS/Stickies &gt; Stickies.h
+</span></span></code></pre></div><p>Shallow look at <code>Stickies.h</code> shows that class <code>StickiesWindow</code> has a method <code>setColorByIndex:</code>.</p>
+<p><!-- raw HTML omitted --></p>
+<p>Perfect. It looks like this method receives an index of a color from the menu.</p>
+<p>Let&rsquo;s explore the program in the wild.</p>
+<p><!-- raw HTML omitted --></p>
+<p>Hm, what does it mean? Why can&rsquo;t LLDB find the symbol?
+Eventually, I left the questions open.</p>
+<p>Then I decided to look at the binary through the excellent <a href="https://www.hopperapp.com">Hopper app</a>.</p>
+<p>The Hopper app has a beautiful feature: pseudo-code mode.</p>
+<p>It (almost) clearly shows what happens inside of <code>setColorByIndex:</code> method:</p>
+<p><!-- raw HTML omitted --></p>
+<p><code>r14</code> contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.</p>
+<p>What is important here: three consecutive values starting at <code>0x10000c790</code> moved to <code>xmm_</code> registers. I&rsquo;m not 100% sure, but I&rsquo;d assume that they are used to pass parameters into <code>colorWithDeviceRed:green:blue:alpha:</code>.</p>
+<p>The method accepts color components as <code>double</code>s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a <code>double</code>.</p>
+<p>It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.</p>
+<p>Let&rsquo;s use lldb to confirm the hypothesis.</p>
+<p><!-- raw HTML omitted --></p>
+<p>So, I found the following address/value pairs:</p>
+<pre tabindex="0"><code>0x10000c790 : 0.99607800000000002 (or 254)
+0x10000c798 : 0.95686199999999999 (or 244)
+0x10000c7a0 : 0.61176399999999997 (or 156)
+</code></pre><p>I&rsquo;m pretty sure I&rsquo;m done here, but one more check, just to make sure there is no mistake.</p>
+<p><!-- raw HTML omitted --></p>
+<p>Perfect! Now I need to patch the binary and change the values.</p>
+<h3 id="patching-the-binary">Patching The Binary</h3>
+<p>Now I know where the colors reside in code. I need to find them in the binary.
+The address of a first color component is 0x10000c790. To find its on-disk address I need to subtract a base address from it.
+The base address can be obtained via LLDB as well.</p>
+<p><!-- raw HTML omitted --></p>
+<p>Little math:</p>
+<pre tabindex="0"><code>0x10000c790 - 0x0000000100000000 = 0xc790
+</code></pre><p>Now I can use xxd with -s (<code>--seek</code>) and -l (<code>--length</code>) parameters to get exactly 8 bytes at a given address.</p>
+<p><!-- raw HTML omitted --></p>
+<p>In this case, these bytes are: <code>9a7b 48f8 dedf ef3f</code>. Guess what I would see if I write 0.99607800000000002 into a file? Exactly, I&rsquo;d see <code>9a7b 48f8 dedf ef3f</code> there.</p>
+<p>Now I can pick value I want to use and start writing them one by one starting at <code>0xc790</code>. But I have a better idea.</p>
+<p>Let&rsquo;s recall and rewrite a pseudo-code from Hopper:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>base <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc790</span>;
+</span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">8</span>;
+</span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">16</span>;
+</span></span><span style="display:flex;"><span>color1 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">24</span>;
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">32</span>;
+</span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">40</span>;
+</span></span><span style="display:flex;"><span>color2 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">48</span>;
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">56</span>;
+</span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">64</span>;
+</span></span><span style="display:flex;"><span>color3 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">72</span>;
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">80</span>;
+</span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">88</span>;
+</span></span><span style="display:flex;"><span>color4 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span></code></pre></div><p>This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.</p>
+<p>Here where the color index comes into play:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>base <span style="color:#f92672">=</span> (colorIndex <span style="color:#f92672">+</span> (colorIndex <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x2</span>)) <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">0x5</span>
+</span></span></code></pre></div><p>Depending on the value of <code>colorIndex</code> it will give the following numbers:</p>
+<pre tabindex="0"><code>0: 0
+1: 96
+2: 192
+3: 288
+4: 384
+5: 480
+</code></pre><p>The step is 96: this number of bytes is needed to store four colors.
+I don&rsquo;t know how the source code looked initially, but I can represent it using the following structures:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">double</span> red;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">double</span> green;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">double</span> blue;
+</span></span><span style="display:flex;"><span>} color;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  color c1;
+</span></span><span style="display:flex;"><span>  color c2;
+</span></span><span style="display:flex;"><span>  color c3;
+</span></span><span style="display:flex;"><span>  color c4;
+</span></span><span style="display:flex;"><span>} theme;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/// One color theme for each color index
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> theme themes[<span style="color:#ae81ff">6</span>] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span> <span style="color:#75715e">/// actual color definitions
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><p>I know that four colors are used, but I don&rsquo;t yet know what they are used for.
+Patching them one by one gives the following result:</p>
+<p><!-- raw HTML omitted --></p>
+<p>I can now rename field name to be more descriptive.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>  color background_color;
+</span></span><span style="display:flex;"><span>  color border_color;
+</span></span><span style="display:flex;"><span>  color window_title_color;
+</span></span><span style="display:flex;"><span>  color icon_color;
+</span></span><span style="display:flex;"><span>} theme;
+</span></span></code></pre></div><p>Once I have this in place changing the colors becomes a trivial task:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>color <span style="color:#a6e22e">rgb</span>(<span style="color:#66d9ef">int</span> r, <span style="color:#66d9ef">int</span> g, <span style="color:#66d9ef">int</span> b);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">changeColor</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> colorIndex, FILE <span style="color:#f92672">*</span>binary) {
+</span></span><span style="display:flex;"><span>  theme t;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  t.background_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>);
+</span></span><span style="display:flex;"><span>  t.window_title_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">38</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">228</span>);
+</span></span><span style="display:flex;"><span>  t.icon_color <span style="color:#f92672">=</span> t.window_title_color;
+</span></span><span style="display:flex;"><span>  t.border_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">77</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">233</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> ColorAddressBase <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc790</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> offset <span style="color:#f92672">=</span> ColorAddressBase <span style="color:#f92672">+</span> colorIndex <span style="color:#f92672">*</span> <span style="color:#ae81ff">96</span>;
+</span></span><span style="display:flex;"><span>  fseek(binary, offset, SEEK_SET);
+</span></span><span style="display:flex;"><span>  fwrite(<span style="color:#f92672">&amp;</span>t, <span style="color:#66d9ef">sizeof</span>(theme), <span style="color:#ae81ff">1</span>, binary);
+</span></span><span style="display:flex;"><span>  rewind(binary);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>After running this code, I see a much better Sticky Note!</p>
+<p><!-- raw HTML omitted --></p>
+<h3 id="summary">Summary</h3>
+<p>Reverse Engineering can be not as straightforward and easy as I described
+above. Indeed, I didn&rsquo;t describe some &lsquo;wrong&rsquo; paths I went through during this
+&lsquo;research&rsquo;.
+Here are few examples:</p>
+<ul>
+<li>I first was looking for integers instead doubles and could not make any sense out of it.</li>
+<li>I converted first double into hex, and it didn&rsquo;t match one in the binary. Few hours later I realized that there must be different endianness, which was the case.</li>
+<li>I didn&rsquo;t have to change the machine code. Otherwise, the process would be
+less pleasant - I would have to invalidate the whole Mach-O binary changing sizes of sections and offsets.</li>
+</ul>
+<p>Anyway, I enjoyed this exercise and learned a few new things. So if you are in doubt, I can recommend following my instructions. Though, only for educational purposes!</p>
+<p>Here are few helpful tips I can give:</p>
+<ul>
+<li>Work only with a copy of a program; it&rsquo;s very easy to break things.</li>
+<li>Put everything under version control, and make commit after each small change. It will be easier to take another direction if you&rsquo;re stuck.</li>
+<li>Make sure you preserve a size and a length if you change something. Otherwise, it may break the whole thing.</li>
+</ul>
+<p>This is a list of tools that may be helpful for reverse engineering:</p>
+<ul>
+<li><a href="https://sourceforge.net/projects/machoview/">MachOView</a></li>
+<li><a href="https://www.hopperapp.com">Hopper app</a></li>
+<li><a href="https://github.com/nygard/class-dump">class-dump</a></li>
+<li>lldb, xxd, plutil&hellip;</li>
+</ul>
+<p>The code for this patch is on Github: <a href="https://github.com/AlexDenisov/ModernStickies">ModernStickies</a>.</p>
+<p>Happy Hacking!</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

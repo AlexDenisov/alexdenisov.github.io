@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Type Equality in LLVM - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="types ,tree automata ,llvm ,ranked alphabet ,structural equality ,opaque structs ,opaque types" />
+  
+
+  
+  <meta name="description" content="Solving the type equality problem in LLVM" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Type Equality in LLVM" />
+<meta name="twitter:description" content="Solving the type equality problem in LLVM" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/llvm-type-equality/tree-automata.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/type-equality-in-llvm/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Type Equality in LLVM</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2020-01-28 16:00:00 &#43;0100 CET" pubdate>Jan 28, 2020</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>Some months ago, I joined <a href="https://www.shiftleft.io">ShiftLeft Security</a> to work on the LLVM support for the custom code analysis platform <a href="https://www.shiftleft.io/ocular.html">Ocular</a>. During these months, we have faced and overcome several challenges.</p>
+<p>Here I want to share one of them: Type Equality in LLVM.</p>
+<h2 id="intro">Intro</h2>
+<p>LLVM&rsquo;s type system is a complicated topic. It attempts to solve problems that
+are not so obvious when you look at them from a high-level.
+Recently, I had a chance to dive deeper into the subject and discovered that
+while the current implementation makes some things more straightforward, some other parts are counter-intuitive and may not meet your expectations.</p>
+<p>In this article, I want to describe some limitations of the LLVM type system and share how we solved one particular problem: detecting equivalent types in LLVM.
+The article is organized as follows: I start with the recap of the LLVM type system, followed by the problem statement,
+then describe how we attempted to solve the issue using existing LLVM features, and finally conclude with the solution we came up with.</p>
+<h2 id="llvm-type-system-recap">LLVM Type System recap</h2>
+<p>It is highly recommended to read this post from Chris Lattner explaining some of the
+considerations that were taken into account when the type system was revised around LLVM 3.0:
+<a href="http://blog.llvm.org/2011/11/llvm-30-type-system-rewrite.html">LLVM 3.0 Type System Rewrite</a>.</p>
+<p>Just a few random words on the current type system (if you didn&rsquo;t read the linked article):</p>
+<ul>
+<li>types belong to an <code>LLVMContext</code></li>
+<li>instances of each type allocated on the heap (e.g., <code>llvm::Type *type = new llvm::Type;</code>)</li>
+<li>type comparison is done via pointer comparison</li>
+<li>types in LLVM go into three groups: primitive types (integers, floats, etc.), derived types (structs, arrays, pointers, etc.), forward-declared types (opaque structs)</li>
+</ul>
+<h2 id="problem-statement">Problem Statement</h2>
+<p>Consider the following example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Point.h
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> Point {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> x;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> y;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// foo.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;Point.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// use struct Point
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// bar.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;Point.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// use struct Point
+</span></span></span></code></pre></div><p>When <code>foo.c</code> and <code>bar.c</code> compiled down to the LLVM IR (<code>foo.ll</code> and <code>bar.ll</code>) they both
+have the <code>struct Point</code> defined as follows:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>Though, when both IR files loaded in one context, the type names changed to prevent name collisions, so they end up being defined as</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%struct.Point.0 = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>We want to deduplicate such types.</p>
+<h2 id="our-failed-attempts">Our (failed) attempts</h2>
+<p>We made several attempts to solve the problem using simple heuristics and built-in LLVM features.</p>
+<p>It went wrong in many ways.</p>
+<h3 id="types-with-the-same-name-are-the-same-type-false">&lsquo;Types with the same name are the same type&rsquo; (false)</h3>
+<p>This is a very simple heuristic:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%struct.Point.0 = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>If we strip the numeric suffix that is added by LLVM, then the types have the same name, and therefore they are the same.
+This is a good idea, but it does not work. This is a perfectly valid LLVM bitcode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%struct.Point.0 = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">float</span>, <span style="color:#66d9ef">float</span>, <span style="color:#66d9ef">float</span> }
+</span></span></code></pre></div><p>for which our heuristic does not apply.</p>
+<h3 id="primitive-types-equality">Primitive Types Equality</h3>
+<p>In LLVM, types belong to the <code>LLVMContext</code>. Primitive types such as <code>int32</code>, <code>float</code>, or <code>double</code> pre-allocated
+and then reused. In the context of <code>LLVMContext</code> (pun intended), you can only create one instance of a primitive type.
+With this solution, it is easy to check if types are the same - simply compare the pointers.</p>
+<p>However, this solution cannot work if you want to compare types from different contexts.
+According to LLVM, <code>int32</code> from one <code>LLVMContext</code> differs from <code>int32</code> from another <code>LLVMContext</code>,
+even though they are the same type according to intuition.</p>
+<h3 id="struct-types-equality">Struct Types Equality</h3>
+<p>This situation gets even more complicated when it comes to identified (named) structs.</p>
+<p>Consider the same example I gave initially.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Point.h
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> Point {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> x;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> y;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// foo.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;Point.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// use struct Point
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// bar.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;Point.h&#34;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// use struct Point
+</span></span></span></code></pre></div><p>So far so good, but as mentioned previously, LLVM keeps both types and renames one of them to prevent name collisions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ll" data-lang="ll"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%struct.Point.0 = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>Even though these are the same types from a user perspective, they are very different from the LLVM&rsquo;s point of view.
+Therefore, we cannot use pointer comparison: the types are distinct and point to different memory regions.
+In this case, the best we can do is to compare the layout of the types and consider them equal if the layouts are identical.</p>
+<p>The good part is that LLVM has a function for that: <a href="https://llvm.org/doxygen/classllvm_1_1StructType.html#ab45c5514ecd4390e8702c69b19705742">llvm::StructType::isLayoutIdentical</a>.</p>
+<p>The bad part is that this function is broken. Consider the following example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ll" data-lang="ll"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%struct.Point.0 = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>%struct.wrapper = <span style="color:#66d9ef">type</span> { %struct.Point }
+</span></span><span style="display:flex;"><span>%struct.wrapper.0 = <span style="color:#66d9ef">type</span> { %struct.Point.0 }
+</span></span></code></pre></div><p>According to LLVM, the layouts of <code>struct.Point</code> and <code>struct.Point.0</code> are identical, while the layouts of <code>struct.wrapper</code> and
+<code>struct.wrapper.0</code> are not: <code>isLayoutIdentical</code> returns <code>true</code> only when all the type elements of the struct are equal.
+And this equality is checked via pointer comparison.</p>
+<h3 id="irlinkerllvm-link"><code>IRLinker</code>/<code>llvm-link</code></h3>
+<p>LLVM has a class that merges two modules into one: <code>IRLinker</code>. LLVM also comes with a CLI tool <code>llvm-link</code>, which does the same.
+The <code>IRLinker</code> works fine, but far away from being good: it drops important information.</p>
+<p>The following IR after running through <code>IRLinker</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%struct.Tuple = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>becomes</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.Point = <span style="color:#66d9ef">type</span> { <span style="color:#66d9ef">i32</span>, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>dropping the other struct since both have the same layout.
+We don&rsquo;t want to lose this information.</p>
+<p>Moreover, <code>IRLinker</code> does another kind of magic that may introduce types that never existed at the source code level.
+This is what I&rsquo;ve seen after running <code>llvm-link</code> on the XNU kernel bitcode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.tree_desc_s = <span style="color:#66d9ef">type</span> {
+</span></span><span style="display:flex;"><span>  %struct.ct_data_s*,
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">i32</span>,
+</span></span><span style="display:flex;"><span>  %struct.mach_msg_body_t*
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>%struct.tree_desc_s.79312 = <span style="color:#66d9ef">type</span> {
+</span></span><span style="display:flex;"><span>  %struct.ct_data_s*,
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">i32</span>,
+</span></span><span style="display:flex;"><span>  %struct.static_tree_desc_s*
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Notice the different types of the third element: <code>struct.mach_msg_body_t*</code> vs <code>struct.static_tree_desc_s</code>, even though there is only one definition of <code>tree_desc_s</code> at the source code level:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> tree_desc_s {
+</span></span><span style="display:flex;"><span>  ct_data <span style="color:#f92672">*</span>dyn_tree;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span>     max_code;
+</span></span><span style="display:flex;"><span>  static_tree_desc <span style="color:#f92672">*</span>stat_desc;
+</span></span><span style="display:flex;"><span>};
+</span></span></code></pre></div><p>So the <code>IRLinker</code> did something odd, at which point I gave up all the attempts to understand how it works and what it does.</p>
+<h2 id="our-solution-to-this-problem">Our solution to this problem</h2>
+<p>I could not find any other solution to the problem, so we decided to roll out our own.</p>
+<h3 id="a-bit-of-background">A bit of background</h3>
+<p>Our implementation is inspired by <a href="https://en.wikipedia.org/wiki/Tree_automaton">Tree Automata</a> and <a href="https://en.wikipedia.org/wiki/Ranked_alphabet">Ranked Alphabets</a>.</p>
+<p>Here is a short description: a ranked alphabet consists of a finite set of symbols <code>F</code>, and a function <code>Arity(f)</code>, where <code>f</code> belongs to the set <code>F</code>.
+The <code>Arity</code> tells how many arguments a symbol <code>f</code> has. Symbols can be constant, unary, binary, ternary, or n-ary.</p>
+<p>Here is an example of the notation: <code>a</code>, <code>b</code>, <code>f(,)</code>, <code>g()</code>, <code>h(,,,,)</code>. <code>a</code> and <code>b</code> are constants, <code>f(,)</code> is binary, <code>g()</code> is unary, and <code>h(,,,,)</code> is n-ary.
+The arity of each symbol is 0, 0, 2, 1, and 5, respectively.</p>
+<p>Given the alphabet <code>a</code>, <code>b</code>, <code>f(,)</code>, <code>g()</code> we can construct a number of trees:</p>
+<ul>
+<li>f(a, b)</li>
+<li>g(b)</li>
+<li>g(f(b, b))</li>
+<li>f(g(a), f(f(a, a), b))</li>
+<li>f(g(a), g(f(a, a)))</li>
+</ul>
+<p>etc.</p>
+<p>If we know the arity of each symbol, then we can omit parentheses and commas and write the tree as a string.
+The tree is constructed in the depth-first order, here are the same examples as above, but in the string notation:</p>
+<ul>
+<li>fab</li>
+<li>gb</li>
+<li>gfbb</li>
+<li>fgaffaab</li>
+<li>fgagfaa</li>
+</ul>
+<p>Here is a more comprehensive example:</p>
+<p><!-- raw HTML omitted --></p>
+<p>The arrows show the depth-first order.</p>
+<p>We can map our type equivalence problem on the ranked alphabet/tree automaton concepts.</p>
+<h3 id="type-equality">Type Equality</h3>
+<p>We consider each type to be a symbol, and its arity is the number of properties we want to compare. Then, we build a tree of the type and convert it to the string representation.
+If two types have the same string representation, then they are equal.</p>
+<p>Some examples:</p>
+<ul>
+<li><code>i32</code>, <code>i64</code>, <code>i156</code>: symbol <code>I</code>, arity is 1 since we only care about bitwidth (e.g., 32, 64, 156)</li>
+<li><code>float</code>: symbol <code>F</code>, arity is 0, all <code>float</code> types are the same</li>
+<li><code>[16 x i32]</code>: symbol <code>A</code>, arity is 2, we care only about the length of the array and its element type</li>
+<li><code>i8*</code>: symbol <code>P</code>, arity is 1, we care only about the pointee type</li>
+<li><code>{ i32, [16 x i8], i8* }</code>: symbol <code>S</code>, arity is number of elements + 2. We want to store the struct ID and number of its elements.</li>
+</ul>
+<p>If we care about more or fewer values, then we can simply change the arity for a given symbol.
+Examples of types represented as a tree:</p>
+<ul>
+<li><code>i32</code> -&gt; <code>I(32)</code> -&gt; <code>I32</code></li>
+<li><code>i177</code> -&gt; <code>I(177)</code> -&gt; <code>I177</code></li>
+<li><code>[16 x i8*]</code> -&gt; <code>A(16, P(I(8)))</code> -&gt; <code>A16PI8</code></li>
+<li><code>{ i32, i8*, float }</code> -&gt; <code>S(3, S0, I(32), P(I(8)), F)</code> -&gt; <code>S3S0I32PI8F</code></li>
+</ul>
+<p><em>Note: the values in <code>S</code> are the number of elements (3), struct ID (<code>S0</code>), and all its contained types defined recursively.</em></p>
+<p>Same types, but represented graphically:</p>
+<p><!-- raw HTML omitted --></p>
+<h3 id="structural-equality">Structural Equality</h3>
+<p>Above, I mentioned the <code>struct ID</code>. We need it to define the structural equality for recursive types.
+Consider the following example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%list = <span style="color:#66d9ef">type</span> { %list*, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%node = <span style="color:#66d9ef">type</span> { %node*, <span style="color:#66d9ef">i32</span> }
+</span></span><span style="display:flex;"><span>%root = <span style="color:#66d9ef">type</span> { %node*, <span style="color:#66d9ef">i32</span> }
+</span></span></code></pre></div><p>All of the above structs have the same layout: a pointer + an integer. But we do not consider them all to be equal.
+By our definition of equality the following holds:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>list <span style="color:#f92672">==</span> node
+</span></span><span style="display:flex;"><span>root <span style="color:#f92672">!=</span> node
+</span></span><span style="display:flex;"><span>root <span style="color:#f92672">!=</span> list
+</span></span></code></pre></div><p>The reasoning is simple: the <code>list</code> and <code>node</code> has the same layout and the same structure (recursive), while <code>root</code> has another structure.</p>
+<p>Here is a graphical representation to highlight the idea. If we discard the struct titles, then it&rsquo;s clear the first two are equal while the third one is distinct.</p>
+<p><!-- raw HTML omitted --></p>
+<p>To take the structure into account and to make the equality hold, we do not use the names of the structures, but before building the tree, we assign them symbolic names or IDs.
+So both the <code>list</code> and <code>node</code> encoded as the following: <code>S(2, S0, P(S(2, S0, x, x), I(32))</code> where <code>S0</code> is the struct ID. To terminate the recursion we do not re-emit types for the structure that has already been emitted, but we do emit symbols <code>x</code> instead (otherwise we won&rsquo;t respect the arity of the struct).</p>
+<p>The <code>root</code> is defined as follows <code>S(2, S0, P(S(2, S1, P(S(2, S1, x, x), I(32), I(32))), I(32))</code> please note the nestedness and <code>S0</code> and <code>S1</code> struct IDs.</p>
+<p>Given these two encodings, the comparison above holds.</p>
+<h3 id="opaque-struct-equality">Opaque Struct Equality</h3>
+<p>Comparing opaque structs is as easy as the comparison of infinities. It&rsquo;s totally up to us how we define this property.</p>
+<p>The right and sound approach is to say that the opaque struct equals only to itself, but we need to do better than this.</p>
+<p>For opaque structs, we also use symbolic names. But different opaque structs get the same symbolic name as soon as they have the same canonical name.</p>
+<p>Example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span>%struct.A = <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">opaque</span>
+</span></span><span style="display:flex;"><span>%struct.A.0 = <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">opaque</span>
+</span></span><span style="display:flex;"><span>%struct.B = <span style="color:#66d9ef">type</span> <span style="color:#66d9ef">opaque</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>%foo = <span style="color:#66d9ef">type</span> { %struct.A* }
+</span></span><span style="display:flex;"><span>%bar = <span style="color:#66d9ef">type</span> { %struct.A.0* }
+</span></span><span style="display:flex;"><span>%buzz = <span style="color:#66d9ef">type</span> { %struct.B* }
+</span></span></code></pre></div><p>Here, the canonical names for the opaque structs are <code>A</code> (<code>%struct.A</code>, <code>%struct.A.0</code>) and <code>B</code> (<code>%struct.B</code>).
+Therefore, we treat the <code>%struct.A</code> and <code>%struct.A.0</code> as equal, while <code>%struct.B</code> is not equal to the either of <code>A</code>s.
+Even though all of the 3 structs can point to the same type or completely different types.</p>
+<h3 id="letters-symbols-and-ids">Letters, symbols, and IDs</h3>
+<p>While IMO, letters and symbols are easier to work with for a human being, I implemented all the encodings as vectors of numbers.
+It is then easy to get a hash of such vector and add some memoization for better performance, even though I didn&rsquo;t spend any time measuring and looking for bottlenecks.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>To conclude, I&rsquo;d say that one should not rely on the built-in capabilities of LLVM to compare types. In fact, <code>IRLinker</code> uses a very different algorithm.</p>
+<p>The algorithm I described has drawbacks, and I probably missed some edge cases. But anyway, I would love to get some feedback on it, and I hope it may help someone who gets into a similar situation.</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

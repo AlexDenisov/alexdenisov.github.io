@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Exploring LLVM Bitcode interactively - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="llvm ,bitcode ,gremlin ,graphml ,tinkerpop ,software analysis ,graph database ,data mining ,llvm bitcode ,llvm ir ,intermediate representation" />
+  
+
+  
+  <meta name="description" content="How to mine data from LLVM Bitcode using graph databases" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Exploring LLVM Bitcode interactively" />
+<meta name="twitter:description" content="How to mine data from LLVM Bitcode using graph databases" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Exploring LLVM Bitcode interactively</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2020-02-28 09:00:00 &#43;0100 CET" pubdate>Feb 28, 2020</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>While working on <a href="https://ocular.shiftleft.io">a tool for software analysis</a>, I find myself looking into the bitcode quiet often. It works OK when there is one small file, but it&rsquo;s incredibly annoying when it comes to real-world projects which have tens and hundreds of files.</p>
+<p>To simplify my life, I built a tool that converts LLVM Bitcode into the GraphML format: <a href="https://github.com/ShiftLeftSecurity/llvm2graphml">llvm2graphml</a>.</p>
+<h2 id="what-is-graphml">What is GraphML</h2>
+<p>GraphML is an  XML-based file format for storing graphs. The beautiful part is that it supported by many tools: you can use Neo4J, Cassandra, or TinkerPop to mine data or things like yEd or Gephi to visualize it.</p>
+<p>My use-case is graph databases.</p>
+<h2 id="what-is-graph-database">What is Graph Database</h2>
+<p>To understand what a graph database is to think of SQLite but for property graphs. And a property graph is simply a graph where each vertex (or node) and edge may have several key-value properties.</p>
+<p>The classical example: there is a number of people in the graph and they have some relationship, e.g.: &lsquo;Alice -&gt; knows -&gt; Bob&rsquo;, &lsquo;Bob -&gt; friends-with -&gt; Eve&rsquo;, etc. In this case, we can model a query like &ldquo;Find friends of people whom Alice knows&rdquo; in the form of a query language:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>graph<span style="color:#f92672">.</span><span style="color:#a6e22e">vertex</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;person&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">has</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;name&#39;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#39;Alice&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">edge</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;knows&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">edge</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;friends-with&#39;</span><span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>Each step narrows down the search space:</p>
+<ul>
+<li>from a graph get all the vertices labeled &lsquo;person&rsquo;</li>
+<li>among those select the ones that have the property &rsquo;name&rsquo; with the value &lsquo;Alice&rsquo;</li>
+<li>from the vertices select nodes through edges labeled &lsquo;knows&rsquo;</li>
+<li>and from what&rsquo;s left pick all the nodes reachable through the edges labeled &lsquo;friends-with&rsquo;</li>
+</ul>
+<p><em>Note: this is an imaginary, simplified query language, but you&rsquo;ve got the idea.</em></p>
+<h2 id="llvm2graphml">llvm2graphml</h2>
+<p>Let me walk you through an example of how to use <code>llvm2graphml</code>. To follow along you need to install <code>llvm2graphml</code> itself (<a href="https://github.com/ShiftLeftSecurity/llvm2graphml/releases">prebuilt packages</a> available for macOS and Ubuntu) and <a href="https://www.apache.org/dyn/closer.lua/tinkerpop/3.4.6/apache-tinkerpop-gremlin-console-3.4.6-bin.zip">Gremlin Console</a> from <a href="http://tinkerpop.apache.org">Apache TinkerPop</a> project.</p>
+<p>There are essentially three steps:</p>
+<ol>
+<li>Create <code>main.ll</code> file with the following content:</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ll" data-lang="ll"><span style="display:flex;"><span><span style="color:#75715e">; main.ll
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">define</span> <span style="color:#66d9ef">i32</span> @increment(<span style="color:#66d9ef">i32</span> %x) {
+</span></span><span style="display:flex;"><span>  %result = <span style="color:#66d9ef">add</span> <span style="color:#66d9ef">i32</span> %x, <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">ret</span> <span style="color:#66d9ef">i32</span> %result
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>2. Run <code>llvm2graphml</code> to emit the GraphML file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>&gt; llvm2graphml --output-dir<span style="color:#f92672">=</span>/tmp main.ll
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>info<span style="color:#f92672">]</span> More details: /tmp/llvm2graphml-38dfea.log
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>info<span style="color:#f92672">]</span> Loading main.ll
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>info<span style="color:#f92672">]</span> Saved result into /tmp/llvm.graphml.xml
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>info<span style="color:#f92672">]</span> Shutting down
+</span></span></code></pre></div><p>3. Create the database from the GraphML file</p>
+<p>Start console:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>&gt; gremlin-console/bin/gremlin.sh
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>         <span style="color:#ae81ff">\,</span>,,/
+</span></span><span style="display:flex;"><span>         <span style="color:#f92672">(</span>o o<span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span>-----oOOo-<span style="color:#f92672">(</span>3<span style="color:#f92672">)</span>-oOOo-----
+</span></span><span style="display:flex;"><span>plugin activated: tinkerpop.server
+</span></span><span style="display:flex;"><span>plugin activated: tinkerpop.utilities
+</span></span><span style="display:flex;"><span>plugin activated: tinkerpop.tinkergraph
+</span></span><span style="display:flex;"><span>gremlin&gt;
+</span></span></code></pre></div><p>Create the database:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> graph <span style="color:#f92672">=</span> TinkerGraph<span style="color:#f92672">.</span><span style="color:#a6e22e">open</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g <span style="color:#f92672">=</span> graph<span style="color:#f92672">.</span><span style="color:#a6e22e">traversal</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g<span style="color:#f92672">.</span><span style="color:#a6e22e">io</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#34;/tmp/llvm.graphml.xml&#34;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">read</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>graphtraversalsource<span style="color:#f92672">[</span>tinkergraph<span style="color:#f92672">[</span>vertices:<span style="color:#ae81ff">12</span> edges:<span style="color:#ae81ff">27</span><span style="color:#f92672">],</span> standard<span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>Now go and run some queries!</p>
+<h2 id="example-queries">Example queries</h2>
+<p>List all modules:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g<span style="color:#f92672">.</span><span style="color:#a6e22e">V</span><span style="color:#f92672">().</span><span style="color:#a6e22e">hasLabel</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;module&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">valueMap</span><span style="color:#f92672">().</span><span style="color:#a6e22e">unfold</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>moduleIdentifier<span style="color:#f92672">=[</span>main<span style="color:#f92672">.</span><span style="color:#a6e22e">ll</span><span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>List all functions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g<span style="color:#f92672">.</span><span style="color:#a6e22e">V</span><span style="color:#f92672">().</span><span style="color:#a6e22e">hasLabel</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;function&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">valueMap</span><span style="color:#f92672">().</span><span style="color:#a6e22e">unfold</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>argSize<span style="color:#f92672">=[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>basicBlockCount<span style="color:#f92672">=[</span><span style="color:#ae81ff">1</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>name<span style="color:#f92672">=[</span>increment<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>isDeclaration<span style="color:#f92672">=[</span><span style="color:#66d9ef">false</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>isVarArg<span style="color:#f92672">=[</span><span style="color:#66d9ef">false</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>isIntrinsic<span style="color:#f92672">=[</span><span style="color:#66d9ef">false</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>numOperands<span style="color:#f92672">=[</span><span style="color:#ae81ff">0</span><span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>instructionCount<span style="color:#f92672">=[</span><span style="color:#ae81ff">2</span><span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>Count all the instructions:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g<span style="color:#f92672">.</span><span style="color:#a6e22e">V</span><span style="color:#f92672">().</span><span style="color:#a6e22e">hasLabel</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;instruction&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">groupCount</span><span style="color:#f92672">().</span><span style="color:#a6e22e">by</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;opcode&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">unfold</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>ret<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>add<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><p>Explore the types:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g<span style="color:#f92672">.</span><span style="color:#a6e22e">V</span><span style="color:#f92672">().</span><span style="color:#a6e22e">hasLabel</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;type&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">valueMap</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;typeID&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">unfold</span><span style="color:#f92672">()</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>typeID<span style="color:#f92672">=[</span>label<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>typeID<span style="color:#f92672">=[</span>pointer<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>typeID<span style="color:#f92672">=[</span>function<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>typeID<span style="color:#f92672">=[</span>integer<span style="color:#f92672">]</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;</span>typeID<span style="color:#f92672">=[</span><span style="color:#66d9ef">void</span><span style="color:#f92672">]</span>
+</span></span></code></pre></div><p>Find a function with an argument called &lsquo;x&rsquo;:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-groovy" data-lang="groovy"><span style="display:flex;"><span>gremlin<span style="color:#f92672">&gt;</span> g<span style="color:#f92672">.</span><span style="color:#a6e22e">V</span><span style="color:#f92672">().</span><span style="color:#a6e22e">has</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;argument&#39;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#39;name&#39;</span><span style="color:#f92672">,</span> <span style="color:#e6db74">&#39;x&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">out</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;function&#39;</span><span style="color:#f92672">).</span><span style="color:#a6e22e">valueMap</span><span style="color:#f92672">(</span><span style="color:#e6db74">&#39;name&#39;</span><span style="color:#f92672">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">==&gt;[</span>name:<span style="color:#f92672">[</span>increment<span style="color:#f92672">]]</span>
+</span></span></code></pre></div><p>Et cetera, et cetera, et cetera&hellip;</p>
+<h2 id="some-numbers">Some numbers</h2>
+<p>These are just some numbers mined from the <code>libLLVMCore.a</code>.</p>
+<h4 id="how-many">How many</h4>
+<!-- raw HTML omitted -->
+<h4 id="top-10-instructions">Top 10 instructions:</h4>
+<!-- raw HTML omitted -->
+<h4 id="top-10-biggest-functions">Top 10 biggest functions:</h4>
+<!-- raw HTML omitted -->
+<h2 id="resources">Resources</h2>
+<p>Here are some links if you want to learn more about Gremlin Queries and what&rsquo;s possible:</p>
+<ul>
+<li><a href="http://tinkerpop.apache.org/docs/3.4.6/tutorials/getting-started/">Getting Started with TinkerPop</a></li>
+<li><a href="http://tinkerpop.apache.org/docs/3.4.6/reference/#graph-traversal-steps">Available Graph Traversals</a></li>
+</ul>
+<h2 id="next-steps">Next steps</h2>
+<p>Currently, the project is in its very early days, and many features are missing, to name a few: specific properties on instructions and values, def-use chains and other connections, complex constants (such as vectors of structs), and many more.</p>
+<p>With that being said - <a href="https://github.com/ShiftLeftSecurity/llvm2graphml">contributions are welcome</a>!</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

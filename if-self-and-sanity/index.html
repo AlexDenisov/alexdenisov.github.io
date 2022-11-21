@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>&#39;if (self)&#39; and Sanity - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="objective-c ,objc ,self ,defensive programming" />
+  
+
+  
+  <meta name="description" content="Should I check if self nil?" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="&#39;if (self)&#39; and Sanity" />
+<meta name="twitter:description" content="Should I check if self nil?" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/if-self-and-sanity/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>&#39;if (self)&#39; and Sanity</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2015-05-05 23:08:13 &#43;0200 CEST" pubdate>May 05, 2015</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>Imagine that there is a power in the universe that said to Apple: &ldquo;Hey, convince developers to do a silly thing and you’ll get $1 for the every demonstration of silliness**&rdquo;.</p>
+<p>I believe it was a hard task, but Apple managed to find that thing:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span>self <span style="color:#f92672">=</span> [super init];
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (self) { <span style="color:#75715e">// &lt;- this is silly
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> self;
+</span></span></code></pre></div><p>**<em>Don&rsquo;t want to offend you, I did this silly thing for years</em></p>
+<p><strong>TL;DR;</strong></p>
+<p>Check the value of <code>self</code> in constructor only if you use ivars.</p>
+<!-- raw HTML omitted -->
+<h3 id="why">Why?</h3>
+<p><a href="https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSObject_Class/index.html#//apple_ref/occ/instm/NSObject/init">Documentation</a> of NSObject’s <code>-init</code> method says:</p>
+<blockquote>
+<p>Return Value</p>
+</blockquote>
+<blockquote>
+<p>An initialized object, or nil if an object could not be created for some reason that would not result in an exception.</p>
+</blockquote>
+<p>Which is completely OK, but <strong>why should we check if self is nil or not</strong>?</p>
+<p>To get the answer let’s take a look at a few possible variations of a constructor:</p>
+<ul>
+<li><code>super.init</code> returns <code>nil</code>, programmer uses properties (send messages)</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span>self <span style="color:#f92672">=</span> [super init];
+</span></span><span style="display:flex;"><span>self.foo <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Foo&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> self;
+</span></span></code></pre></div><ul>
+<li><code>super.init</code> returns <code>nil</code>, programmer uses ivars</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span>self <span style="color:#f92672">=</span> [super init];
+</span></span><span style="display:flex;"><span>_foo <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Foo&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> self;
+</span></span></code></pre></div><p><em>I skipped options when <code>super.init</code> returns a valid object, because they’re considered correct and valid in any situation</em></p>
+<h4 id="nil-object-and-messaging">Nil object and messaging</h4>
+<p>In a first case an assignment expression just converts into a function call:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span><span style="color:#75715e">// note: &#39;self&#39; is nil
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>self.foo <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Foo&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// converts into
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>objc_msgSend(self, <span style="color:#66d9ef">@selector</span>(setFoo:), <span style="color:#e6db74">@&#34;Foo&#34;</span>);
+</span></span></code></pre></div><p>What happens when you send a message to a Nil object?</p>
+<p>Well, nothing happens.</p>
+<h4 id="nil-object-and-pointers">Nil object and pointers</h4>
+<p>The second constructor also has a different final form:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span><span style="color:#75715e">// note: &#39;self&#39; is nil
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>_foo <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Foo&#34;</span>;
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// actually means
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>self<span style="color:#f92672">-&gt;</span>_foo <span style="color:#f92672">=</span> <span style="color:#e6db74">@&#34;Foo&#34;</span>;
+</span></span></code></pre></div><p>OK, another question: what happens when you dereference null pointer?</p>
+<p>Behaviour in this case is undefined, but for iOS/OS X platforms it’s usually a crash.</p>
+<h3 id="conclusion">Conclusion</h3>
+<p>Based on the statements above we can conclude that we don’t need to check <code>self</code> in every constructor, but only when ivars are used.</p>
+<p>As far as I see some developers do this check, but they don’t know why.</p>
+<p>The reason, imho, is obvious: ObjC is an old language and tons of documentation/examples were written when properties were not introduced yet and programmers had to use ivars.</p>
+<p>After doing this for a years it’s just turned into a habit.</p>
+<p>Nowadays we have properties, that allow us to write clean and robust code, so let’s do it and, please, <strong>check the value of <code>self</code> in constructor only if you use ivars.</strong></p>
+<p>Happy and sane hacking!</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

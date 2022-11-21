@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Components: taking a step back from Dependency Management - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="dependency management ,components ,cocoapods ,carthage ,iosdev ,makefile ,FreeBSD" />
+  
+
+  
+  <meta name="description" content="Components is a concept aimed to solve a problem of dependency management for long-running projects" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Components: taking a step back from Dependency Management" />
+<meta name="twitter:description" content="Components is a concept aimed to solve a problem of dependency management for long-running projects" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Components: taking a step back from Dependency Management</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2015-11-23 17:05:00 &#43;0000 &#43;0000" pubdate>Nov 23, 2015</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>In this article I will be talking about dependency management, problems we have in this area and will give you a concept that is intended to solve these problems. I will be talking in the context of iOS development, though it might be applied to any OS, language, and platform.</p>
+<h3 id="acknowledgements">Acknowledgements</h3>
+<p>I want to express gratitude to my colleagues and friends <a href="https://twitter.com/ursachec">Claudiu-Vlad Ursache</a> and <a href="https://twitter.com/sbpankevich">Stanislaw Pankevich</a> for their help and support in writing this article and building this concept.</p>
+<h3 id="disclaimer">Disclaimer</h3>
+<p>I do not claim that I invented this approach, it is well known for decades and it is just variation of <a href="https://en.wikipedia.org/wiki/FreeBSD_Ports">FreeBSD ports system</a>.
+Also, I try not to give any value judgments on approaches suggested by other tools, all mentions here are just for reference, to give the context I have.</p>
+<h3 id="motivation">Motivation</h3>
+<p>I have been working as iOS developer for about 5 years for different companies and on different projects. Sometimes I could start an app from scratch, but usually I had to support existing projects, which were in active development for quite some time. In such projects intervals from previous developer&rsquo;s last commit and my first commit varied from couple of month to couple of years. Usually such projects use some third-party libraries and the biggest problem besides legacy code and lack of documentation exactly are those dependencies. This problem made me realize that our community is just young and not industrial/enterprise ready, hence the tools are not. I had been thinking about a tool that will work even in a one year without additional modifications and/or fixes and came up with approach FreeBSD uses: <a href="https://en.wikipedia.org/wiki/FreeBSD_Ports">ports</a>.</p>
+<h3 id="idea">Idea</h3>
+<h4 id="concept">Concept</h4>
+<p>To bring the idea to you let&rsquo;s first take a step back and think about systems we build and clarify the terms we use.
+Any big enough system is built from different components, that are composed together. Systems are not built from dependencies.</p>
+<blockquote>
+<p>Systems are built from <strong>components</strong>, not from <strong>dependencies</strong>.</p>
+</blockquote>
+<p>Of course, usage of a component implies that we depend on it, but psychologically the term <code>dependency</code> forces us to think that we depend on something heavily, while term <code>component</code> is neutral and lightweight, it also implies replace-ability, while <code>dependency</code> doesn&rsquo;t give you such a spacious vision of the problem, you just <strong>depend</strong> on something.</p>
+<p>Having that said, we have built our concept with the question <code>How to manage components?</code> in mind.</p>
+<h4 id="implementation">Implementation</h4>
+<p>The implementation of the concept is pretty simple and robust. Just a few things are needed to make it work:</p>
+<ul>
+<li>directory (<code>Components</code>) that will contain ready-for-use components</li>
+<li>directory (<code>Components.make</code>) that contains set of makefiles, one for each component (e.g.: <code>AFNetworking.make</code>, <code>BloodMagic.make</code>, etc.)</li>
+<li>driver script (<code>components.sh</code>) that will iterate over those <code>.make</code> makefiles and run <code>make install</code> (or any other defined rule) for every one of them</li>
+</ul>
+<h5 id="ready-for-use-components">Ready for use components</h5>
+<p>Directory <code>Components</code> is intended to contain ready for use components in a form defined by maintainer of the component. It might be set of source files, static library, dynamic framework or any other appropriate artefact.</p>
+<h5 id="makefiles">Makefiles</h5>
+<p>Due to our conventions each makefile should provide a set of &lsquo;rules&rsquo;:</p>
+<ul>
+<li><code>install</code>: installs component into <code>Components</code> directory</li>
+<li><code>uninstall</code>: removes component from <code>Components</code> directory</li>
+<li><code>clean</code>: removes intermediate files (build artefacts, downloaded sources, etc.)</li>
+<li><code>update</code>: drops current version, installs new one (<code>uninstall</code> and <code>install</code>)</li>
+<li><code>purge</code>: removes everything related to component (<code>uninstall</code> and <code>clean</code>)</li>
+</ul>
+<p>They are might be extended in the future, but we have found this set sufficient for everyday use.</p>
+<h5 id="driver">Driver</h5>
+<p>Driver is responsible for iterating over makefiles and runs particular rule (one of the specified above) against them. Here is couple of examples:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>./components.sh install                <span style="color:#75715e"># installs every component in the components directory (COMPONENTS_MAKE_PATH)</span>
+</span></span><span style="display:flex;"><span>./components.sh purge Cedar            <span style="color:#75715e"># cleans and uninstalls Cedar library</span>
+</span></span><span style="display:flex;"><span>./components.sh update BloodMagic      <span style="color:#75715e"># uninstalls current and installs new version of BloodMagic library</span>
+</span></span></code></pre></div><p><code>GNU/Make</code> has a feature called &lsquo;dry-run&rsquo; (<code>man make</code> look for &lsquo;&ndash;dry-run&rsquo;), that &ldquo;prints the commands that would be executed, but do not execute them&rdquo;. We have found it extremely useful and added to driver. To see what will happen during the installation of AFNetworking, simply run:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ ./components.sh explain install AFNetworking
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>install<span style="color:#f92672">]</span> AFNetworking:
+</span></span><span style="display:flex;"><span>wget --no-use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+</span></span><span style="display:flex;"><span>unzip /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d /Users/alexdenisov/Library/Caches/Components/AFNetworking
+</span></span><span style="display:flex;"><span>touch /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+</span></span><span style="display:flex;"><span>mkdir ./Components/AFNetworking/
+</span></span><span style="display:flex;"><span>cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
+</span></span><span style="display:flex;"><span>cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
+</span></span></code></pre></div><p>It is very useful if you want to debug your component’s installation process, but also if you’re concerned about security and do not want to blindly run a script downloaded from the internet.</p>
+<h3 id="example">Example</h3>
+<p>You might already be turned off the whole idea of components because it entails writing Makefiles, but let me show an example of how straight-forward this can be.</p>
+<p>We’ll look at a Makefile that installs AFNetworking.</p>
+<p><em>To make it more clear I will include comment above each line with actual paths instead of variables</em></p>
+<h4 id="header">Header</h4>
+<p>Here is a typical header of a component&rsquo;s makefile:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>NAME<span style="color:#f92672">=</span>AFNetworking
+</span></span><span style="display:flex;"><span>VERSION<span style="color:#f92672">=</span>2.6.3
+</span></span><span style="display:flex;"><span>GH_REPO<span style="color:#f92672">=</span>AFNetworking/AFNetworking
+</span></span></code></pre></div><p>It says that we will work with version 2.6.3 of AFNetworking, the last line specifies the repository on Github. We could reuse <code>$NAME</code> here, but it&rsquo;s not the case for all projects, so we recommend to leave it as is.</p>
+<h4 id="paths">Paths</h4>
+<p>Next step is to define paths for all directories that will be involved in the process of the installation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>COMPONENTS_BUILD_CACHE_PATH <span style="color:#f92672">?=</span> <span style="color:#66d9ef">$(</span>HOME<span style="color:#66d9ef">)</span>/Library/Caches/Components
+</span></span><span style="display:flex;"><span>COMPONENTS_INSTALL_PATH <span style="color:#f92672">?=</span> ./Components
+</span></span></code></pre></div><p>These are so called &lsquo;global&rsquo; variables provided by the driver script. These variables have default values in case you want to run <code>make install</code> without the driver being involved. The cache directory contains all components installed in the system and their corresponding files (such as zip archives, build artefacts and so on). <code>./Components</code> is a directory where ready-for-use component will be stored.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>COMPONENT_BUILD_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENTS_BUILD_CACHE_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>COMPONENT_SOURCE_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>-<span style="color:#66d9ef">$(</span>VERSION<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ./Components/AFNetworking
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>COMPONENT_INSTALL_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENTS_INSTALL_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>ZIPBALL_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>-<span style="color:#66d9ef">$(</span>VERSION<span style="color:#66d9ef">)</span>.zip
+</span></span></code></pre></div><p>These are directories where we store intermediates for the component and where to put installed component.</p>
+<h4 id="urls">URLs</h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>ZIPBALL_URL<span style="color:#f92672">=</span>https://github.com/<span style="color:#66d9ef">$(</span>GH_REPO<span style="color:#66d9ef">)</span>/archive/<span style="color:#66d9ef">$(</span>VERSION<span style="color:#66d9ef">)</span>.zip
+</span></span></code></pre></div><p>In case of AFNetworking, this URL will be resolved to <code>https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip</code>.</p>
+<p>Usually this section contains only one URL, but there might be more. For instance you may want to fetch some patch from other source and apply it before building a component.</p>
+<h4 id="targets">Targets</h4>
+<p>There is a set of &lsquo;rules&rsquo; our makefile should conform to.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#a6e22e">.PHONY</span><span style="color:#f92672">:</span> install update uninstall clean prepare purge
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># install: ./Components/AFNetworking
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">install</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uninstall</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># rm -rf ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">update</span><span style="color:#f92672">:</span> uninstall install
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">clean</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">purge</span><span style="color:#f92672">:</span> uninstall clean
+</span></span></code></pre></div><p>Let&rsquo;s take a closer look at each line.</p>
+<h5 id="phony-targets">Phony targets</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#a6e22e">.PHONY</span><span style="color:#f92672">:</span> install update uninstall clean prepare purge
+</span></span></code></pre></div><p>The nature of makefile is to check if a file or directory with the name of target exists. If it doesn’t, it will run the commands necessary to create that file or directory. Sometimes you want to be able to run commands without that dependency on existing files. For that, you would use ‘control targets’, marked as such with <code>.PHONY</code>. So, in this example, even if the file or directory named <code>install</code> exists, the makefile will still evaluate the provided commands.</p>
+<h5 id="install">install</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># install: ./Components/AFNetworking
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">install</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>Target <code>install</code> doesn&rsquo;t have any commands to evaluate, though it says that it has a dependency that needs to be resolved first: <code>$(COMPONENT_INSTALL_PATH)</code>, which resolves to <code>./Components/AFNetworking</code>. This is exactly what we want: after running <code>make install</code> we want to have AFNetworking installed to <code>./Components</code> directory.</p>
+<h5 id="uninstall">uninstall</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#a6e22e">uninstall</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># rm -rf ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p><code>uninstall</code> doesn&rsquo;t have any dependencies, but it has one command which just removes installed AFNetworking from the <code>./Components</code> directory.</p>
+<h5 id="update">update</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#a6e22e">update</span><span style="color:#f92672">:</span> uninstall install
+</span></span></code></pre></div><p>That’s basically all what update does. It assumes that you have downloaded the newer version of the component and that the old one needs to be replaced.</p>
+<h5 id="clean">clean</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#a6e22e">clean</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># rm -rf $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>So far clean is our biggest target. It has two simple commands - first one removes sources of AFNetworking (there might be some library/framework/whatnot for other project) and second one cleans up downloaded zip archive with sources. This target is needed only if you want to keep your system clean, though the easiest way to do it is to drop <code>$(HOME)/Library/Caches/Components/</code> manually.</p>
+<h5 id="purge">purge</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#a6e22e">purge</span><span style="color:#f92672">:</span> uninstall clean
+</span></span></code></pre></div><p>The last phony target we have here. It just cleans and uninstalls the component, nothing special.</p>
+<h4 id="artefacts">Artefacts</h4>
+<p>Finally, the last section of the makefile consists of rules to create artefacts:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(COMPONENT_INSTALL_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># mkdir ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  mkdir <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  cp <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/* <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  cp <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>/UIKit+<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/* <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(COMPONENT_SOURCE_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/</span>
+</span></span><span style="display:flex;"><span>  unzip <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span> -d <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># touch $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</span>
+</span></span><span style="display:flex;"><span>  touch <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(ZIPBALL_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip</span>
+</span></span><span style="display:flex;"><span>  wget --no-use-server-timestamps <span style="color:#66d9ef">$(</span>ZIPBALL_URL<span style="color:#66d9ef">)</span> -O <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#  $(HOME)/Library/Caches/Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(COMPONENT_BUILD_PATH)</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># mkdir  $(HOME)/Library/Caches/Components/AFNetworking/</span>
+</span></span><span style="display:flex;"><span>  mkdir <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>I will describe each target from top to bottom.</p>
+<h5 id="component_install_path">COMPONENT_INSTALL_PATH</h5>
+<p>We start off with <code>$(COMPONENT_INSTALL_PATH)</code>, since this is what we actually want to get:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># ./Components/AFNetworking : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(COMPONENT_INSTALL_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># mkdir ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  mkdir <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  cp <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/* <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking</span>
+</span></span><span style="display:flex;"><span>  cp <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>/UIKit+<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/* <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>This target has one dependency. We assume that this dependency already resolved and directory <code>$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</code> contains source files of AFNetworking, to install it we just need to create a resulting directory (<code>./Components/AFNetworking</code>) and copy all sources there.</p>
+<p>Next time we run <code>make install</code> these commands will be evaluated only if <code>./Components/AFNetworking</code> doesn&rsquo;t exist.</p>
+<h5 id="component_source_path">COMPONENT_SOURCE_PATH</h5>
+<p>The goal of this target is to provide sources.
+Again, this target has dependency and we assume that it&rsquo;s resolved already.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3 : $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(COMPONENT_SOURCE_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># unzip $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d $(HOME)/Library/Caches/Components/AFNetworking/</span>
+</span></span><span style="display:flex;"><span>  unzip <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span> -d <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># touch $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</span>
+</span></span><span style="display:flex;"><span>  touch <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>To provide sources for the next step we need to extract them from an archive. Pretty trivial, though it needs more explanation.</p>
+<p>After extraction <code>unzip</code> command will create <code>$(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3</code> because of internal structure of the archive. We may expect that once we extracted data from archive we will not evaluate these commands again, but <code>GNU/Make</code> and <code>unzip</code> are smart. <code>unzip</code> preserves timestamps of archived files and <code>make</code> checks those timestamps: if it sees that directory exists, but it&rsquo;s &lsquo;old&rsquo;, then it will still evaluate this step. To avoid this we have to cheat a bit by <code>touch</code>&lsquo;ing the directory with sources (<code>touch</code> changes modification and access times of file or directory).</p>
+<h5 id="zipball_path">ZIPBALL_PATH</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e"># $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip : $(HOME)/Library/Caches/Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(ZIPBALL_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># wget --no--use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O $(HOME)/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip</span>
+</span></span><span style="display:flex;"><span>  wget --no-use-server-timestamps <span style="color:#66d9ef">$(</span>ZIPBALL_URL<span style="color:#66d9ef">)</span> -O <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>This step is pretty similar to previous one: we also have to take care of access/modification times, but in this case we could avoid <code>touch</code>&lsquo;ing file, because <code>wget</code> can do this for us.</p>
+<h5 id="component_build_path">COMPONENT_BUILD_PATH</h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span><span style="color:#75715e">#  $(HOME)/Library/Caches/Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">$(COMPONENT_BUILD_PATH)</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e"># mkdir  $(HOME)/Library/Caches/Components/AFNetworking/</span>
+</span></span><span style="display:flex;"><span>  mkdir <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><p>I don&rsquo;t think this target requires explanation, but let be explicit: this step creates directory <code>$(HOME)/Library/Caches/Components/AFNetworking/</code>.</p>
+<h4 id="whole-makefile-and-tips">Whole Makefile and tips</h4>
+<p>Please, take a look at resulting makefile. As you can see it&rsquo;s not that big and scary at all:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>NAME<span style="color:#f92672">=</span>AFNetworking
+</span></span><span style="display:flex;"><span>VERSION<span style="color:#f92672">=</span>2.6.3
+</span></span><span style="display:flex;"><span>GH_REPO<span style="color:#f92672">=</span>AFNetworking/AFNetworking
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">### Paths
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>COMPONENTS_BUILD_CACHE_PATH <span style="color:#f92672">?=</span> <span style="color:#66d9ef">$(</span>HOME<span style="color:#66d9ef">)</span>/Library/Caches/Components
+</span></span><span style="display:flex;"><span>COMPONENTS_INSTALL_PATH <span style="color:#f92672">?=</span> ./Components
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>COMPONENT_BUILD_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENTS_BUILD_CACHE_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>COMPONENT_SOURCE_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>-<span style="color:#66d9ef">$(</span>VERSION<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>COMPONENT_INSTALL_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENTS_INSTALL_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ZIPBALL_PATH<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>-<span style="color:#66d9ef">$(</span>VERSION<span style="color:#66d9ef">)</span>.zip
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">### URLs
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>ZIPBALL_URL<span style="color:#f92672">=</span>https://github.com/<span style="color:#66d9ef">$(</span>GH_REPO<span style="color:#66d9ef">)</span>/archive/<span style="color:#66d9ef">$(</span>VERSION<span style="color:#66d9ef">)</span>.zip
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">### Targets
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">.PHONY</span><span style="color:#f92672">:</span> install update uninstall clean prepare purge
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">install</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uninstall</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">update</span><span style="color:#f92672">:</span> uninstall install
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">clean</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  rm -rf <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">purge</span><span style="color:#f92672">:</span> uninstall clean
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">### Artefacts
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">$(COMPONENT_INSTALL_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  mkdir <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  cp <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>/<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/* <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  cp <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>/UIKit+<span style="color:#66d9ef">$(</span>NAME<span style="color:#66d9ef">)</span>/* <span style="color:#66d9ef">$(</span>COMPONENT_INSTALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">$(COMPONENT_SOURCE_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  unzip <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span> -d <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  touch <span style="color:#66d9ef">$(</span>COMPONENT_SOURCE_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">$(ZIPBALL_PATH)</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>  wget --no-use-server-timestamps <span style="color:#66d9ef">$(</span>ZIPBALL_URL<span style="color:#66d9ef">)</span> -O <span style="color:#66d9ef">$(</span>ZIPBALL_PATH<span style="color:#66d9ef">)</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">$(COMPONENT_BUILD_PATH)</span><span style="color:#f92672">:</span>
+</span></span><span style="display:flex;"><span>  mkdir <span style="color:#66d9ef">$(</span>COMPONENT_BUILD_PATH<span style="color:#66d9ef">)</span>
+</span></span></code></pre></div><h4 id="debugging">Debugging</h4>
+<p>To sum up the above example I want to give a small tip about debugging if you still think that makefiles are hard to manage and introduce huge complexity.</p>
+<p>You can see what is going on when you run <code>make</code> and how <code>make</code> is reasoning about its decisions.</p>
+<p>Just add two flags <code>-r</code> and <code>-d</code>. First one disables implicit rules (just to decrease output), second one actually prints debug information, e.g.:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ make install -r -d
+</span></span><span style="display:flex;"><span>GNU Make 3.81
+</span></span><span style="display:flex;"><span>Copyright <span style="color:#f92672">(</span>C<span style="color:#f92672">)</span> <span style="color:#ae81ff">2006</span>  Free Software Foundation, Inc.
+</span></span><span style="display:flex;"><span>This is free software; see the source <span style="color:#66d9ef">for</span> copying conditions.
+</span></span><span style="display:flex;"><span>There is NO warranty; not even <span style="color:#66d9ef">for</span> MERCHANTABILITY or FITNESS FOR A
+</span></span><span style="display:flex;"><span>PARTICULAR PURPOSE.
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>This program built <span style="color:#66d9ef">for</span> i386-apple-darwin11.3.0
+</span></span><span style="display:flex;"><span>Reading makefiles...
+</span></span><span style="display:flex;"><span>Reading makefile <span style="color:#e6db74">`</span>/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make<span style="color:#e6db74">&#39;...
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Updating makefiles....
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> Considering target file `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&#39;</span>.
+</span></span><span style="display:flex;"><span>  Looking <span style="color:#66d9ef">for</span> an implicit rule <span style="color:#66d9ef">for</span> <span style="color:#e6db74">`</span>/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  No implicit rule found for `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&#39;</span>.
+</span></span><span style="display:flex;"><span>  Finished prerequisites of target file <span style="color:#e6db74">`</span>/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> No need to remake target `/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make&#39;</span>.
+</span></span><span style="display:flex;"><span>Updating goal targets....
+</span></span><span style="display:flex;"><span>Considering target file <span style="color:#e6db74">`</span>install<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74"> File `install&#39;</span> does not exist.
+</span></span><span style="display:flex;"><span>  Considering target file <span style="color:#e6db74">`</span>Components/AFNetworking<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">   File `Components/AFNetworking&#39;</span> does not exist.
+</span></span><span style="display:flex;"><span>    Considering target file <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">      Considering target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&#39;</span>.
+</span></span><span style="display:flex;"><span>        Considering target file <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">         Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking&#39;</span>.
+</span></span><span style="display:flex;"><span>        No need to remake target <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">       Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&#39;</span>.
+</span></span><span style="display:flex;"><span>       Prerequisite <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking<span style="color:#e6db74">&#39; is older than target `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip&#39;</span>.
+</span></span><span style="display:flex;"><span>      No need to remake target <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">     Finished prerequisites of target file `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&#39;</span>.
+</span></span><span style="display:flex;"><span>     Prerequisite <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip<span style="color:#e6db74">&#39; is older than target `/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3&#39;</span>.
+</span></span><span style="display:flex;"><span>    No need to remake target <span style="color:#e6db74">`</span>/Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">   Finished prerequisites of target file `Components/AFNetworking&#39;</span>.
+</span></span><span style="display:flex;"><span>  Must remake target <span style="color:#e6db74">`</span>Components/AFNetworking<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">mkdir ./Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Putting child 0x7ff3e940a340 (Components/AFNetworking) PID 48450 on the chain.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48450
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Reaping winning child 0x7ff3e940a340 PID 48450
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48451
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Reaping winning child 0x7ff3e940a340 PID 48451
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Live child 0x7ff3e940a340 (Components/AFNetworking) PID 48452
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Reaping winning child 0x7ff3e940a340 PID 48452
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Removing child 0x7ff3e940a340 PID 48452 from chain.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  Successfully remade target file `Components/AFNetworking&#39;</span>.
+</span></span><span style="display:flex;"><span> Finished prerequisites of target file <span style="color:#e6db74">`</span>install<span style="color:#e6db74">&#39;.
+</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">Must remake target `install&#39;</span>.
+</span></span><span style="display:flex;"><span>Successfully remade target file <span style="color:#e6db74">`</span>install<span style="color:#960050;background-color:#1e0010">&#39;</span>.
+</span></span></code></pre></div><p>Just use these two flags if you ever face any problems with makefiles.</p>
+<p>Second tip is <code>make</code> parameter <code>--warn-undefined-variables</code>. It emits a warning if some variable does not exist. We have found it very helpful to avoid mistakes like <code>rm -rf $FOO/</code> when <code>$FOO</code> is not set. Also, the <code>components.sh</code> driver has this flag enabled. It&rsquo;s even more helpful when you run <code>explain</code>, e.g.:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>$ ./components.sh explain install
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>install<span style="color:#f92672">]</span> AFNetworking:
+</span></span><span style="display:flex;"><span>/Users/alexdenisov/Projects/ComponentsDemo/Components.make/AFNetworking.make:49: warning: undefined variable <span style="color:#e6db74">`</span>ZIPBALL_URL<span style="color:#960050;background-color:#1e0010">&#39;</span>
+</span></span><span style="display:flex;"><span>wget --no-use-server-timestamps  -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+</span></span><span style="display:flex;"><span>unzip /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d /Users/alexdenisov/Library/Caches/Components/AFNetworking
+</span></span><span style="display:flex;"><span>touch /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+</span></span><span style="display:flex;"><span>mkdir ./Components/AFNetworking/
+</span></span><span style="display:flex;"><span>cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
+</span></span><span style="display:flex;"><span>cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
+</span></span></code></pre></div><p>In the output above you may see a warning because I&rsquo;ve added a typo to <code>ZIPBALL_URL</code></p>
+<h3 id="key-features-and-goals">Key features and goals</h3>
+<p>Now, when you saw basic implementation, I want to conclude and highlight key features, goals, advantages and disadvantages of the concept.</p>
+<p><em><strong>Note:</strong> The order of highlights is alphabetical</em></p>
+<h4 id="abstraction">Abstraction</h4>
+<p>We put as much efforts as possible to put abstraction in a first place. We consider <code>make install</code> to be a good abstraction that gives a lot of flexibility, hence you can easily use any tool you want under the hood (fetch git-submodules, run <code>pod/gem install</code>, etc.)</p>
+<h4 id="automatic-version-updates">Automatic version updates</h4>
+<p>Almost every tool for dependency management gives an ability to update version automatically (<code>~&gt; 1.3.0</code>, <code>4.+</code>, etc.).
+<code>Components</code> does not have such feature.</p>
+<p>We strongly believe that you have to have a reason to update third-party component.
+Updating a library just because a new version available doesn&rsquo;t seem to be a software engineering.</p>
+<h4 id="decentralization">Decentralization</h4>
+<p>The system is completely decentralized and doesn&rsquo;t require any server to run (except the servers with components you use).</p>
+<p><em>Though there is a <a href="http://github.com/AlexDenisov/Components">repo with examples of Components</a> and we will appreciate if you submit your component there, it might be useful especially in case when maintainer doesn&rsquo;t provide you with a makefile and you have built one on your own.</em></p>
+<h4 id="dependency-resolution">Dependency Resolution</h4>
+<p>Implementation of this feature requires more efforts than benefits it gives.</p>
+<p>At least in iOS community - for ~5 years I hardly ever had more than 2-3 implicit dependencies. It&rsquo;s much more time efficient to add such dependency manually once, than wait for it to be resolved automatically every time you hit &lsquo;install&rsquo;.</p>
+<p>Hence, if you use component X in your project and the component X needs another component Y that is not included in the project, then you should include component Y explicitly.</p>
+<h4 id="safety">Safety</h4>
+<p>The tool just fetches components and puts them into a directory with your project, it doesn&rsquo;t touch <code>.xcodeproj</code> file or any other files.</p>
+<h4 id="semantics">Semantics</h4>
+<p>We do care about semantics more, than about nice and fancy syntax or names for tooling.</p>
+<h4 id="security">Security</h4>
+<p>The tool doesn&rsquo;t make any magic, you can easily explore what will happen when run <code>make install</code> for some component. Besides that driver provides a command <code>explain</code> to see which commands will be executed, e.g.:</p>
+<pre tabindex="0"><code>$ ./components.sh explain install AFNetworking
+[install] AFNetworking:
+wget --no-use-server-timestamps https://github.com/AFNetworking/AFNetworking/archive/2.6.3.zip -O /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip
+unzip /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3.zip -d /Users/alexdenisov/Library/Caches/Components/AFNetworking
+touch /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3
+mkdir ./Components/AFNetworking/
+cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/AFNetworking/* ./Components/AFNetworking/
+cp /Users/alexdenisov/Library/Caches/Components/AFNetworking/AFNetworking-2.6.3/UIKit+AFNetworking/* ./Components/AFNetworking/
+</code></pre><p>Also, the tool operates only on three directories, which means that you could create an extra user who will only have an access to these directories. Of course it&rsquo;s not bullet-proof, but it may prevent potential damage by mistakes inside of a makefile.</p>
+<h4 id="speed">Speed</h4>
+<p>Our implementation of the concept is fast because:</p>
+<ul>
+<li>the tool doesn&rsquo;t resolve dependencies, it just installs them</li>
+<li>because of nature of <code>GNU/Make</code> each action will be executed only once, so once component was downloaded, extracted or build - any of these actions will not happen again (of course unless you delete those files)</li>
+<li>the tool stores components locally on your machine, once you installed specific version of component it may be reused by other project, hence you don&rsquo;t need to download and build it again</li>
+</ul>
+<h4 id="stability">Stability</h4>
+<p>This is one of the most important things for us: the <code>GNU/Make</code> is very stable tool, current version on my machine was released ~10 years ago, if I install newer version it will just work without any problems.</p>
+<h3 id="summary">Summary</h3>
+<p>We use this approach with our current project by incrementally transforming our &lsquo;open-source&rsquo; projects into Components, one by one.</p>
+<p>I have to say it works good so far, we haven&rsquo;t faced any problems yet and it seems that we will use it in the future.</p>
+<p>If you interested and want to adopt this approach, then I can recommend you to take a look at another article: <a href="http://stanislaw.github.io/2015/11/23/how-to-build-static-framework-using-make.html">How to build a static iOS framework and distribute it as a Component using Make</a> and check out <a href="http://github.com/AlexDenisov/Components">this repository</a> with scripts and sample <code>.make</code> makefiles for AFNetworking and CompositeOperations.</p>
+<p>One thing I want to ask the community:</p>
+<p><strong>What do you think? Does this <code>make</code> thing make any sense?</strong></p>
+<p>I would appreciate any feedback.</p>
+<!-- raw HTML omitted -->
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

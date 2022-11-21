@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Building an LLVM-based tool. Lessons learned - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="cmake ,build system ,llvm ,clang ,ansible ,vagrant ,mutation testing ,llvm-config ,thread-safety ,parallelization ,LLVM passes ,llvm tutorial" />
+  
+
+  
+  <meta name="description" content="This is a text version of my recent EuroLLVM talk https://www.youtube.com/watch?v=Yvj4G9B6pcU" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Building an LLVM-based tool. Lessons learned</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2019-07-04 09:00:00 &#43;0100 &#43;0100" pubdate>Jul 04, 2019</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>This article is a text version of my recent EuroLLVM talk called <a href="https://www.youtube.com/watch?v=Yvj4G9B6pcU">Building an LLVM-based tool: lessons learned</a>.</p>
+<h3 id="intro">Intro</h3>
+<p>For the last three years, I work on a tool for mutation testing: <a href="http://github.com/mull-project/mull">Mull</a>. It is based on LLVM and targets C and C++ primarily.
+What makes it interesting?</p>
+<ul>
+<li>it works on Linux, macOS, and FreeBSD</li>
+<li>it supports any version of LLVM starting from 3.9</li>
+<li>it is fast because of JIT and parallelization</li>
+<li>packaging and distribution is done in one click</li>
+</ul>
+<p>Keep reading if you want to know how it works and how to apply it on your project.</p>
+<h3 id="the-build-system">The Build System</h3>
+<h4 id="llvm-config">llvm-config</h4>
+<p>The most famous way to connect LLVM as a library is to use <code>llvm-config</code>. The simplest <code>llvm-config</code>-based build system:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>&gt; clang -c <span style="color:#e6db74">`</span>llvm-config --cxxflags<span style="color:#e6db74">`</span> foo.cpp -o foo.o
+</span></span><span style="display:flex;"><span>&gt; clang -c <span style="color:#e6db74">`</span>llvm-config --cxxflags<span style="color:#e6db74">`</span> bar.cpp -o bar.o
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&gt; clang <span style="color:#e6db74">`</span>llvm-config --ldflags<span style="color:#e6db74">`</span> <span style="color:#e6db74">`</span>llvm-config --libs core support<span style="color:#e6db74">`</span> bar.o foo.o -o foobar.bin
+</span></span></code></pre></div><p>It works quite well in the very beginning, but there are some issues with it.</p>
+<ol>
+<li>
+<p>The compiler flags: <code>llvm-config --cxxflags</code> gives you the flags the LLVM was compiled with, these are not the flags you necessarily want for your project. Let&rsquo;s look at the example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>-I/opt/llvm/6.0.0/include
+</span></span><span style="display:flex;"><span>-Werror<span style="color:#f92672">=</span>unguarded-availability-new
+</span></span><span style="display:flex;"><span>-O3 -DNDEBUG
+</span></span><span style="display:flex;"><span>...
+</span></span></code></pre></div><p>The first flag is correct, and you need it. The second one is specific to Clang: it may not work with gcc, and it may not work with an older of Clang itself. The rest (<code>-O3 -NDEBUG</code>) will force you to compile your project in the release mode. It&rsquo;s fine, but not always desirable.</p>
+</li>
+<li>
+<p>The linker flags. <code>llvm-config --ldflags</code> does the right job. It tells where to look for the libraries and tweaks some other linker settings.
+<code>llvm-config --libs &lt;components&gt;</code> also does the right job. It prints the set of libraries you need to link against to use the specified components (you can see the whole list of components via <code>llvm-config --components</code>). However, there is a weird edge case. If, on your system, you have installed several versions of LLVM, and they come with a dynamic library, e.g.:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>/usr/lib/llvm-4.0/lib/libLLVM.dylib
+</span></span><span style="display:flex;"><span>/usr/lib/llvm-6.0/lib/libLLVM.dylib
+</span></span></code></pre></div><p>Then, you may get a runtime error after successful linking:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>&gt; clang foo.o bar.o -lLLVMSupport -o foobar.bin
+</span></span><span style="display:flex;"><span>&gt; ./foobar.bin
+</span></span><span style="display:flex;"><span>LLVM ERROR: inconsistency in registered CommandLine options
+</span></span></code></pre></div><p>To prevent this from happening, you should instead link against the dynamic library:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>&gt; clang foo.o bar.o -lLLVM -o foobar.bin
+</span></span><span style="display:flex;"><span>&gt; ./foobar.bin
+</span></span><span style="display:flex;"><span>Yay! We are good to go now!
+</span></span></code></pre></div><p>To handle this case properly, you need to check the presence of the libLLVM.dylib on your system somehow. Alternatively, use CMake (see the next part).</p>
+</li>
+<li>
+<p>The linking order. As I said, <code>llvm-config --libs</code> does the right job, but it only applies to the LLVM libraries.
+If you also want to use Clang libraries with llvm-config, then you are in trouble: the libraries should be placed in the right order. It may work, or may not. The problem arises only on Linux. Either you manually re-order the Clang libraries until it compiles, or you wrap the libraries list into the <code>--start-group</code>/<code>--end-group</code>.
+That&rsquo;s a reasonable solution, but it does not work on macOS.
+Before migrating to CMake we ended up with something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> macOS
+</span></span><span style="display:flex;"><span>LDFLAGS<span style="color:#f92672">=</span>-lLLVM -lclangEdit
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">else</span>
+</span></span><span style="display:flex;"><span>LDFLAGS<span style="color:#f92672">=</span>-Wl,--start-group -lLLVM -lclangEdit -Wl,--end-group
+</span></span><span style="display:flex;"><span>endif
+</span></span><span style="display:flex;"><span>clang foo.o bar.o $LDFLAGS -o foobar.bin
+</span></span></code></pre></div></li>
+</ol>
+<p>Quite frankly, <code>llvm-config</code> is rather a suboptimal solution for the long run&hellip;</p>
+<h4 id="cmake">CMake</h4>
+<p>LLVM itself uses CMake as its primary build system. LLVM engineers put an enormous amount of work into making it very friendly to the LLVM users.</p>
+<p><em><strong>Note</strong></em>: I assume that you understand CMake, otherwise I suggest you build the mental model through this short article: <a href="https://lowlevelbits.org/bottom-up-cmake-introduction/">Bottom-up CMake introduction</a>.</p>
+<p>Adding LLVM and Clang as a dependency through CMake is reasonably straightforward:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>find_package(<span style="color:#e6db74">LLVM</span> <span style="color:#e6db74">REQUIRED</span> <span style="color:#e6db74">CONFIG</span>
+</span></span><span style="display:flex;"><span>             <span style="color:#e6db74">PATHS</span> <span style="color:#f92672">${</span>search_paths<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>             <span style="color:#e6db74">NO_DEFAULT_PATH</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>find_package(<span style="color:#e6db74">Clang</span> <span style="color:#e6db74">REQUIRED</span> <span style="color:#e6db74">CONFIG</span>
+</span></span><span style="display:flex;"><span>             <span style="color:#e6db74">PATHS</span> <span style="color:#f92672">${</span>search_paths<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>             <span style="color:#e6db74">NO_DEFAULT_PATH</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>Please, note the <code>${search_paths}</code> and the <code>NO_DEFAULT_PATH</code>.</p>
+<p>This is the <code>${search_paths}</code> in our case:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">search_paths</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/lib/cmake</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/lib/cmake/llvm</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/lib/cmake/clang</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/share/clang/cmake/</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/share/llvm/cmake/</span>
+</span></span><span style="display:flex;"><span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The <code>PATH_TO_LLVM</code> is provided to CMake externally by the user.</p>
+<p><strong>Bold statement:</strong> You should not rely on the &lsquo;use whatever is installed on the machine,&rsquo; but explicitly provide the path to the LLVM installation.</p>
+<p><strong>Bold statement:</strong> For development, you should not use LLVM/Clang provided by your Linux distro, but instead, install it manually using <a href="http://releases.llvm.org">official precompiled binaries</a>.</p>
+<p>You can ignore the above statements if you only use LLVM libraries. If you also need Clang libraries, then you may get into trouble. On Ubuntu, some versions of Clang were coming with a broken CMake support:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>CMake Error at /usr/share/llvm-6.0/cmake/ClangConfig.cmake:18 <span style="color:#f92672">(</span>include<span style="color:#f92672">)</span>:
+</span></span><span style="display:flex;"><span>  include could not find load file:
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    /usr/lib/cmake/clang/ClangTargets.cmake
+</span></span><span style="display:flex;"><span>Call Stack <span style="color:#f92672">(</span>most recent call first<span style="color:#f92672">)</span>:
+</span></span><span style="display:flex;"><span>  CMakeLists.txt:8 <span style="color:#f92672">(</span>find_package<span style="color:#f92672">)</span>
+</span></span></code></pre></div><p>Search on the Internets for &ldquo;CMake cannot find ClangConfig&rdquo; to see how many projects and users suffered from this.</p>
+<p>Once the <code>find_package</code> succeeds, you get <code>LLVM_INCLUDE_DIRS</code> variable and bunch of LLVM targets you can use:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>target_include_directories(<span style="color:#e6db74">mull</span> <span style="color:#e6db74">PUBLIC</span> <span style="color:#f92672">${</span>LLVM_INCLUDE_DIRS<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>target_link_libraries(<span style="color:#e6db74">mull</span> <span style="color:#e6db74">LLVMSupport</span> <span style="color:#e6db74">clangTooling</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>Except there is the</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>LLVM ERROR: inconsistency in registered CommandLine options
+</span></span></code></pre></div><p>runtime error.
+To handle it with CMake, consider using the following snippet:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>if (<span style="color:#e6db74">LLVM</span> <span style="color:#e6db74">IN_LIST</span> <span style="color:#e6db74">LLVM_AVAILABLE_LIBS</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  target_link_libraries(<span style="color:#e6db74">mull</span> <span style="color:#e6db74">LLVM</span> <span style="color:#e6db74">clangTooling</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>else()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  target_link_libraries(<span style="color:#e6db74">mull</span> <span style="color:#e6db74">LLVMSupport</span> <span style="color:#e6db74">clangTooling</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>That should do the trick.</p>
+<h3 id="supporting-multiple-llvm-versions">Supporting multiple LLVM versions</h3>
+<p>There are at least two ways to support several versions of LLVM.
+You can add a bunch of <code>#ifdef</code>s to the source code. This is how Klee does it, and it works for them pretty well (seems like).</p>
+<p>Example #1:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#if LLVM_VERSION_CODE &gt;= LLVM_VERSION(4, 0)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;llvm/Bitcode/BitcodeReader.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;llvm/Bitcode/ReaderWriter.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span></code></pre></div><p>Example #2:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#if LLVM_VERSION_CODE &gt;= LLVM_VERSION(5, 0)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  assert(ii<span style="color:#f92672">-&gt;</span>getNumOperands() <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#e6db74">&#34;wrong number of arguments&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#else
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  assert(ii<span style="color:#f92672">-&gt;</span>getNumOperands() <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#e6db74">&#34;wrong number of arguments&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#endif
+</span></span></span></code></pre></div><p>The other way, the one Mull uses, is to provide a façade library. Mull has several libraries with the same interface, but with slightly different implementations. They are simply pairs of a header and <code>.cpp</code> file:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>&gt; tree LLVMCompatibility/
+</span></span><span style="display:flex;"><span>LLVMCompatibility/
+</span></span><span style="display:flex;"><span>├── 3.9.x
+</span></span><span style="display:flex;"><span>│   ├── CMakeLists.txt
+</span></span><span style="display:flex;"><span>│   ├── LLVMCompatibility.cpp
+</span></span><span style="display:flex;"><span>│   └── LLVMCompatibility.h
+</span></span><span style="display:flex;"><span>├── 4.x.x
+</span></span><span style="display:flex;"><span>│   ├── CMakeLists.txt
+</span></span><span style="display:flex;"><span>│   ├── LLVMCompatibility.cpp
+</span></span><span style="display:flex;"><span>│   └── LLVMCompatibility.h
+</span></span><span style="display:flex;"><span>...
+</span></span><span style="display:flex;"><span>├── 8.x.x
+</span></span><span style="display:flex;"><span>│   ├── CMakeLists.txt
+</span></span><span style="display:flex;"><span>│   ├── LLVMCompatibility.cpp
+</span></span><span style="display:flex;"><span>│   └── LLVMCompatibility.h
+</span></span></code></pre></div><p>Then, we can use CMake to decide which version to use:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">llvm_patch_version</span> <span style="color:#e6db74">&#34;${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.${LLVM_VERSION_PATCH}&#34;</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">llvm_minor_version</span> <span style="color:#e6db74">&#34;${LLVM_VERSION_MAJOR}.${LLVM_VERSION_MINOR}.x&#34;</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">llvm_major_version</span> <span style="color:#e6db74">&#34;${LLVM_VERSION_MAJOR}.x.x&#34;</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">full_llvm_version</span> <span style="color:#f92672">${</span>llvm_patch_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>if (<span style="color:#e6db74">EXISTS</span> <span style="color:#f92672">${</span>CMAKE_CURRENT_LIST_DIR<span style="color:#f92672">}</span><span style="color:#e6db74">/LLVMCompatibility/</span><span style="color:#f92672">${</span>llvm_patch_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">LLVM_COMPATIBILITY_DIR</span> <span style="color:#f92672">${</span>llvm_patch_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>elseif(<span style="color:#e6db74">EXISTS</span> <span style="color:#f92672">${</span>CMAKE_CURRENT_LIST_DIR<span style="color:#f92672">}</span><span style="color:#e6db74">/LLVMCompatibility/</span><span style="color:#f92672">${</span>llvm_minor_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">LLVM_COMPATIBILITY_DIR</span> <span style="color:#f92672">${</span>llvm_minor_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>elseif(<span style="color:#e6db74">EXISTS</span> <span style="color:#f92672">${</span>CMAKE_CURRENT_LIST_DIR<span style="color:#f92672">}</span><span style="color:#e6db74">/LLVMCompatibility/</span><span style="color:#f92672">${</span>llvm_major_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">LLVM_COMPATIBILITY_DIR</span> <span style="color:#f92672">${</span>llvm_major_version<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>else()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  message(<span style="color:#e6db74">FATAL_ERROR</span> <span style="color:#e6db74">&#34;LLVM-${full_llvm_version} is not supported&#34;</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_subdirectory(<span style="color:#e6db74">LLVMCompatibility/</span><span style="color:#f92672">${</span>LLVM_COMPATIBILITY_DIR<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>What happens here: CMake is looking for a directory with the compatibility layer for the given LLVM version in a special order. For example, for the version 8.0.1 it will do the following:</p>
+<ol>
+<li>Use <code>LLVMCompatibility/8.0.1</code> if it exists</li>
+<li>Use <code>LLVMCompatibility/8.0.x</code> if it exists</li>
+<li>Use <code>LLVMCompatibility/8.x.x</code> if it exists</li>
+<li>Give up and fail</li>
+</ol>
+<p>As soon as it finds the right folder, it will include it in the build process. So far we used only <code>&lt;number&gt;.x.x</code>, but the idea is that we can provide a particular library for any version of LLVM if we need to.
+Here is how two header files look like:</p>
+<p><!-- raw HTML omitted --></p>
+<p>Then, in the source code we simply use the compatibility layer instead of bunch of <code>ifdef</code>s:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">auto</span> module <span style="color:#f92672">=</span> llvm_compat<span style="color:#f92672">::</span>parseBitcode(buffer.getMemBufferRef(),
+</span></span><span style="display:flex;"><span>                                        context);
+</span></span></code></pre></div><h3 id="sources-vs-binaries">Sources VS Binaries</h3>
+<p>So far I only covered builds against precompiled binary versions of LLVM. However, there are reasons you should also build against the source code. Look at the table:</p>
+<p><!-- raw HTML omitted --></p>
+<p>Build time against precompiled versions is much faster, but you give up the ability to debug the LLVM itself which is needed when you hit some bug or some weird behavior.
+Another significant drawback: asserts. They are disabled in the release builds you get from the <a href="http://releases.llvm.org">http://releases.llvm.org</a>.
+In fact, we did violate some of the LLVM constraints but didn&rsquo;t realize it until somebody tried to build Mull against the source code.</p>
+<p>You can easily teach CMake to build against source code and against precompiled libraries at the same time.</p>
+<p>Here is the trick:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>if (<span style="color:#e6db74">EXISTS</span> <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/CMakeLists.txt</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_subdirectory(<span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span> <span style="color:#e6db74">llvm-build-dir</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#75715e"># LLVM_INCLUDE_DIRS ???
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e"># LLVM_VERSION ???
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>else()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#960050;background-color:#1e0010">...
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>If the <code>PATH_TO_LLVM</code> contains <code>CMakeLists.txt</code>, then we are building against the source code. Otherwise, the behavior is the same as written in the previous paragraphs.</p>
+<p>However, <code>LLVM_INCLUDE_DIRS</code> and <code>LLVM_VERSION</code> are not available in this case. We can fix that with these tricks:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>get_target_property(<span style="color:#e6db74">LLVM_INCLUDE_DIRS</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">LLVMSupport</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">INCLUDE_DIRECTORIES</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>It will fill in the <code>LLVM_INCLUDE_DIRS</code> with the right header search paths.</p>
+<p>The <code>LLVM_VERSION</code> is a bit less trivial: we need to parse the <code>CMakeLists.txt</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>macro(<span style="color:#e6db74">get_llvm_version_component</span> <span style="color:#e6db74">input</span> <span style="color:#e6db74">component</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  string(<span style="color:#e6db74">REGEX</span> <span style="color:#e6db74">MATCH</span> <span style="color:#e6db74">&#34;${component} ([0-9]+)&#34;</span> <span style="color:#e6db74">match</span> <span style="color:#f92672">${</span>input<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  if (<span style="color:#e6db74">NOT</span> <span style="color:#e6db74">match</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    message(<span style="color:#e6db74">FATAL_ERROR</span> <span style="color:#e6db74">&#34;Cannot find LLVM version component &#39;${component}&#39;&#34;</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#f92672">${</span>component<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>CMAKE_MATCH_1<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endmacro()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>file(<span style="color:#e6db74">READ</span> <span style="color:#f92672">${</span>PATH_TO_LLVM<span style="color:#f92672">}</span><span style="color:#e6db74">/CMakeLists.txt</span> <span style="color:#e6db74">LLVM_CMAKELISTS</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>get_llvm_version_component(<span style="color:#e6db74">&#34;${LLVM_CMAKELISTS}&#34;</span> <span style="color:#e6db74">LLVM_VERSION_MAJOR</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>get_llvm_version_component(<span style="color:#e6db74">&#34;${LLVM_CMAKELISTS}&#34;</span> <span style="color:#e6db74">LLVM_VERSION_MINOR</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>get_llvm_version_component(<span style="color:#e6db74">&#34;${LLVM_CMAKELISTS}&#34;</span> <span style="color:#e6db74">LLVM_VERSION_PATCH</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">LLVM_VERSION</span> <span style="color:#f92672">${</span>LLVM_VERSION_MAJOR<span style="color:#f92672">}</span><span style="color:#e6db74">.</span><span style="color:#f92672">${</span>LLVM_VERSION_MINOR<span style="color:#f92672">}</span><span style="color:#e6db74">.</span><span style="color:#f92672">${</span>LLVM_VERSION_PATCH<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The macro will extract all the information we need from this piece of text (<code>llvm/CMakeLists.txt</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>if(<span style="color:#e6db74">NOT</span> <span style="color:#e6db74">DEFINED</span> <span style="color:#e6db74">LLVM_VERSION_MAJOR</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set(<span style="color:#e6db74">LLVM_VERSION_MAJOR</span> <span style="color:#e6db74">6</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>if(<span style="color:#e6db74">NOT</span> <span style="color:#e6db74">DEFINED</span> <span style="color:#e6db74">LLVM_VERSION_MINOR</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set(<span style="color:#e6db74">LLVM_VERSION_MINOR</span> <span style="color:#e6db74">0</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>if(<span style="color:#e6db74">NOT</span> <span style="color:#e6db74">DEFINED</span> <span style="color:#e6db74">LLVM_VERSION_PATCH</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set(<span style="color:#e6db74">LLVM_VERSION_PATCH</span> <span style="color:#e6db74">1</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>That&rsquo;s it. We are ready to build against LLVM&rsquo;s source code.</p>
+<h3 id="parallelization">Parallelization</h3>
+<p><strong>Bold statement:</strong> Avoid using LLVM Passes for better parallelization (explanation follows).</p>
+<p>Any LLVM-based tool is an excellent example of the fair parallelization: if you have 20 tasks and 4 cores, then you can run 5 tasks per each core and them merge the results.
+However, LLVM is not very friendly when it comes to the parallelization: lots of classes are not thread-safe.</p>
+<p>Let&rsquo;s consider this picture:</p>
+<p><!-- raw HTML omitted --></p>
+<p>There are three phases: loading, analysis, and transformation:</p>
+<ol>
+<li>We load two modules(#1, #2) within the Thread 1, and the third module (#3) within the Thread 2. What&rsquo;s important is that each thread should have its own <code>LLVMContext</code>!</li>
+<li>The next phase is the analysis. At this point we only read information from LLVM IR, so we can distribute all the 8 functions (F1-F8) across two threads evenly: Thread 1 analyzes F1-F4, and Thread 2 deals with F5-F8.</li>
+<li>Transformation. Is it essential to ensure that any transformation of a module does not escape the module&rsquo;s thread boundaries: even such &lsquo;minor&rsquo; changes as renaming an instruction is not thread-safe.</li>
+</ol>
+<p><em>Note: of course you can put there lots of locks, but what&rsquo;s the point of parallelization then?</em></p>
+<p>Now I can tell why <strong>you should avoid LLVM Passes</strong>: this approach incentivizes you to merge analysis and transformation into one phase, and therefore lose the ability to parallelize efficiently. (There are other issues with LLVM Passes, but it&rsquo;s a different topic).</p>
+<p>Also, LLVM&rsquo;s <code>PassManager</code>s are not (yet?) parallelization-friendly.</p>
+<p>My advice here is to start with separate analysis &amp; transformation phases. It&rsquo;s easier to implement and easier to test. You can wrap these phases into LLVM pass later if needed.</p>
+<p>And of course, you should always measure the performance. Here is one of our measurements:</p>
+<p><!-- raw HTML omitted --></p>
+<p>You may get the opposite results.</p>
+<h3 id="getting-bitcode">Getting Bitcode</h3>
+<p>Once per 2-3 months, there is a question on the mailing lists: &ldquo;How do I compile my program to bitcode?&rdquo; Clearly, there is a demand for that.</p>
+<p>The most common answer I&rsquo;ve seen is the <a href="https://github.com/travitch/whole-program-llvm">whole-program-llvm</a>.
+It&rsquo;s a great tool, and I can also recommend using it, but keep in mind that it produces one large bitcode file as output. Therefore, you cannot get the benefits of your multicore machine.</p>
+<p>There are a few other ways to get the bitcode:</p>
+<ol>
+<li><code>-emit-llvm</code>: passing this flag to the compiler will give you an LLVM Bitcode/IR file as an output. It will break the linking phase of your build system, though.</li>
+<li><code>-flto</code>: with this flag all the intermediate object files will, in fact, be LLVM Bitcode files. The program will compile just fine. It won&rsquo;t work though if you don&rsquo;t have any intermediate object files in the pipeline (e.g. <code>clang foo.c bar.c -o foobar</code>)</li>
+<li><code>-fembed-bitcode</code>: this should be your choice! Clang will compile your program just fine, but it will also include a special section into the binary containing all the Bitcode files (<a href="https://lowlevelbits.org/bitcode-demystified/">Learn More</a>). You can extract the Bitcode from the binary programmatically using my fork of the awesome <a href="https://github.com/AlexDenisov/LibEBC">LibEBC</a> tool.</li>
+</ol>
+<h3 id="multi-os-support">Multi-OS Support</h3>
+<p>For more straightforward support of several operating systems, I highly recommend these two tools: <a href="https://www.vagrantup.com">Vagrant</a> and <a href="https://www.ansible.com">Ansible</a>.</p>
+<p>Vagrant allows you to manage virtual machines easily:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ruby" data-lang="ruby"><span style="display:flex;"><span>config<span style="color:#f92672">.</span>vm<span style="color:#f92672">.</span>define <span style="color:#e6db74">&#34;debian&#34;</span> <span style="color:#66d9ef">do</span> <span style="color:#f92672">|</span>cfg<span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span>  cfg<span style="color:#f92672">.</span>vm<span style="color:#f92672">.</span>box <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;debian/stretch64&#34;</span>
+</span></span><span style="display:flex;"><span>  cfg<span style="color:#f92672">.</span>vm<span style="color:#f92672">.</span>provision <span style="color:#e6db74">&#34;ansible&#34;</span> <span style="color:#66d9ef">do</span> <span style="color:#f92672">|</span>ansible<span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span>    ansible<span style="color:#f92672">.</span>verbose <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;v&#34;</span>
+</span></span><span style="display:flex;"><span>    ansible<span style="color:#f92672">.</span>playbook <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;debian-playbook.yaml&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">end</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">end</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>config<span style="color:#f92672">.</span>vm<span style="color:#f92672">.</span>define <span style="color:#e6db74">&#34;ubuntu&#34;</span> <span style="color:#66d9ef">do</span> <span style="color:#f92672">|</span>cfg<span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span>  cfg<span style="color:#f92672">.</span>vm<span style="color:#f92672">.</span>box <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ubuntu/xenial64&#34;</span>
+</span></span><span style="display:flex;"><span>  cfg<span style="color:#f92672">.</span>vm<span style="color:#f92672">.</span>provision <span style="color:#e6db74">&#34;ansible&#34;</span> <span style="color:#66d9ef">do</span> <span style="color:#f92672">|</span>ansible<span style="color:#f92672">|</span>
+</span></span><span style="display:flex;"><span>    ansible<span style="color:#f92672">.</span>verbose <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;v&#34;</span>
+</span></span><span style="display:flex;"><span>    ansible<span style="color:#f92672">.</span>playbook <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;ubuntu-playbook.yaml&#34;</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">end</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">end</span>
+</span></span></code></pre></div><p>With this config you can create a VM ready for use:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>vagrant up debian
+</span></span><span style="display:flex;"><span>vagrant up ubuntu
+</span></span></code></pre></div><p>Vagrant also allows you to provision the machine using various providers: from old-school shell scripts to modern tools such as Chef and Ansible.</p>
+<p>I prefer Ansible as it is the most straightforward tool, in my opinion. Basically, an Ansible playbook is a shell script on steroids.
+Here is how a part of it looks like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">packages</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">fish</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">vim</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">wget</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">git</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">cmake</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">ninja-build</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">libz-dev</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">libsqlite3-dev</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">ncurses-dev</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">libstdc++-6-dev</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">pkg-config</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">libxml2-dev</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">uuid-dev</span>
+</span></span><span style="display:flex;"><span>  - <span style="color:#ae81ff">liblzma-dev</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">tasks</span>:
+</span></span><span style="display:flex;"><span>  - <span style="color:#f92672">name</span>: <span style="color:#ae81ff">Install Required Packages</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">apt</span>:
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">name</span>: <span style="color:#e6db74">&#34;{{ packages }}&#34;</span>
+</span></span><span style="display:flex;"><span>      <span style="color:#f92672">state</span>: <span style="color:#ae81ff">present</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">become</span>: <span style="color:#66d9ef">true</span>
+</span></span></code></pre></div><p>This small snippet will make sure that all the <code>packages</code> are installed (<code>present</code>) in the VM.
+You can use Ansible to automate lots of things.
+In our case, we automate the following processes:</p>
+<ul>
+<li>install packages</li>
+<li>download LLVM</li>
+<li>build &amp; run Mull&rsquo;s unit tests</li>
+<li>create an OS dependent package (<code>pkg</code>, <code>deb</code>, <code>rpm</code>, <code>sh</code>)</li>
+<li>run integration tests</li>
+</ul>
+<p>Another great thing about Ansible: you can run it locally, not necessarily in the VM. We use this feature on CI: executing each mentioned step for every pull request.</p>
+<p>It saves me lots of time and simplifies the release process.
+Here is the whole release script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>mkdir -p packages
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">function</span> prepare_package <span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
+</span></span><span style="display:flex;"><span>  printf <span style="color:#e6db74">&#34;Preparing package for </span>$1<span style="color:#e6db74">... &#34;</span>
+</span></span><span style="display:flex;"><span>  export LLVM_VERSION<span style="color:#f92672">=</span>$2
+</span></span><span style="display:flex;"><span>  vagrant up $1 --provision 2&gt; ./packages/$1.err.log &gt; ./packages/$1.out.log
+</span></span><span style="display:flex;"><span>  vagrant destroy -f $1 2&gt;&gt; ./packages/$1.err.log &gt;&gt; ./packages/$1.out.log
+</span></span><span style="display:flex;"><span>  printf <span style="color:#e6db74">&#34;Done.\n&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>prepare_package debian 6.0.0
+</span></span><span style="display:flex;"><span>prepare_package freebsd 8.0.0
+</span></span><span style="display:flex;"><span>prepare_package ubuntu 8.0.0
+</span></span></code></pre></div><p>In the end, I have packages ready in the <code>packages</code> folder for Debian, FreeBSD, and Ubuntu. Doing so for macOS is not as straightforward, but we will get there soon as well.</p>
+<h3 id="summary">Summary</h3>
+<p>Just reiterating all those bold statements one more time:</p>
+<ul>
+<li><strong>don&rsquo;t use</strong> <code>llvm-config</code> as part of the build system</li>
+<li><strong>don&rsquo;t use</strong> LLVM/Clang from your distro for development</li>
+<li><strong>don&rsquo;t use</strong> LLVM passes</li>
+<li><strong>don&rsquo;t use</strong> <code>whole-program-llvm</code></li>
+<li><strong>use</strong> Vagrant &amp; Ansible for multi-OS support</li>
+<li><strong>use</strong> different versions of LLVM for development</li>
+</ul>
+<p>There is another big topic: <strong>Testing</strong>, but I will leave it for the next article.</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,70 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>NSArray on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/nsarray/</link>
+    <description>Recent content in NSArray on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Mon, 13 Apr 2015 22:44:26 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Circular Containers in Objective-C</title>
+        <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
+        <pubDate>Mon, 13 Apr 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
+        <description>&lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    XCCEnvironment &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] initWithName:key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                            parameters:dictionary[key]];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    [environments addObject:environments];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;problem&#34;&gt;Problem&lt;/h3&gt;
+&lt;p&gt;When I run the program I got a crash:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[environments addObject:environments];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
+&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &amp;lsquo;programmers do not dereference null pointers&amp;rsquo; - it is still happens and probably it&amp;rsquo;s kinda unexpected behaviour.&lt;/p&gt;
+&lt;p&gt;I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&amp;rsquo;t find any warning/flag/setting that does this check.&lt;/p&gt;
+&lt;p&gt;Eventually I decided to implement it. Implementation took a couple of evenings but now it&amp;rsquo;s &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248&#34;&gt;in trunk&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Actual patch checks the following mutable collections:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;NSMutableArray&lt;/li&gt;
+&lt;li&gt;NSMutableDictionary&lt;/li&gt;
+&lt;li&gt;NSMutableSet&lt;/li&gt;
+&lt;li&gt;NSMutableOrderedSet&lt;/li&gt;
+&lt;li&gt;NSCountedSet&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And shows warning if you trying to put collection inside itself&lt;/p&gt;
+&lt;p&gt;The warning could be enabled/disabled with &lt;code&gt;-wobjc-circular-container&lt;/code&gt;/&lt;code&gt;-wno-objc-circular-container&lt;/code&gt; respectively, though it&amp;rsquo;s enabled &amp;lsquo;by default&amp;rsquo;.&lt;/p&gt;
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Recent clang version contains this feature, but it&amp;rsquo;s not yet available within Xcode, and I guess it&amp;rsquo;ll appear with the next major release - in a year or so.&lt;/p&gt;
+&lt;p&gt;But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.&lt;/p&gt;
+&lt;p&gt;Happy hacking!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+
+
+
+ <html class="no-js" lang="en"> 
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>environment - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="clang ,llvm ,compilers ,developer tools ,mutation testing ,software hardening ,contract work ,reverse engineering" />
+  
+
+  
+  <meta name="description" content="Compilers, developer tools, reverse engineering, software hardening" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/tags/environment/" />
+
+</head>
+<body>
+
+<div class="container">
+  <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+  <hr>
+
+  <div class="row main-content">
+    <div class="offset3 span6 zone-content">
+      <h1> environment </h1>
+
+      
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/">How to learn compilers: LLVM Edition</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2021-11-04 20:30:00 &#43;0100 CET" pubdate>Nov 04, 2021</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/">LLVM meets Code Property Graphs</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2021-02-23 09:00:00 &#43;0100 CET" pubdate>Feb 23, 2021</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/">Exploring LLVM Bitcode interactively</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2020-02-28 09:00:00 &#43;0100 CET" pubdate>Feb 28, 2020</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/type-equality-in-llvm/">Type Equality in LLVM</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2020-01-28 16:00:00 &#43;0100 CET" pubdate>Jan 28, 2020</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/">Building an LLVM-based tool. Lessons learned</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2019-07-04 09:00:00 &#43;0100 &#43;0100" pubdate>Jul 04, 2019</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/bottom-up-cmake-introduction/">Bottom-up CMake introduction</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2019-05-24 08:00:00 &#43;0100 &#43;0100" pubdate>May 24, 2019</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/debugging-dyld/">Debugging Dyld</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2018-11-13 08:00:00 &#43;0100 CET" pubdate>Nov 13, 2018</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/handling-timeouts-in-child-processes/">Handling timeouts in child processes</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2018-10-30 21:50:00 &#43;0100 CET" pubdate>Oct 30, 2018</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/mutation-testing-implementation-details/">Mutation Testing: implementation details</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2017-06-14 23:18:59 &#43;0200 CEST" pubdate>Jun 14, 2017</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/reverse-engineering-stickies.app/">Reverse Engineering Stickies.app</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2017-02-13 11:23:48 &#43;0100 CET" pubdate>Feb 13, 2017</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/java-papers/">Java Papers</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2016-11-23 11:18:07 &#43;0100 CET" pubdate>Nov 23, 2016</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/system-under-test-gnu-make/">System Under Test: GNU Make</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2016-06-12 21:05:00 &#43;0200 CEST" pubdate>Jun 12, 2016</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/">LLVM-based Mutation Testing System. Request For Comments</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2016-04-14 10:00:00 &#43;0200 CEST" pubdate>Apr 14, 2016</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/system-under-test-freebsd/">System Under Test: FreeBSD</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2016-03-31 17:22:59 &#43;0200 CEST" pubdate>Mar 31, 2016</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/system-under-test-llvm/">System Under Test: LLVM</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2016-03-24 23:18:29 &#43;0100 CET" pubdate>Mar 24, 2016</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/system-under-test/">System Under Test</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2016-03-24 23:03:35 &#43;0100 CET" pubdate>Mar 24, 2016</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/bitcode-demystified/">Bitcode Demystified</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2015-09-05 12:25:00 &#43;0200 CEST" pubdate>Sep 05, 2015</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/parsing-mach-o-files/">Parsing Mach-O files</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2015-08-20 18:30:00 &#43;0200 CEST" pubdate>Aug 20, 2015</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/nsvalue-and-boxed-expressions/">NSValue and Boxed Expressions</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2015-06-26 09:22:57 &#43;0200 CEST" pubdate>Jun 26, 2015</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+    
+  <li class="post-list">
+          <span>
+            
+              <a href="https://lowlevelbits.org/circular-containers-in-objective-c/">Circular Containers in Objective-C</a>
+            
+          </span>
+
+          <footer>
+                  <span class="post-list-date">
+                      <time datetime="2015-04-13 22:44:26 &#43;0200 CEST" pubdate>Apr 13, 2015</time>
+                  </span>
+                  
+
+
+          </footer>
+  </li>
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+    </div>
+  </div>
+
+  <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+</div>  
+
+
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+
+</body>
+</html>

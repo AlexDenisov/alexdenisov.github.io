@@ -1,0 +1,421 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mutation testing on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/categories/mutation-testing/</link>
+    <description>Recent content in mutation testing on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Wed, 14 Jun 2017 23:18:59 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Mutation Testing: implementation details</title>
+        <link>https://lowlevelbits.org/mutation-testing-implementation-details/</link>
+        <pubDate>Wed, 14 Jun 2017</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/mutation-testing-implementation-details/</guid>
+        <description>&lt;p&gt;Last week we had a discussion with guys who want to build a mutation testing system for .NET. If you want to join, please talk to them here: &lt;a href=&#34;https://gitter.im/dot-NET-mutation-testing/Lobby&#34;&gt;https://gitter.im/dot-NET-mutation-testing/Lobby&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Few people already shared their experience in a written form:
+&lt;a href=&#34;https://gist.github.com/hcoles/36bd67d8927a205c480576f4632f9289&#34;&gt;https://gist.github.com/hcoles/36bd67d8927a205c480576f4632f9289&lt;/a&gt;
+&lt;a href=&#34;https://gist.github.com/jameswiseman76/7400896ab2f0eb6ecf33c414173e995d&#34;&gt;https://gist.github.com/jameswiseman76/7400896ab2f0eb6ecf33c414173e995d&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I decided to do the same.
+I tried to organize my thoughts nicely but failed miserably.
+Sorry for that.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: I am writing about our tool &lt;a href=&#34;https://github.com/mull-project/mull&#34;&gt;Mull&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;ast-vs-bitcode&#34;&gt;AST vs. Bitcode&lt;/h2&gt;
+&lt;p&gt;Mutations can be done either at a high level (source code) or a lower level (bitcode). We decided to pick the latter one. The main reason: we could bring mutation testing for any LLVM-based language.
+Later we learned that this approach has significant advantages but also serious disadvantages.&lt;/p&gt;
+&lt;p&gt;I will outline them below.&lt;/p&gt;
+&lt;h3 id=&#34;cons&#34;&gt;Cons&lt;/h3&gt;
+&lt;h4 id=&#34;build-tools&#34;&gt;Build Tools&lt;/h4&gt;
+&lt;p&gt;So far we tried to add support for five languages: C, C++, Objective-C, Rust, and Swift.&lt;/p&gt;
+&lt;p&gt;To make it work, we must compile source code into bitcode.
+It is super straightforward if you want to compile one file: each compiler has an option to emit LLVM bitcode.
+However, it is a pain when it comes to a real-world project where you normally have many files.
+Rust and Swift both have some standard way of building things, despite that there is no option to emit bitcode for the whole project (I will talk about LTO later).
+As for C family, there is the whole zoo of build tools: shell scripts, makefiles, ninja, CMakeLists, Visual Studio, Xcode, etc.&lt;/p&gt;
+&lt;p&gt;We had to make some workarounds to overcome these problems. Fortunately, we found a semi-elegant way of handling this at least for C and C++ (should work for Swift and Rust as well though). We could use Link-Time Optimization, this way compiler would produce not object files, but files that contain bitcode. It works perfectly on OS X, but I see a problem on Linux: for some reason, linker (&lt;code&gt;ld.gold&lt;/code&gt;) could not link bitcode files together which make build system to fail. To avoid this problem, we had to ask ninja to fail only after 1000 errors (&lt;code&gt;ninja -k 1000&lt;/code&gt;).&lt;/p&gt;
+&lt;h4 id=&#34;mapping-bitcode-back-to-source-code&#34;&gt;Mapping bitcode back to source code&lt;/h4&gt;
+&lt;p&gt;First I thought that it would be a trivial task since everything in the original code should have a corresponding instruction in the bitcode. But, for instance, this line of C++ code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;some_vector.push_back(make_pair(foo, bar));
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Will be expanded into several hundred (!) of instructions, if one of those instructions crashes than a good IDE should show a corresponding line of code. Hence, all those hundreds of instructions are mapped to the same place in the original code.
+Another problem that all the following pieces of code have the same representation on the IR level:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x, -1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Another problem: syntactic sugar.
+For instance:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;a &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; b &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; c;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If &lt;code&gt;b&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt; are simple types, then this is an addition, but, if these are objects then this a function call.
+An end user might be a bit confused why some function related mutation was applied at the addition.&lt;/p&gt;
+&lt;h4 id=&#34;applying-mutations&#34;&gt;Applying mutations&lt;/h4&gt;
+&lt;p&gt;The first naive approach was to iterate over instructions and check whether we can apply mutation on this instruction or not.
+If we can apply a mutation, then we just replace this instruction (or remove it) with another.
+This approach generates lots of junk mutations (c) @hcoles.
+Now we learned that looking at single instruction is not enough: we must look at patterns and instructions around.
+Simple addition in C compiles into a single instruction, while in Rust we get several of them: one for addition, one for overflow check, one to report an error if it overflows, and so on.
+We may end up having several implementations of the same mutation: one for C/C++, one for Rust, etc.&lt;/p&gt;
+&lt;h3 id=&#34;pros&#34;&gt;Pros&lt;/h3&gt;
+&lt;h4 id=&#34;build-tools-1&#34;&gt;Build Tools&lt;/h4&gt;
+&lt;p&gt;As far as I know, the AST of Clang is not designed to be mutable.  Even though it has a thing called AST Rewriters, it might be super slow since a rewriter outputs rewritten AST on disk.
+Taking this into account mutation on the bitcode level is a reasonable solution, especially given that everything is happening in memory.
+We didn&amp;rsquo;t investigate whether ASTs of Rust or Swift are mutable or not, but this is not required since current approach is language agnostic.&lt;/p&gt;
+&lt;h4 id=&#34;applying-mutations-1&#34;&gt;Applying mutations&lt;/h4&gt;
+&lt;p&gt;Mutations are very similar at the bitcode level. We don&amp;rsquo;t have to replicate each compiler to make a mutation and to build the source code into executable code - everything is covered by LLVM.
+This process is quite fast since everything is happening in memory and we have a common ground for any language: we feed JIT engine with bitcode (original or mutated) and ask it to run the program, no I/O involved.&lt;/p&gt;
+&lt;h2 id=&#34;program-execution&#34;&gt;Program Execution&lt;/h2&gt;
+&lt;p&gt;One of the biggest advantages is that the algorithm for program execution is the same for each language/test framework.
+Below I describe the algorithm using pseudo code&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Result&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; status   &lt;span style=&#34;color:#75715e&#34;&gt;// failed, passed, timed out, etc&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; duration &lt;span style=&#34;color:#75715e&#34;&gt;// how much time it took to run a program&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MutationPoint&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; module    &lt;span style=&#34;color:#75715e&#34;&gt;// where the mutation is located&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; metadata  &lt;span style=&#34;color:#75715e&#34;&gt;// some utility data&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// we give N seconds for original test to complete&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; Timeout = N
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// Program under test is represented as a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// set of bitcode modules&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modules = loadModules()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// First we find tests. Each language + test framework&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// has custom implementation of a Test Finder&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tests = findTests(modules)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; tests {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Then for each test we find places where we can&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// apply mutation - Mutation Point&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Each language may have it&amp;#39;s own set of Mutation Operators&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationPoints = findMutationPoints(test, modules)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Given we know what we want to mutate&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// We can start execution of each mutant&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; originalResult = runTest(test, modules, Timeout)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; originalResult &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; Passed {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Report an error and skip this test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// One could also fail early, but we decided not to&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Now it&amp;#39;s time to run a test against each mutant&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; mutationPoints {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Mutant is a copy of original module&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// within the mutation&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutant = applyMutation(point)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// To run the test against mutant we need&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// to replace the original module in the&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// set of modules&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutatedModules = modules.replace(point.module, mutant)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Mutant should not take X times more time than&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// the original test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Otherwise we consider it as a timed out&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; timeout = originalResult &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; X
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationResult = runTest(test, mutatedModules, timeout)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// The mutationResult can be now reported&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// We are done here, taking the next mutant&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It is important to notice that each test run is done in a child process because mutation could lead to crash or an infinite loop.&lt;/p&gt;
+&lt;p&gt;The current implementation of the scheduling is not elegant and not efficient. We fork a process (watchdog), the watchdog forks two other processes: timer and worker. The timer does nothing but sleeps for N milliseconds. The worker executes the test or mutant. The watchdog is waiting for either process to finish. If the timer finishes first, then the worker timed out, we kill it and report timeout. If the worker stops first, then we terminate the timer and proceed. To report the result, we must check whether the worker process crashed, and if not what is the exit status.&lt;/p&gt;
+&lt;p&gt;Besides that, it is important to be able to get the output (stdout/stderr) from
+the worker process.&lt;/p&gt;
+&lt;p&gt;We would need to come up with another solution that would allow us to parallelize the execution efficiently.&lt;/p&gt;
+&lt;p&gt;There are few things that I omit in the algorithm, but I will cover them in the next section.&lt;/p&gt;
+&lt;h2 id=&#34;optimizations&#34;&gt;Optimizations&lt;/h2&gt;
+&lt;p&gt;No matter how fast machine is, the execution may take a lot of time.
+The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control the number of mutations.
+First place is &lt;code&gt;findTests&lt;/code&gt;: you could configure a program to run the only subset of tests. It is very convenient during analysis of a program under test.
+Another place is &lt;code&gt;findMutationPoints&lt;/code&gt;. Currently, our approach here is different from the one Pitest has. We do not use code coverage to find places where to add mutations. Instead, we use static analysis to build a call graph. For example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;test_foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  assert(foo() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; bar();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; buzz();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;buzz&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here we have the following call &amp;lsquo;graph&amp;rsquo;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;test_foo -&amp;gt; foo -&amp;gt; bar -&amp;gt; buzz
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If we look at this list from left to right, then we might see that each function is at some distance from the test.
+Using this information we can ask the system to not look for mutation points farther than two hops from a test.
+By using these two filters, you can significantly improve feedback time.&lt;/p&gt;
+&lt;p&gt;Another trick we did: we have an option called &amp;lsquo;Dry Run.&amp;rsquo; In this mode, the system does whatever it normally does, except that it doesn&amp;rsquo;t apply any mutations and it doesn&amp;rsquo;t run the mutants. Instead, it reports each mutation result status as DryRun, including its distance from a test and estimated duration as it&amp;rsquo;s timeout. Using this information you could decide which distance is optimal for this very particular project. We also found it useful to run as a first on an unknown project, just to get understanding what kind of a beast we are working with.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;UPD:&lt;!-- raw HTML omitted --&gt; re: static analysis:&lt;/p&gt;
+&lt;p&gt;We decided to go this way because it felt like a good solution. However, it turned out that we cannot build the call graph reliably: a function (caller) instead of calling another function (callee) directly could pass a pointer to the callee to some other function, which would then call the callee indirectly via a pointer.
+Another example: polymorphism. Just recently we found that we cannot find a call to a polymorphic function. However, we did not try to solve this problem yet.&lt;/p&gt;
+&lt;p&gt;It is very likely that we would need to switch to another solution.&lt;/p&gt;
+&lt;p&gt;We could determine the call tree by using Compiler On Demand (COD) capability of LLVM&amp;rsquo;s JIT engine. The idea is the following: the system asks JIT to execute a function from a module, when the JIT hits unresolved function it calls back the system asking to resolve the function. At this callback, we can register the
+unresolved function as part of the call tree and then resolve the function the function and give it back to the JIT engine. I am going to investigate if this approach is working, but there is another problem: this way we could get a set of all called functions, but seems like we cannot build the actual tree and can&amp;rsquo;t measure the distance (unless the callback provides the caller function).&lt;/p&gt;
+&lt;h2 id=&#34;reporting&#34;&gt;Reporting&lt;/h2&gt;
+&lt;p&gt;Reporting is one of the trickiest parts, in my opinion. We are still trying to find a nice way to present results to an end user. So far we come up with the following solution.&lt;/p&gt;
+&lt;p&gt;At the very end of execution, the system spits out SQLite file with information
+about mutations points, tests, execution results, and so on.&lt;/p&gt;
+&lt;p&gt;Next, one could feed this SQLite file into our &lt;a href=&#34;https://github.com/mull-project/mull-reporter-sqlite&#34;&gt;reporter&lt;/a&gt;, that would generate nice HTML page like &lt;a href=&#34;https://lowlevelbits.org/IRTests/&#34;&gt;this one&lt;/a&gt;(Warning: Heavy page!).&lt;/p&gt;
+&lt;p&gt;Having an SQLite file is very handy: we could do different analysis of the same
+program without restarting potentially long running process.&lt;/p&gt;
+&lt;h2 id=&#34;nearest-plans&#34;&gt;Nearest Plans&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;add more test frameworks for C++&lt;/li&gt;
+&lt;li&gt;optimize algorithms to speed up the system&lt;/li&gt;
+&lt;li&gt;find a nice way to present reports&lt;/li&gt;
+&lt;li&gt;add more mutation operators&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;add Linux support&lt;/del&gt; done!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it&lt;/h2&gt;
+&lt;p&gt;Feel free to ask questions. There are must be many things I missed about the topic.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>LLVM-based Mutation Testing System. Request For Comments</title>
+        <link>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
+        <pubDate>Thu, 14 Apr 2016</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
+        <description>&lt;p&gt;Several years ago I discovered very powerful technique - &lt;a href=&#34;https://en.wikipedia.org/wiki/Mutation_testing&#34;&gt;Mutation Testing&lt;/a&gt;.
+Since then I was (and still am) dreaming to have a tool which will do the job for languages like C, Objective-C and C++.&lt;/p&gt;
+&lt;p&gt;Now I have confidence in that it can be implemented using LLVM.&lt;/p&gt;
+&lt;p&gt;Outline for this article:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;overview of mutation testing&lt;/li&gt;
+&lt;li&gt;mutation testing system - proof of concept&lt;/li&gt;
+&lt;li&gt;thoughts on potential implementation of MT system using LLVM&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h4 id=&#34;acknowledgements&#34;&gt;Acknowledgements&lt;/h4&gt;
+&lt;p&gt;I want to say &amp;rsquo;thanks&amp;rsquo; explicitly to &lt;a href=&#34;https://github.com/mbj&#34;&gt;Markus Schirp&lt;/a&gt; and &lt;a href=&#34;https://github.com/hcoles&#34;&gt;Henry Coles&lt;/a&gt; for their work on &lt;a href=&#34;https://github.com/mbj/mutant&#34;&gt;Mutant&lt;/a&gt; and &lt;a href=&#34;https://github.com/hcoles/pitest&#34;&gt;Pitest&lt;/a&gt; and hints they gave me several years ago.&lt;/p&gt;
+&lt;p&gt;Also, I want to say &amp;rsquo;thanks&amp;rsquo; to all the people involved into development of LLVM.&lt;/p&gt;
+&lt;h3 id=&#34;mutation-testing-in-a-nutshell&#34;&gt;Mutation Testing in a nutshell&lt;/h3&gt;
+&lt;p&gt;There is a strong belief that code coverage is a meaningful metric. That is incorrect.&lt;/p&gt;
+&lt;p&gt;Obviously, if code coverage is 0% then you have some problems. On the other hand having 100% code coverage means literally nothing.&lt;/p&gt;
+&lt;p&gt;Consider the following situation: you have a test case which covers implementation of a function &lt;code&gt;sum&lt;/code&gt;. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.&lt;/p&gt;
+&lt;p&gt;Here is the test:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;test_result &lt;span style=&#34;color:#a6e22e&#34;&gt;test_sum&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sum(&lt;span style=&#34;color:#ae81ff&#34;&gt;9&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (result &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; success;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; fail;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Implementation of the &lt;code&gt;sum&lt;/code&gt; function is rather simple. But, since you missed your morning coffee you write a wrong operator there:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; b;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You run the tests - everything is working.&lt;/p&gt;
+&lt;p&gt;You check code coverage - oh wow, 100%.&lt;/p&gt;
+&lt;p&gt;You didn&amp;rsquo;t spot the problem because you trust your tests. And because you rely on code coverage. Neither of these is acceptable.&lt;/p&gt;
+&lt;p&gt;This situation raises very valid question - &lt;strong&gt;who tests the tests?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;One of the answers is Mutation Testing.&lt;/p&gt;
+&lt;p&gt;The idea is that MT system generates lots of variations of a program under test (in this case function &lt;code&gt;sum&lt;/code&gt;) which are slightly different from original program. Then the system evaluates test against each mutant and check the result. If test failed, then mutant is killed, otherwise - it is survived.&lt;/p&gt;
+&lt;p&gt;Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.&lt;/p&gt;
+&lt;p&gt;Here is one potential mutation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; int sum(int a, int b) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;-  return a * b;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;+  return a + b;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition &lt;code&gt;sum(9, 5) &amp;gt; 0&lt;/code&gt; still holds.&lt;/p&gt;
+&lt;p&gt;This survived mutant should give a hint to developer that something is wrong.&lt;/p&gt;
+&lt;h3 id=&#34;proof-of-concept&#34;&gt;Proof of Concept&lt;/h3&gt;
+&lt;p&gt;&lt;strong&gt;I do claim that such a system can be built on top of LLVM using LLVM IR/bitcode, JIT and &lt;a href=&#34;https://lh6.googleusercontent.com/hY5_U3eO3lPP2fhwcZgCFHC9IpOomMR1YIXz4kDML1hpliTNmaZ5DLrTzyKq9RMAMIYwPocbSkzGiRSUrVzwpyHeSBxVDbR3MHK41bHiE7feidNeUOXqPrwfv1ZNb2tEWPR4msan&#34;&gt;ponies&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;So far I have managed to create a proof of concept which obviously lacks tons of features and skips lots of real problems.&lt;/p&gt;
+&lt;p&gt;Code is available &lt;a href=&#34;https://github.com/AlexDenisov/mutation-testing-poc&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;It is not intended to be runnable on your machine, since it uses &amp;lsquo;slightly forked&amp;rsquo; LLVM with couple of functions that were &amp;lsquo;missing&amp;rsquo;.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;So far it does very little:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;loads LLVM IR from bitcode files into memory&lt;/li&gt;
+&lt;li&gt;finds first test function&lt;/li&gt;
+&lt;li&gt;finds a function (testee) used from test function&lt;/li&gt;
+&lt;li&gt;replaces first occurrence of &amp;lsquo;+&amp;rsquo; with &amp;lsquo;-&amp;rsquo;&lt;/li&gt;
+&lt;li&gt;prints diff (using libgit2) between original and mutated function&lt;/li&gt;
+&lt;li&gt;runs test against original function and mutated function&lt;/li&gt;
+&lt;li&gt;compares test results, assuming mutant is killed when results are different&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I guess it doesn&amp;rsquo;t look impressive and mind-blowing.
+However, this proof of concept inspires me to start working on a real system, despite that it will take enormous amount of time since (almost) all this work I do in my spare time.&lt;/p&gt;
+&lt;h3 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h3&gt;
+&lt;p&gt;The next step actually is to start implementing the system that can be used in production.&lt;/p&gt;
+&lt;p&gt;Below you can see a high level overview of an algorithm I have in my head.
+It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Classes used within the algorithm
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Basic instruction, e.g. a + b */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Instruction&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Represents set of istructions in a single scope, e.g. if/else branch */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;BasicBlock&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; instructions : [Instruction]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Function is a function, that&amp;#39;s it */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Function&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; basicBlocks : [BasicBlock]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Representation of a source file */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Module&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; functions : [Function]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Shows instruction that needs to be mutated */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MutationPoint&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; instruction : Instruction
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; basicBlock : BasicBlock
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; function : Function
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; module : Module
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Algorithm
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Load all files into memory */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modules = loadProgramModules()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Find all functions that represent test
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    &amp;#39;testFinder&amp;#39; is an abstraction intended to hide language/framework specific logic.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Example classes are &amp;#39;CPP_GTest_TestFinder&amp;#39;, &amp;#39;ObjC_XCTest_TestFinder&amp;#39;,
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    &amp;#39;ObjC_Cedar_TestFinder&amp;#39; and so on.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tests = testFinder.findAllTests(modules)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; tests {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;      For each test we need to find a set of functions that can be mutated in some way
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; testeeFunctions = mutationFinder.findAllTesteeFunctions(test)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; testee &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; testeeFunctions {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        For each testee we do the following:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Testee belongs to a module, we need to make two copies of this module:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        one copy will contain only testee (moduleWithOriginal)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        another one will contain all functions but testee (moduleWithoutTesteeFunction)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Having this split we can mutate function inside of &amp;#39;moduleWithOriginal&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        without affecting and recompiling potentially big module
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithOriginal = copyOfModuleWithOnlyFunction(testee.module, testee)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithoutTesteeFunction = copyOfModuleWithoutFunction(testee.module, testee)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Now we can create JIT engine using all modules, excluding the module of testee.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        In fact the latter one if replaced by &amp;#39;moduleWithoutTesteeFunction&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modulesWithoutTesteeModule = modules.without(testee.module)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; executionEngine = executionEngineWithModules(modulesWithoutTesteeModule)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    executionEngine.addModule(moduleWithoutTesteeFunction)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Having JIT engine in place we can run the test against original implementation of testee
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    executionEngine.addModule(moduleWithOriginal)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; originalResult = executionEngine.runTest(test)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    executionEngine.removeModule(moduleWithOriginal)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Now we need to find all places where we can apply mutation
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationPoints = mutationFinder.findAllMutationPoints(functino)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; mutationPoints {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            And for each such place we are getting copy of &amp;#39;moduleWithOriginal&amp;#39;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            within applied mutation
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithMutation = applyMutationOnModule(point, moduleWithOriginal)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            Now we run the test against the mutant
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        executionEngine.addModule(moduleWithMutation)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationResult = executionEngine.runTest(test)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        executionEngine.removeModule(moduleWithMutation)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            And finally compare results
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        analyzeResults(originalResult, mutationResult)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As you can see the starting point here is a bitcode, which means the system is language agnostic.&lt;/p&gt;
+&lt;p&gt;However this approach has it&amp;rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.&lt;/p&gt;
+&lt;p&gt;Being able to re-run test just by replacing a module with mutated function gives an ability to increase performance drastically. However, execution may interrupt because of signal (segfault, bad access, etc.) or it may go into an infiinte loop. To fix those problems there might be a need to run each mutant as a separate process.&lt;/p&gt;
+&lt;p&gt;Besides that there are quite a few open questions such as:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;how to get bitcode for each translation unit (source file) automatically&lt;/li&gt;
+&lt;li&gt;how to compare test results of original and mutated program for different testing frameworks&lt;/li&gt;
+&lt;li&gt;how to deal with tests that are touching OS resources such as file system, I/O, etc&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Obviously, there are many more questions and problems that I&amp;rsquo;m not aware of yet.&lt;/p&gt;
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;LLVM gives us an ability to build a powerful, language and framework agnostic system for Mutation Testing.&lt;/p&gt;
+&lt;p&gt;I want to use this ability to build this tool and to get as much fun as possible.&lt;/p&gt;
+&lt;p&gt;Besides motivating myself by making this public commitment, this blog post has two other goals:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;get comments from people who are heavily involved in LLVM and/or mutation testing systems development&lt;/li&gt;
+&lt;li&gt;to attract people who may be willing to join the project when I have something to show&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If you have something to add or want to share your knowledge or concerns - please do it.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

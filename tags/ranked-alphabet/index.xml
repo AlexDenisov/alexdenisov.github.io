@@ -1,0 +1,241 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ranked alphabet on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/ranked-alphabet/</link>
+    <description>Recent content in ranked alphabet on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Tue, 28 Jan 2020 16:00:00 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Type Equality in LLVM</title>
+        <link>https://lowlevelbits.org/type-equality-in-llvm/</link>
+        <pubDate>Tue, 28 Jan 2020</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/type-equality-in-llvm/</guid>
+        <description>&lt;p&gt;Some months ago, I joined &lt;a href=&#34;https://www.shiftleft.io&#34;&gt;ShiftLeft Security&lt;/a&gt; to work on the LLVM support for the custom code analysis platform &lt;a href=&#34;https://www.shiftleft.io/ocular.html&#34;&gt;Ocular&lt;/a&gt;. During these months, we have faced and overcome several challenges.&lt;/p&gt;
+&lt;p&gt;Here I want to share one of them: Type Equality in LLVM.&lt;/p&gt;
+&lt;h2 id=&#34;intro&#34;&gt;Intro&lt;/h2&gt;
+&lt;p&gt;LLVM&amp;rsquo;s type system is a complicated topic. It attempts to solve problems that
+are not so obvious when you look at them from a high-level.
+Recently, I had a chance to dive deeper into the subject and discovered that
+while the current implementation makes some things more straightforward, some other parts are counter-intuitive and may not meet your expectations.&lt;/p&gt;
+&lt;p&gt;In this article, I want to describe some limitations of the LLVM type system and share how we solved one particular problem: detecting equivalent types in LLVM.
+The article is organized as follows: I start with the recap of the LLVM type system, followed by the problem statement,
+then describe how we attempted to solve the issue using existing LLVM features, and finally conclude with the solution we came up with.&lt;/p&gt;
+&lt;h2 id=&#34;llvm-type-system-recap&#34;&gt;LLVM Type System recap&lt;/h2&gt;
+&lt;p&gt;It is highly recommended to read this post from Chris Lattner explaining some of the
+considerations that were taken into account when the type system was revised around LLVM 3.0:
+&lt;a href=&#34;http://blog.llvm.org/2011/11/llvm-30-type-system-rewrite.html&#34;&gt;LLVM 3.0 Type System Rewrite&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Just a few random words on the current type system (if you didn&amp;rsquo;t read the linked article):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;types belong to an &lt;code&gt;LLVMContext&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;instances of each type allocated on the heap (e.g., &lt;code&gt;llvm::Type *type = new llvm::Type;&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;type comparison is done via pointer comparison&lt;/li&gt;
+&lt;li&gt;types in LLVM go into three groups: primitive types (integers, floats, etc.), derived types (structs, arrays, pointers, etc.), forward-declared types (opaque structs)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;problem-statement&#34;&gt;Problem Statement&lt;/h2&gt;
+&lt;p&gt;Consider the following example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Point.h
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; Point {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; y;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// foo.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;Point.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// use struct Point
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// bar.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;Point.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// use struct Point
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;When &lt;code&gt;foo.c&lt;/code&gt; and &lt;code&gt;bar.c&lt;/code&gt; compiled down to the LLVM IR (&lt;code&gt;foo.ll&lt;/code&gt; and &lt;code&gt;bar.ll&lt;/code&gt;) they both
+have the &lt;code&gt;struct Point&lt;/code&gt; defined as follows:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Though, when both IR files loaded in one context, the type names changed to prevent name collisions, so they end up being defined as&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We want to deduplicate such types.&lt;/p&gt;
+&lt;h2 id=&#34;our-failed-attempts&#34;&gt;Our (failed) attempts&lt;/h2&gt;
+&lt;p&gt;We made several attempts to solve the problem using simple heuristics and built-in LLVM features.&lt;/p&gt;
+&lt;p&gt;It went wrong in many ways.&lt;/p&gt;
+&lt;h3 id=&#34;types-with-the-same-name-are-the-same-type-false&#34;&gt;&amp;lsquo;Types with the same name are the same type&amp;rsquo; (false)&lt;/h3&gt;
+&lt;p&gt;This is a very simple heuristic:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If we strip the numeric suffix that is added by LLVM, then the types have the same name, and therefore they are the same.
+This is a good idea, but it does not work. This is a perfectly valid LLVM bitcode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;for which our heuristic does not apply.&lt;/p&gt;
+&lt;h3 id=&#34;primitive-types-equality&#34;&gt;Primitive Types Equality&lt;/h3&gt;
+&lt;p&gt;In LLVM, types belong to the &lt;code&gt;LLVMContext&lt;/code&gt;. Primitive types such as &lt;code&gt;int32&lt;/code&gt;, &lt;code&gt;float&lt;/code&gt;, or &lt;code&gt;double&lt;/code&gt; pre-allocated
+and then reused. In the context of &lt;code&gt;LLVMContext&lt;/code&gt; (pun intended), you can only create one instance of a primitive type.
+With this solution, it is easy to check if types are the same - simply compare the pointers.&lt;/p&gt;
+&lt;p&gt;However, this solution cannot work if you want to compare types from different contexts.
+According to LLVM, &lt;code&gt;int32&lt;/code&gt; from one &lt;code&gt;LLVMContext&lt;/code&gt; differs from &lt;code&gt;int32&lt;/code&gt; from another &lt;code&gt;LLVMContext&lt;/code&gt;,
+even though they are the same type according to intuition.&lt;/p&gt;
+&lt;h3 id=&#34;struct-types-equality&#34;&gt;Struct Types Equality&lt;/h3&gt;
+&lt;p&gt;This situation gets even more complicated when it comes to identified (named) structs.&lt;/p&gt;
+&lt;p&gt;Consider the same example I gave initially.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Point.h
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; Point {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; y;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// foo.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;Point.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// use struct Point
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// bar.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;#34;Point.h&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// use struct Point
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So far so good, but as mentioned previously, LLVM keeps both types and renames one of them to prevent name collisions:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-ll&#34; data-lang=&#34;ll&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Even though these are the same types from a user perspective, they are very different from the LLVM&amp;rsquo;s point of view.
+Therefore, we cannot use pointer comparison: the types are distinct and point to different memory regions.
+In this case, the best we can do is to compare the layout of the types and consider them equal if the layouts are identical.&lt;/p&gt;
+&lt;p&gt;The good part is that LLVM has a function for that: &lt;a href=&#34;https://llvm.org/doxygen/classllvm_1_1StructType.html#ab45c5514ecd4390e8702c69b19705742&#34;&gt;llvm::StructType::isLayoutIdentical&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The bad part is that this function is broken. Consider the following example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-ll&#34; data-lang=&#34;ll&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.wrapper = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.Point }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.wrapper.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.Point.0 }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;According to LLVM, the layouts of &lt;code&gt;struct.Point&lt;/code&gt; and &lt;code&gt;struct.Point.0&lt;/code&gt; are identical, while the layouts of &lt;code&gt;struct.wrapper&lt;/code&gt; and
+&lt;code&gt;struct.wrapper.0&lt;/code&gt; are not: &lt;code&gt;isLayoutIdentical&lt;/code&gt; returns &lt;code&gt;true&lt;/code&gt; only when all the type elements of the struct are equal.
+And this equality is checked via pointer comparison.&lt;/p&gt;
+&lt;h3 id=&#34;irlinkerllvm-link&#34;&gt;&lt;code&gt;IRLinker&lt;/code&gt;/&lt;code&gt;llvm-link&lt;/code&gt;&lt;/h3&gt;
+&lt;p&gt;LLVM has a class that merges two modules into one: &lt;code&gt;IRLinker&lt;/code&gt;. LLVM also comes with a CLI tool &lt;code&gt;llvm-link&lt;/code&gt;, which does the same.
+The &lt;code&gt;IRLinker&lt;/code&gt; works fine, but far away from being good: it drops important information.&lt;/p&gt;
+&lt;p&gt;The following IR after running through &lt;code&gt;IRLinker&lt;/code&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Tuple = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;becomes&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.Point = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;dropping the other struct since both have the same layout.
+We don&amp;rsquo;t want to lose this information.&lt;/p&gt;
+&lt;p&gt;Moreover, &lt;code&gt;IRLinker&lt;/code&gt; does another kind of magic that may introduce types that never existed at the source code level.
+This is what I&amp;rsquo;ve seen after running &lt;code&gt;llvm-link&lt;/code&gt; on the XNU kernel bitcode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.tree_desc_s = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %struct.ct_data_s*,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %struct.mach_msg_body_t*
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.tree_desc_s.79312 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %struct.ct_data_s*,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;,
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %struct.static_tree_desc_s*
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Notice the different types of the third element: &lt;code&gt;struct.mach_msg_body_t*&lt;/code&gt; vs &lt;code&gt;struct.static_tree_desc_s&lt;/code&gt;, even though there is only one definition of &lt;code&gt;tree_desc_s&lt;/code&gt; at the source code level:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; tree_desc_s {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ct_data &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;dyn_tree;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;     max_code;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  static_tree_desc &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;stat_desc;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;So the &lt;code&gt;IRLinker&lt;/code&gt; did something odd, at which point I gave up all the attempts to understand how it works and what it does.&lt;/p&gt;
+&lt;h2 id=&#34;our-solution-to-this-problem&#34;&gt;Our solution to this problem&lt;/h2&gt;
+&lt;p&gt;I could not find any other solution to the problem, so we decided to roll out our own.&lt;/p&gt;
+&lt;h3 id=&#34;a-bit-of-background&#34;&gt;A bit of background&lt;/h3&gt;
+&lt;p&gt;Our implementation is inspired by &lt;a href=&#34;https://en.wikipedia.org/wiki/Tree_automaton&#34;&gt;Tree Automata&lt;/a&gt; and &lt;a href=&#34;https://en.wikipedia.org/wiki/Ranked_alphabet&#34;&gt;Ranked Alphabets&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here is a short description: a ranked alphabet consists of a finite set of symbols &lt;code&gt;F&lt;/code&gt;, and a function &lt;code&gt;Arity(f)&lt;/code&gt;, where &lt;code&gt;f&lt;/code&gt; belongs to the set &lt;code&gt;F&lt;/code&gt;.
+The &lt;code&gt;Arity&lt;/code&gt; tells how many arguments a symbol &lt;code&gt;f&lt;/code&gt; has. Symbols can be constant, unary, binary, ternary, or n-ary.&lt;/p&gt;
+&lt;p&gt;Here is an example of the notation: &lt;code&gt;a&lt;/code&gt;, &lt;code&gt;b&lt;/code&gt;, &lt;code&gt;f(,)&lt;/code&gt;, &lt;code&gt;g()&lt;/code&gt;, &lt;code&gt;h(,,,,)&lt;/code&gt;. &lt;code&gt;a&lt;/code&gt; and &lt;code&gt;b&lt;/code&gt; are constants, &lt;code&gt;f(,)&lt;/code&gt; is binary, &lt;code&gt;g()&lt;/code&gt; is unary, and &lt;code&gt;h(,,,,)&lt;/code&gt; is n-ary.
+The arity of each symbol is 0, 0, 2, 1, and 5, respectively.&lt;/p&gt;
+&lt;p&gt;Given the alphabet &lt;code&gt;a&lt;/code&gt;, &lt;code&gt;b&lt;/code&gt;, &lt;code&gt;f(,)&lt;/code&gt;, &lt;code&gt;g()&lt;/code&gt; we can construct a number of trees:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;f(a, b)&lt;/li&gt;
+&lt;li&gt;g(b)&lt;/li&gt;
+&lt;li&gt;g(f(b, b))&lt;/li&gt;
+&lt;li&gt;f(g(a), f(f(a, a), b))&lt;/li&gt;
+&lt;li&gt;f(g(a), g(f(a, a)))&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;etc.&lt;/p&gt;
+&lt;p&gt;If we know the arity of each symbol, then we can omit parentheses and commas and write the tree as a string.
+The tree is constructed in the depth-first order, here are the same examples as above, but in the string notation:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;fab&lt;/li&gt;
+&lt;li&gt;gb&lt;/li&gt;
+&lt;li&gt;gfbb&lt;/li&gt;
+&lt;li&gt;fgaffaab&lt;/li&gt;
+&lt;li&gt;fgagfaa&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Here is a more comprehensive example:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The arrows show the depth-first order.&lt;/p&gt;
+&lt;p&gt;We can map our type equivalence problem on the ranked alphabet/tree automaton concepts.&lt;/p&gt;
+&lt;h3 id=&#34;type-equality&#34;&gt;Type Equality&lt;/h3&gt;
+&lt;p&gt;We consider each type to be a symbol, and its arity is the number of properties we want to compare. Then, we build a tree of the type and convert it to the string representation.
+If two types have the same string representation, then they are equal.&lt;/p&gt;
+&lt;p&gt;Some examples:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;i32&lt;/code&gt;, &lt;code&gt;i64&lt;/code&gt;, &lt;code&gt;i156&lt;/code&gt;: symbol &lt;code&gt;I&lt;/code&gt;, arity is 1 since we only care about bitwidth (e.g., 32, 64, 156)&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;float&lt;/code&gt;: symbol &lt;code&gt;F&lt;/code&gt;, arity is 0, all &lt;code&gt;float&lt;/code&gt; types are the same&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;[16 x i32]&lt;/code&gt;: symbol &lt;code&gt;A&lt;/code&gt;, arity is 2, we care only about the length of the array and its element type&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;i8*&lt;/code&gt;: symbol &lt;code&gt;P&lt;/code&gt;, arity is 1, we care only about the pointee type&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;{ i32, [16 x i8], i8* }&lt;/code&gt;: symbol &lt;code&gt;S&lt;/code&gt;, arity is number of elements + 2. We want to store the struct ID and number of its elements.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;If we care about more or fewer values, then we can simply change the arity for a given symbol.
+Examples of types represented as a tree:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;i32&lt;/code&gt; -&amp;gt; &lt;code&gt;I(32)&lt;/code&gt; -&amp;gt; &lt;code&gt;I32&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;i177&lt;/code&gt; -&amp;gt; &lt;code&gt;I(177)&lt;/code&gt; -&amp;gt; &lt;code&gt;I177&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;[16 x i8*]&lt;/code&gt; -&amp;gt; &lt;code&gt;A(16, P(I(8)))&lt;/code&gt; -&amp;gt; &lt;code&gt;A16PI8&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;{ i32, i8*, float }&lt;/code&gt; -&amp;gt; &lt;code&gt;S(3, S0, I(32), P(I(8)), F)&lt;/code&gt; -&amp;gt; &lt;code&gt;S3S0I32PI8F&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note: the values in &lt;code&gt;S&lt;/code&gt; are the number of elements (3), struct ID (&lt;code&gt;S0&lt;/code&gt;), and all its contained types defined recursively.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Same types, but represented graphically:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;structural-equality&#34;&gt;Structural Equality&lt;/h3&gt;
+&lt;p&gt;Above, I mentioned the &lt;code&gt;struct ID&lt;/code&gt;. We need it to define the structural equality for recursive types.
+Consider the following example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%list = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %list*, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%node = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %node*, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%root = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %node*, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;All of the above structs have the same layout: a pointer + an integer. But we do not consider them all to be equal.
+By our definition of equality the following holds:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;list &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; node
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; node
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; list
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The reasoning is simple: the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; has the same layout and the same structure (recursive), while &lt;code&gt;root&lt;/code&gt; has another structure.&lt;/p&gt;
+&lt;p&gt;Here is a graphical representation to highlight the idea. If we discard the struct titles, then it&amp;rsquo;s clear the first two are equal while the third one is distinct.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;To take the structure into account and to make the equality hold, we do not use the names of the structures, but before building the tree, we assign them symbolic names or IDs.
+So both the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; encoded as the following: &lt;code&gt;S(2, S0, P(S(2, S0, x, x), I(32))&lt;/code&gt; where &lt;code&gt;S0&lt;/code&gt; is the struct ID. To terminate the recursion we do not re-emit types for the structure that has already been emitted, but we do emit symbols &lt;code&gt;x&lt;/code&gt; instead (otherwise we won&amp;rsquo;t respect the arity of the struct).&lt;/p&gt;
+&lt;p&gt;The &lt;code&gt;root&lt;/code&gt; is defined as follows &lt;code&gt;S(2, S0, P(S(2, S1, P(S(2, S1, x, x), I(32), I(32))), I(32))&lt;/code&gt; please note the nestedness and &lt;code&gt;S0&lt;/code&gt; and &lt;code&gt;S1&lt;/code&gt; struct IDs.&lt;/p&gt;
+&lt;p&gt;Given these two encodings, the comparison above holds.&lt;/p&gt;
+&lt;h3 id=&#34;opaque-struct-equality&#34;&gt;Opaque Struct Equality&lt;/h3&gt;
+&lt;p&gt;Comparing opaque structs is as easy as the comparison of infinities. It&amp;rsquo;s totally up to us how we define this property.&lt;/p&gt;
+&lt;p&gt;The right and sound approach is to say that the opaque struct equals only to itself, but we need to do better than this.&lt;/p&gt;
+&lt;p&gt;For opaque structs, we also use symbolic names. But different opaque structs get the same symbolic name as soon as they have the same canonical name.&lt;/p&gt;
+&lt;p&gt;Example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.A = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;opaque&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.A.0 = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;opaque&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%struct.B = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;opaque&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%foo = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.A* }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%bar = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.A.0* }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%buzz = &lt;span style=&#34;color:#66d9ef&#34;&gt;type&lt;/span&gt; { %struct.B* }
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here, the canonical names for the opaque structs are &lt;code&gt;A&lt;/code&gt; (&lt;code&gt;%struct.A&lt;/code&gt;, &lt;code&gt;%struct.A.0&lt;/code&gt;) and &lt;code&gt;B&lt;/code&gt; (&lt;code&gt;%struct.B&lt;/code&gt;).
+Therefore, we treat the &lt;code&gt;%struct.A&lt;/code&gt; and &lt;code&gt;%struct.A.0&lt;/code&gt; as equal, while &lt;code&gt;%struct.B&lt;/code&gt; is not equal to the either of &lt;code&gt;A&lt;/code&gt;s.
+Even though all of the 3 structs can point to the same type or completely different types.&lt;/p&gt;
+&lt;h3 id=&#34;letters-symbols-and-ids&#34;&gt;Letters, symbols, and IDs&lt;/h3&gt;
+&lt;p&gt;While IMO, letters and symbols are easier to work with for a human being, I implemented all the encodings as vectors of numbers.
+It is then easy to get a hash of such vector and add some memoization for better performance, even though I didn&amp;rsquo;t spend any time measuring and looking for bottlenecks.&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;To conclude, I&amp;rsquo;d say that one should not rely on the built-in capabilities of LLVM to compare types. In fact, &lt;code&gt;IRLinker&lt;/code&gt; uses a very different algorithm.&lt;/p&gt;
+&lt;p&gt;The algorithm I described has drawbacks, and I probably missed some edge cases. But anyway, I would love to get some feedback on it, and I hope it may help someone who gets into a similar situation.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

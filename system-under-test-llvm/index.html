@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>System Under Test: LLVM - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="llvm ,tests ,fuzz testing ,unit testing ,performance testing ,regression testing" />
+  
+
+  
+  <meta name="description" content="This article provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level." />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="System Under Test: LLVM" />
+<meta name="twitter:description" content="This article provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level." />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/system-under-test-llvm/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>System Under Test: LLVM</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2016-03-24 23:18:29 &#43;0100 CET" pubdate>Mar 24, 2016</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p><strong>UPD:</strong> The series of blog-posts &ldquo;System Under Test&rdquo; became a full-fledged project and has moved to its own <a href="http://systemundertest.org">domain</a>. The most recent version of this article lives <a href="http://systemundertest.org/llvm">here</a> now.</p>
+<p>This article is part of series <a href="http://lowlevelbits.org/system-under-test">&ldquo;System Under Test&rdquo;</a>. It provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level.</p>
+<h3 id="what-is-llvm-about">What is LLVM about?</h3>
+<p><a href="http://llvm.org">http://llvm.org</a> says that</p>
+<blockquote>
+<p>The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.</p>
+</blockquote>
+<p>It is not that much I can add here besides one link:</p>
+<p><a href="http://aosabook.org/en/llvm.html">The Architecture of Open Source Applications: LLVM</a> by Chris Lattner.</p>
+<p>which sheds light on compilers in general and LLVM particularly.</p>
+<p>LLVM is rather an umbrella project than a single project. It consists of compiler, debugger, linker, assemblers for several CPUs and of the most important - its Core: back-end and middle-end.</p>
+<p>In this article I refer to LLVM as a back-end + middle-end, rather than the whole umbrella (that would be too much for one post).</p>
+<h3 id="tests">Tests</h3>
+<p>LLVM is a huge project. Therefore it has quite a few groups of tests: unit tests, regression tests, performance tracking and fuzzing tests.
+Since the project is not trivial the tools used for testing are mostly written from scratch and are part of LLVM project.
+Though, I wish I could use some of them without having LLVM as their dependency.</p>
+<h4 id="unit-tests">Unit Tests</h4>
+<p>Amount of unit tests is pretty small comparing to regression tests.
+One reason behind that decision is that LLVM internals constantly change all the time. Supporting tests under such conditions is very time consuming.
+However there are still parts that do not change very often, that is they are good target for unit testing.
+These tests are located in &lsquo;unittests&rsquo; directory.</p>
+<p>They can be run using <code>make</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make check-llvm-unit
+</span></span></code></pre></div><p>Showing this beautiful output:</p>
+<p><!-- raw HTML omitted --></p>
+<p>As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.</p>
+<p>Unit Tests are written using <a href="https://github.com/google/googletest">Google Test</a> framework.
+Here is an example of a simple test:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// unittests/Support/YAMLParserTest.cpp
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
+</span></span><span style="display:flex;"><span>  SourceMgr SM;
+</span></span><span style="display:flex;"><span>  yaml<span style="color:#f92672">::</span>Stream Stream(<span style="color:#e6db74">&#34;[</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">1</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">, </span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">2</span><span style="color:#ae81ff">\&#34;</span><span style="color:#e6db74">]&#34;</span>, SM);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  yaml<span style="color:#f92672">::</span>SequenceNode <span style="color:#f92672">*</span>Node <span style="color:#f92672">=</span> dyn_cast<span style="color:#f92672">&lt;</span>yaml<span style="color:#f92672">::</span>SequenceNode<span style="color:#f92672">&gt;</span>(
+</span></span><span style="display:flex;"><span>                                              Stream.begin()<span style="color:#f92672">-&gt;</span>getRoot());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">auto</span> Begin <span style="color:#f92672">=</span> Node<span style="color:#f92672">-&gt;</span>begin();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">auto</span> End <span style="color:#f92672">=</span> Node<span style="color:#f92672">-&gt;</span>end();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  EXPECT_TRUE(Begin <span style="color:#f92672">!=</span> End);
+</span></span><span style="display:flex;"><span>  EXPECT_FALSE(Begin <span style="color:#f92672">!=</span> Begin);
+</span></span><span style="display:flex;"><span>  EXPECT_FALSE(End <span style="color:#f92672">!=</span> End);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Pretty trivial.
+Let&rsquo;s move forward and look at another, more interesting group of tests.</p>
+<h4 id="regression-tests">Regression Tests</h4>
+<p>The aim of this test suite is to verify the output of different tools, hence the internals can change separately from tests, making support less time-consuming.
+This test suite located in <code>test</code> directory.
+It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
+It takes about 4 minutes to run on my machine using 4 threads.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make check-llvm
+</span></span></code></pre></div><p>The output is pretty similar to one above:</p>
+<p><!-- raw HTML omitted --></p>
+<p>Regression Tests (unlike Unit Tests) are using custom tools such as <a href="http://llvm.org/docs/CommandGuide/lit.html">lit (LLVM Integrated Tester)</a> and <a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a>.
+Let&rsquo;s look at simple test to illustrate how it works:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span><span style="color:#75715e">; RUN: %lli %s | FileCheck %s
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>@flt = <span style="color:#66d9ef">internal</span> <span style="color:#66d9ef">global</span> <span style="color:#66d9ef">float</span> <span style="color:#ae81ff">12.0e+0</span>
+</span></span><span style="display:flex;"><span>@str = <span style="color:#66d9ef">internal</span> <span style="color:#66d9ef">constant</span> [<span style="color:#ae81ff">18</span> <span style="color:#66d9ef">x</span> <span style="color:#66d9ef">i8</span>] <span style="color:#66d9ef">c</span><span style="color:#e6db74">&#34;Double value: %f\0A\00&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">declare</span> <span style="color:#66d9ef">i32</span> @printf(<span style="color:#66d9ef">i8</span>* <span style="color:#66d9ef">nocapture</span>, ...) <span style="color:#66d9ef">nounwind</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">declare</span> <span style="color:#66d9ef">i32</span> @fflush(<span style="color:#66d9ef">i8</span>*) <span style="color:#66d9ef">nounwind</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">define</span> <span style="color:#66d9ef">i32</span> @main() {
+</span></span><span style="display:flex;"><span>  %flt = <span style="color:#66d9ef">load</span> <span style="color:#66d9ef">float</span>, <span style="color:#66d9ef">float</span>* @flt
+</span></span><span style="display:flex;"><span>  %float2 = <span style="color:#66d9ef">frem</span> <span style="color:#66d9ef">float</span> %flt, <span style="color:#ae81ff">5.0</span>
+</span></span><span style="display:flex;"><span>  %double1 = <span style="color:#66d9ef">fpext</span> <span style="color:#66d9ef">float</span> %float2 <span style="color:#66d9ef">to</span> <span style="color:#66d9ef">double</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">call</span> <span style="color:#66d9ef">i32</span> (<span style="color:#66d9ef">i8</span>*, ...) @printf(<span style="color:#66d9ef">i8</span>* <span style="color:#66d9ef">getelementptr</span> ([<span style="color:#ae81ff">18</span> <span style="color:#66d9ef">x</span> <span style="color:#66d9ef">i8</span>], [<span style="color:#ae81ff">18</span> <span style="color:#66d9ef">x</span> <span style="color:#66d9ef">i8</span>]* @str, <span style="color:#66d9ef">i32</span> <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">i64</span> <span style="color:#ae81ff">0</span>), <span style="color:#66d9ef">double</span> %double1)
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">call</span> <span style="color:#66d9ef">i32</span> @fflush(<span style="color:#66d9ef">i8</span>* <span style="color:#66d9ef">null</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">ret</span> <span style="color:#66d9ef">i32</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">; CHECK: Double value: 2.0
+</span></span></span></code></pre></div><p>This test can be split into three parts:</p>
+<p>Run command (the top line):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span><span style="color:#75715e">; RUN: %lli %s | FileCheck %s
+</span></span></span></code></pre></div><p>Expectations (the bottom line):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span><span style="color:#75715e">; CHECK: Double value: 2.0
+</span></span></span></code></pre></div><p>The rest (LLVM IR in the middle) is the body.</p>
+<p>All tests in this suite have one or more &lsquo;run&rsquo; command.
+<code>lit</code> uses set of rules to substitute the string into real runnable command. Substitutions are either built-in (such as <code>%s</code>) or configurable (such as <code>%lli</code>).
+<code>lit</code> replaces <code>%s</code> with the full path to a file under test, e.g.:</p>
+<pre tabindex="0"><code>~/llvm/test/ExecutionEngine/frem.ll
+</code></pre><p>Configurable substitutions however are taken from <code>lit.cfg</code> file, which is basically a Python script.</p>
+<p>For example, this config says that <code>%lli</code> is to be replaced with <code>/usr/local/bin/lli</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>lli <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;/usr/local/bin/lli&#39;</span>
+</span></span><span style="display:flex;"><span>config<span style="color:#f92672">.</span>substitutions<span style="color:#f92672">.</span>append( (<span style="color:#e6db74">&#39;%lli&#39;</span>, lli ) )
+</span></span></code></pre></div><p>Having these parameters in place <code>lit</code> will run the test using this command:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
+</span></span></code></pre></div><p>Which will interpret <code>frem.ll</code> using LLVM Interpreter (<code>lli</code>) and pass the output to the <code>FileCheck</code>. <code>FileCheck</code> in turn takes two arguments: filename with expectations and input that needs to be examined.</p>
+<p>Summary of this example:</p>
+<p>The test interprets the body (LLVM IR) from <code>~/llvm/test/ExecutionEngine/frem.ll</code> using LLVM Interpreter (<code>%lli</code> aka <code>/usr/local/bin/lli</code>) and checks if the output of interpretation contains string <code>Double value: 2.0</code>.</p>
+<p>Both <code>lit</code> and <code>FileCheck</code> have lots of useful options. Consider looking at documentation to learn more.</p>
+<p><em><strong>upd 22.06.16:</strong></em>
+As Daniel Dunbar <a href="https://twitter.com/daniel_dunbar/status/745285660626452480">mentioned</a> it possible to use <code>lit</code> without LLVM, simply by installing it using <code>pip</code>: <code>pip install lit</code></p>
+<h4 id="performance-tracking">Performance tracking</h4>
+<p>Performance is one of the most important goals of any software. LLVM is not an exception.</p>
+<p>Here LLVM also uses custom tool - <a href="http://llvm.org/docs/lnt/intro.html">LNT</a>. This tool was initially written to be used inside LLVM, but its design allows it to be usable for performance testing of any other software.</p>
+<p><a href="http://llvm.org/docs/TestingGuide.html#test-suite-overview">Performance tests suite</a> is not a part of LLVM source tree. It has to be fetched separately. It is a set of programs that are compiled and executed to track performance changes.</p>
+<p>Besides <code>LNT</code> the test suite can be used within CMake as described in <a href="http://llvm.org/docs/TestSuiteMakefileGuide.html">LLVM test-suite Guide</a></p>
+<p>At the moment of writing this article external test suite contains 485 test cases. It takes ~5 minutes to run them using <code>lit</code>.</p>
+<h4 id="fuzz-testing">Fuzz Testing</h4>
+<p>Another powerful technique used to increase quality of LLVM is <a href="https://en.wikipedia.org/wiki/Fuzz_testing">Fuzz Testing</a>.</p>
+<p>Here as well LLVM has its own tool called <a href="http://llvm.org/docs/LibFuzzer.html">LibFuzzer</a>.
+The tool is so great that it is also used by <a href="http://llvm.org/docs/LibFuzzer.html#trophies">other software</a> such as Python, PCRE, OpenSSL, SQLite, and other.</p>
+<p>Here is an example of a fuzz test:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">extern</span> <span style="color:#e6db74">&#34;C&#34;</span> <span style="color:#66d9ef">int</span> LLVMFuzzerTestOneInput(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">uint8_t</span> <span style="color:#f92672">*</span>Data, size_t Size) {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Allocate space for locals before setjmp so that memory can be collected
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// if parse exits prematurely (via longjmp).
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  StringRef Input((<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)Data, Size);
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Note: We need to create a buffer to add a null terminator to the
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// end of the input string. The parser assumes that the string
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// parsed is always null terminated.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  std<span style="color:#f92672">::</span>unique_ptr<span style="color:#f92672">&lt;</span>MemoryBuffer<span style="color:#f92672">&gt;</span> MemBuf <span style="color:#f92672">=</span> MemoryBuffer<span style="color:#f92672">::</span>getMemBufferCopy(Input);
+</span></span><span style="display:flex;"><span>  SMDiagnostic Err;
+</span></span><span style="display:flex;"><span>  LLVMContext <span style="color:#f92672">&amp;</span>Context <span style="color:#f92672">=</span> getGlobalContext();
+</span></span><span style="display:flex;"><span>  std<span style="color:#f92672">::</span>unique_ptr<span style="color:#f92672">&lt;</span>Module<span style="color:#f92672">&gt;</span> M;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (setjmp(JmpBuf))
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// If reached, we have returned with non-zero status, so exit.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// TODO(kschimpf) Write a main to do this initialization.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>InstalledHandler) {
+</span></span><span style="display:flex;"><span>    llvm<span style="color:#f92672">::</span>install_fatal_error_handler(<span style="color:#f92672">::</span>MyFatalErrorHandler, nullptr);
+</span></span><span style="display:flex;"><span>    InstalledHandler <span style="color:#f92672">=</span> true;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  M <span style="color:#f92672">=</span> parseAssembly(MemBuf<span style="color:#f92672">-&gt;</span>getMemBufferRef(), Err, Context);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>M.get())
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  verifyModule(<span style="color:#f92672">*</span>M.get());
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>LibFuzzer</code> generates huge amount of different inputs using <a href="https://en.wikipedia.org/wiki/Genetic_programming">Genetic programming</a> and calls <code>LLVMFuzzerTestOneInput</code> within each input.
+This test then tries to parse the input as an assembly. The parser should not crash.</p>
+<p>At the moment there are two targets for fuzz testing within LLVM source tree: <code>llvm-as-fuzzer</code> and <code>llvm-mc-fuzzer</code>. They are located in <code>tools</code> directory.</p>
+<h3 id="summary">Summary</h3>
+<p>LLVM uses a few test suites for different needs.
+There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run both tests in Debug mode on 2 y/o MacBook Pro using 4 threads.</p>
+<p>LLVM uses Fuzzing Tests to prevent system from abnormal exit when erroneous input received.</p>
+<p>LLVM has out-of-source-tree test-suite for performance tracking.</p>
+<p>LLVM mostly uses custom tools for testing.</p>
+<h3 id="further-reading--additional-material">Further Reading / Additional Material</h3>
+<ul>
+<li><a href="http://llvm.org/docs/TestingGuide.html">LLVM Testing Infrastructure Guide</a></li>
+<li><a href="http://llvm.org/docs/CommandGuide/lit.html">LLVM Integrated Tester</a></li>
+<li><a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a></li>
+<li><a href="http://llvm.org/docs/LibFuzzer.html">LibFuzzer</a></li>
+<li><a href="http://llvm.org/docs/TestSuiteMakefileGuide.html">LLVM test-suite Guide</a></li>
+<li><a href="http://llvm.org/docs/lnt/quickstart.html">LNT Quickstart Guide</a></li>
+</ul>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

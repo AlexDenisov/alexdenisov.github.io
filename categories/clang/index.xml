@@ -1,0 +1,251 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>clang on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/categories/clang/</link>
+    <description>Recent content in clang on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Sat, 05 Sep 2015 12:25:00 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Bitcode Demystified</title>
+        <link>https://lowlevelbits.org/bitcode-demystified/</link>
+        <pubDate>Sat, 05 Sep 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
+        <description>&lt;p&gt;A few months ago Apple announced a &amp;rsquo;new feature,&amp;rsquo; called &amp;lsquo;Bitcode.&amp;rsquo; In this article, I will try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.&lt;/p&gt;
+&lt;h2 id=&#34;what-is-bitcode&#34;&gt;What is Bitcode?&lt;/h2&gt;
+&lt;p&gt;To answer this question let&amp;rsquo;s look at what compilers do for us. Here is a brief overview of compilation process:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Lexer&lt;/code&gt;: takes source code as an input and translates it into a stream of tokens;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Parser&lt;/code&gt;: takes stream of tokens as an input and translates it into an &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;AST&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Semantic Analysis&lt;/code&gt;: takes an AST as an input, checks if a program is correct (method called with correct amount of parameters, method called on object actually exists and non-private, etc.), fills in &amp;lsquo;missing types&amp;rsquo; (e.g.: &lt;code&gt;let x = y&lt;/code&gt;, &lt;code&gt;x&lt;/code&gt; has type of &lt;code&gt;y&lt;/code&gt;) and passes AST to the next phase;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Code Generation&lt;/code&gt;: takes an AST as an input and emits some high-level IR (intermediate representation);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Optimization&lt;/code&gt;: takes IR, makes optimizations and emits IR which is potentially faster and/or smaller;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AsmPrinter&lt;/code&gt;: another code generation phase, it takes IR and emits assembly for particular CPU;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Assembler&lt;/code&gt;: takes assembly and converts it into an object code (stream of &lt;code&gt;0&lt;/code&gt;s and &lt;code&gt;1&lt;/code&gt;s);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Linker&lt;/code&gt;: usually programs refer to already compiled routines from other programs (e.g.: &lt;code&gt;printf&lt;/code&gt;) to avoid recompilation of the same code over and over. Until this phase these links do not have correct addresses, they are just placeholders. Linker&amp;rsquo;s job is to resolve those placeholders so that they point to the correct addresses of their corresponding routines.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;You can find more details here: &lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;In the modern world these phases are split into two parts: &lt;strong&gt;&lt;code&gt;compiler frontend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;lexer&lt;/code&gt;, &lt;code&gt;parser&lt;/code&gt;, &lt;code&gt;semantic analysis&lt;/code&gt;, &lt;code&gt;code generation&lt;/code&gt;) and &lt;strong&gt;&lt;code&gt;compiler backend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;optimization&lt;/code&gt;, &lt;code&gt;asm printer&lt;/code&gt;, &lt;code&gt;assembler&lt;/code&gt;, &lt;code&gt;linker&lt;/code&gt;). This separation makes much sense for both language designers and hardware manufacturers. If you want to create a new programming language you &amp;lsquo;just&amp;rsquo; need to implement a frontend, and you get all available optimizations and support of different CPUs for free. On the other hand, if you created a new chip, you &amp;lsquo;just&amp;rsquo; need to extend the backend and you get all the available languages (frontends) support for your CPU.&lt;/p&gt;
+&lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM &lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;has it is own&lt;/a&gt; format, that can be encoded using LLVM bitstream file format - &lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;Bitcode&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Just to recall it explicitly - &lt;strong&gt;Bitcode is a bitstream representation of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-apples-bitcode-aims-to-solve&#34;&gt;What problems Apple&amp;rsquo;s Bitcode aims to solve?&lt;/h2&gt;
+&lt;p&gt;Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend reading this article: &lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run a program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you run a program, OS reads the &amp;lsquo;Table Of Contents&amp;rsquo; and looks for a slice corresponding to the OS CPU.
+For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, then OS will load object code for &lt;code&gt;x86_64&lt;/code&gt; into a memory and run the program.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s happening with other slices? Nothing, they just waste your disk space.&lt;/p&gt;
+&lt;p&gt;This is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt; CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for &lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt;, so you can use them to test the app on a device or simulator. (Can you imagine how many copies of Google Analytics for &lt;code&gt;i386&lt;/code&gt; you have in your pocket?)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; I do not know why, but I was sure that final executable contains these slices as well (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, etc.), but it seems they are stripped during the build phase.&lt;/p&gt;
+&lt;p&gt;Apple did not give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you submit an app (including Bitcode) Apple&amp;rsquo;s &amp;lsquo;BlackBox&amp;rsquo; recompiles it for each supported platform and drops any &amp;lsquo;useless&amp;rsquo; object code, so AppStore has a copy of the app for each CPU. When an end user wants to install the app - she installs the only version for the particular processor, without any unused stuff.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bitcode might save up to 50% of disk space per program.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; Of course, I do not take in count resources, it is just about binary itself. For instance, an app I am working on currently has size ~40 megabytes (including assets, xibs. fonts), a size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them, it will decrease the size of the app by ~20%.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-do-bitcode-introduce&#34;&gt;What problems do Bitcode introduce?&lt;/h2&gt;
+&lt;p&gt;The idea of Bitcode and recompiling for each platform looks really great, and it is a huge improvement, though it has downsides as well: the biggest one is security.&lt;/p&gt;
+&lt;p&gt;To get the benefits of Bitcode, you should submit your app including Bitcode (surprisingly). If you use some proprietary third-party library, then it also should contain Bitcode, hence as a maintainer of a proprietary library, you should distribute the library with Bitcode.&lt;/p&gt;
+&lt;p&gt;To recall: &lt;strong&gt;Bitcode is just another form of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fmt, ...);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Run the following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;clang -S -emit-llvm main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;@.str = &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; Function Attrs: nounwind ssp uwtable
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @main() #0 {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = &lt;span style=&#34;color:#66d9ef&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;* %1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...) #1
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
+&lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
+&lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ bitcode_retriever some_binary
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x86_64.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ xar -xvf arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 1.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 2.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
+Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Another potential issue (can&amp;rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.&lt;/p&gt;
+&lt;p&gt;I know only one way to secure the IR - &lt;!-- raw HTML omitted --&gt;obfuscation&lt;!-- raw HTML omitted --&gt;. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Bitcode is a bitstream file format for LLVM IR&lt;/li&gt;
+&lt;li&gt;one of its goals is to decrease a size of an app by eliminating unused object code&lt;/li&gt;
+&lt;li&gt;malefactor can obtain your app or library, retrieve the IR from it and steal your &amp;lsquo;secret algorithm.&amp;rsquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;useful-links&#34;&gt;Useful links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;LLVM IR&lt;/a&gt; - language reference manual&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;LLVM Bitcode&lt;/a&gt; - Bitcode file format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt; - Clang/LLVM compilation phases&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt; - tool that retrieves xar-archives with bitcode from mach-o binary&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/obfuscator-llvm/obfuscator/wiki&#34;&gt;o-llvm&lt;/a&gt; - obfuscator based on LLVM&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>NSValue and Boxed Expressions</title>
+        <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
+        <pubDate>Fri, 26 Jun 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
+        <description>&lt;p&gt;Few hours ago I finally finished with my patch to Clang.
+It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.&lt;/p&gt;
+&lt;p&gt;I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.&lt;/p&gt;
+&lt;p&gt;For those of you who want to see the code and documentation: &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d&#34;&gt;code&lt;/a&gt;
+&lt;a href=&#34;http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures&#34;&gt;docs&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
+&lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.center&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;    &lt;span style=&#34;color:#75715e&#34;&gt;// Point p = view.center;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#75715e&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.frame&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#75715e&#34;&gt;// Rect r = view.frame;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#75715e&#34;&gt;// [NSValue valueWithBytes:&amp;amp;r objCType:@encode(Rect)];
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x, y;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; width, height;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} Size;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	Point origin;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Size size;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} Rect;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Rect r;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;       &lt;span style=&#34;color:#75715e&#34;&gt;// error
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#75715e&#34;&gt;// ok
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
+&lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_attribute(objc_boxable)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [CABasicAnimation animationWithKeyPath:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;position&amp;#34;&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;layer.position&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;newPosition&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#else
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:layer.position];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:newPosition];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[layer addAnimation:animation forKey:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;move&amp;#34;&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;boring-numbers&#34;&gt;Boring Numbers&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;222 days since first version of patch&lt;/li&gt;
+&lt;li&gt;85 commits in an own fork of clang&lt;/li&gt;
+&lt;li&gt;50 emails in the mail thread&lt;/li&gt;
+&lt;li&gt;8 versions of the patch&lt;/li&gt;
+&lt;li&gt;3 different implementations&lt;/li&gt;
+&lt;li&gt;1 retired reviewer&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it&lt;/h3&gt;
+&lt;p&gt;It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>Circular Containers in Objective-C</title>
+        <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
+        <pubDate>Mon, 13 Apr 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
+        <description>&lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    XCCEnvironment &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] initWithName:key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                            parameters:dictionary[key]];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    [environments addObject:environments];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;problem&#34;&gt;Problem&lt;/h3&gt;
+&lt;p&gt;When I run the program I got a crash:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[environments addObject:environments];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
+&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &amp;lsquo;programmers do not dereference null pointers&amp;rsquo; - it is still happens and probably it&amp;rsquo;s kinda unexpected behaviour.&lt;/p&gt;
+&lt;p&gt;I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&amp;rsquo;t find any warning/flag/setting that does this check.&lt;/p&gt;
+&lt;p&gt;Eventually I decided to implement it. Implementation took a couple of evenings but now it&amp;rsquo;s &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248&#34;&gt;in trunk&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Actual patch checks the following mutable collections:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;NSMutableArray&lt;/li&gt;
+&lt;li&gt;NSMutableDictionary&lt;/li&gt;
+&lt;li&gt;NSMutableSet&lt;/li&gt;
+&lt;li&gt;NSMutableOrderedSet&lt;/li&gt;
+&lt;li&gt;NSCountedSet&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And shows warning if you trying to put collection inside itself&lt;/p&gt;
+&lt;p&gt;The warning could be enabled/disabled with &lt;code&gt;-wobjc-circular-container&lt;/code&gt;/&lt;code&gt;-wno-objc-circular-container&lt;/code&gt; respectively, though it&amp;rsquo;s enabled &amp;lsquo;by default&amp;rsquo;.&lt;/p&gt;
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Recent clang version contains this feature, but it&amp;rsquo;s not yet available within Xcode, and I guess it&amp;rsquo;ll appear with the next major release - in a year or so.&lt;/p&gt;
+&lt;p&gt;But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.&lt;/p&gt;
+&lt;p&gt;Happy hacking!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+
+    
+  </channel>
+</rss>

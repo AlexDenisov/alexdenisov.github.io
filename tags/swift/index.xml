@@ -1,0 +1,307 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>swift on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/swift/</link>
+    <description>Recent content in swift on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Wed, 14 Jun 2017 23:18:59 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Mutation Testing: implementation details</title>
+        <link>https://lowlevelbits.org/mutation-testing-implementation-details/</link>
+        <pubDate>Wed, 14 Jun 2017</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/mutation-testing-implementation-details/</guid>
+        <description>&lt;p&gt;Last week we had a discussion with guys who want to build a mutation testing system for .NET. If you want to join, please talk to them here: &lt;a href=&#34;https://gitter.im/dot-NET-mutation-testing/Lobby&#34;&gt;https://gitter.im/dot-NET-mutation-testing/Lobby&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Few people already shared their experience in a written form:
+&lt;a href=&#34;https://gist.github.com/hcoles/36bd67d8927a205c480576f4632f9289&#34;&gt;https://gist.github.com/hcoles/36bd67d8927a205c480576f4632f9289&lt;/a&gt;
+&lt;a href=&#34;https://gist.github.com/jameswiseman76/7400896ab2f0eb6ecf33c414173e995d&#34;&gt;https://gist.github.com/jameswiseman76/7400896ab2f0eb6ecf33c414173e995d&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I decided to do the same.
+I tried to organize my thoughts nicely but failed miserably.
+Sorry for that.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: I am writing about our tool &lt;a href=&#34;https://github.com/mull-project/mull&#34;&gt;Mull&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id=&#34;ast-vs-bitcode&#34;&gt;AST vs. Bitcode&lt;/h2&gt;
+&lt;p&gt;Mutations can be done either at a high level (source code) or a lower level (bitcode). We decided to pick the latter one. The main reason: we could bring mutation testing for any LLVM-based language.
+Later we learned that this approach has significant advantages but also serious disadvantages.&lt;/p&gt;
+&lt;p&gt;I will outline them below.&lt;/p&gt;
+&lt;h3 id=&#34;cons&#34;&gt;Cons&lt;/h3&gt;
+&lt;h4 id=&#34;build-tools&#34;&gt;Build Tools&lt;/h4&gt;
+&lt;p&gt;So far we tried to add support for five languages: C, C++, Objective-C, Rust, and Swift.&lt;/p&gt;
+&lt;p&gt;To make it work, we must compile source code into bitcode.
+It is super straightforward if you want to compile one file: each compiler has an option to emit LLVM bitcode.
+However, it is a pain when it comes to a real-world project where you normally have many files.
+Rust and Swift both have some standard way of building things, despite that there is no option to emit bitcode for the whole project (I will talk about LTO later).
+As for C family, there is the whole zoo of build tools: shell scripts, makefiles, ninja, CMakeLists, Visual Studio, Xcode, etc.&lt;/p&gt;
+&lt;p&gt;We had to make some workarounds to overcome these problems. Fortunately, we found a semi-elegant way of handling this at least for C and C++ (should work for Swift and Rust as well though). We could use Link-Time Optimization, this way compiler would produce not object files, but files that contain bitcode. It works perfectly on OS X, but I see a problem on Linux: for some reason, linker (&lt;code&gt;ld.gold&lt;/code&gt;) could not link bitcode files together which make build system to fail. To avoid this problem, we had to ask ninja to fail only after 1000 errors (&lt;code&gt;ninja -k 1000&lt;/code&gt;).&lt;/p&gt;
+&lt;h4 id=&#34;mapping-bitcode-back-to-source-code&#34;&gt;Mapping bitcode back to source code&lt;/h4&gt;
+&lt;p&gt;First I thought that it would be a trivial task since everything in the original code should have a corresponding instruction in the bitcode. But, for instance, this line of C++ code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c++&#34; data-lang=&#34;c++&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;some_vector.push_back(make_pair(foo, bar));
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Will be expanded into several hundred (!) of instructions, if one of those instructions crashes than a good IDE should show a corresponding line of code. Hence, all those hundreds of instructions are mapped to the same place in the original code.
+Another problem that all the following pieces of code have the same representation on the IR level:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;-&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x, -1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;x&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// sadd %x,  1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Another problem: syntactic sugar.
+For instance:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;a &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; b &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; c;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If &lt;code&gt;b&lt;/code&gt; and &lt;code&gt;c&lt;/code&gt; are simple types, then this is an addition, but, if these are objects then this a function call.
+An end user might be a bit confused why some function related mutation was applied at the addition.&lt;/p&gt;
+&lt;h4 id=&#34;applying-mutations&#34;&gt;Applying mutations&lt;/h4&gt;
+&lt;p&gt;The first naive approach was to iterate over instructions and check whether we can apply mutation on this instruction or not.
+If we can apply a mutation, then we just replace this instruction (or remove it) with another.
+This approach generates lots of junk mutations (c) @hcoles.
+Now we learned that looking at single instruction is not enough: we must look at patterns and instructions around.
+Simple addition in C compiles into a single instruction, while in Rust we get several of them: one for addition, one for overflow check, one to report an error if it overflows, and so on.
+We may end up having several implementations of the same mutation: one for C/C++, one for Rust, etc.&lt;/p&gt;
+&lt;h3 id=&#34;pros&#34;&gt;Pros&lt;/h3&gt;
+&lt;h4 id=&#34;build-tools-1&#34;&gt;Build Tools&lt;/h4&gt;
+&lt;p&gt;As far as I know, the AST of Clang is not designed to be mutable.  Even though it has a thing called AST Rewriters, it might be super slow since a rewriter outputs rewritten AST on disk.
+Taking this into account mutation on the bitcode level is a reasonable solution, especially given that everything is happening in memory.
+We didn&amp;rsquo;t investigate whether ASTs of Rust or Swift are mutable or not, but this is not required since current approach is language agnostic.&lt;/p&gt;
+&lt;h4 id=&#34;applying-mutations-1&#34;&gt;Applying mutations&lt;/h4&gt;
+&lt;p&gt;Mutations are very similar at the bitcode level. We don&amp;rsquo;t have to replicate each compiler to make a mutation and to build the source code into executable code - everything is covered by LLVM.
+This process is quite fast since everything is happening in memory and we have a common ground for any language: we feed JIT engine with bitcode (original or mutated) and ask it to run the program, no I/O involved.&lt;/p&gt;
+&lt;h2 id=&#34;program-execution&#34;&gt;Program Execution&lt;/h2&gt;
+&lt;p&gt;One of the biggest advantages is that the algorithm for program execution is the same for each language/test framework.
+Below I describe the algorithm using pseudo code&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Result&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; status   &lt;span style=&#34;color:#75715e&#34;&gt;// failed, passed, timed out, etc&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; duration &lt;span style=&#34;color:#75715e&#34;&gt;// how much time it took to run a program&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MutationPoint&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; module    &lt;span style=&#34;color:#75715e&#34;&gt;// where the mutation is located&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; metadata  &lt;span style=&#34;color:#75715e&#34;&gt;// some utility data&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// we give N seconds for original test to complete&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; Timeout = N
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// Program under test is represented as a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// set of bitcode modules&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modules = loadModules()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// First we find tests. Each language + test framework&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// has custom implementation of a Test Finder&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tests = findTests(modules)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; tests {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Then for each test we find places where we can&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// apply mutation - Mutation Point&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Each language may have it&amp;#39;s own set of Mutation Operators&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationPoints = findMutationPoints(test, modules)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Given we know what we want to mutate&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// We can start execution of each mutant&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; originalResult = runTest(test, modules, Timeout)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; originalResult &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; Passed {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Report an error and skip this test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// One could also fail early, but we decided not to&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// Now it&amp;#39;s time to run a test against each mutant&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; mutationPoints {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Mutant is a copy of original module&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// within the mutation&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutant = applyMutation(point)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// To run the test against mutant we need&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// to replace the original module in the&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// set of modules&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutatedModules = modules.replace(point.module, mutant)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Mutant should not take X times more time than&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// the original test&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// Otherwise we consider it as a timed out&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; timeout = originalResult &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; X
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationResult = runTest(test, mutatedModules, timeout)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// The mutationResult can be now reported&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/// We are done here, taking the next mutant&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It is important to notice that each test run is done in a child process because mutation could lead to crash or an infinite loop.&lt;/p&gt;
+&lt;p&gt;The current implementation of the scheduling is not elegant and not efficient. We fork a process (watchdog), the watchdog forks two other processes: timer and worker. The timer does nothing but sleeps for N milliseconds. The worker executes the test or mutant. The watchdog is waiting for either process to finish. If the timer finishes first, then the worker timed out, we kill it and report timeout. If the worker stops first, then we terminate the timer and proceed. To report the result, we must check whether the worker process crashed, and if not what is the exit status.&lt;/p&gt;
+&lt;p&gt;Besides that, it is important to be able to get the output (stdout/stderr) from
+the worker process.&lt;/p&gt;
+&lt;p&gt;We would need to come up with another solution that would allow us to parallelize the execution efficiently.&lt;/p&gt;
+&lt;p&gt;There are few things that I omit in the algorithm, but I will cover them in the next section.&lt;/p&gt;
+&lt;h2 id=&#34;optimizations&#34;&gt;Optimizations&lt;/h2&gt;
+&lt;p&gt;No matter how fast machine is, the execution may take a lot of time.
+The algorithm itself is not optimal and could be improved. But there are few places where you could put some levers to control the number of mutations.
+First place is &lt;code&gt;findTests&lt;/code&gt;: you could configure a program to run the only subset of tests. It is very convenient during analysis of a program under test.
+Another place is &lt;code&gt;findMutationPoints&lt;/code&gt;. Currently, our approach here is different from the one Pitest has. We do not use code coverage to find places where to add mutations. Instead, we use static analysis to build a call graph. For example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;test_foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  assert(foo() &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;foo&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; bar();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;bar&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;   &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; buzz();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;buzz&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; x;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here we have the following call &amp;lsquo;graph&amp;rsquo;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;test_foo -&amp;gt; foo -&amp;gt; bar -&amp;gt; buzz
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;If we look at this list from left to right, then we might see that each function is at some distance from the test.
+Using this information we can ask the system to not look for mutation points farther than two hops from a test.
+By using these two filters, you can significantly improve feedback time.&lt;/p&gt;
+&lt;p&gt;Another trick we did: we have an option called &amp;lsquo;Dry Run.&amp;rsquo; In this mode, the system does whatever it normally does, except that it doesn&amp;rsquo;t apply any mutations and it doesn&amp;rsquo;t run the mutants. Instead, it reports each mutation result status as DryRun, including its distance from a test and estimated duration as it&amp;rsquo;s timeout. Using this information you could decide which distance is optimal for this very particular project. We also found it useful to run as a first on an unknown project, just to get understanding what kind of a beast we are working with.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;UPD:&lt;!-- raw HTML omitted --&gt; re: static analysis:&lt;/p&gt;
+&lt;p&gt;We decided to go this way because it felt like a good solution. However, it turned out that we cannot build the call graph reliably: a function (caller) instead of calling another function (callee) directly could pass a pointer to the callee to some other function, which would then call the callee indirectly via a pointer.
+Another example: polymorphism. Just recently we found that we cannot find a call to a polymorphic function. However, we did not try to solve this problem yet.&lt;/p&gt;
+&lt;p&gt;It is very likely that we would need to switch to another solution.&lt;/p&gt;
+&lt;p&gt;We could determine the call tree by using Compiler On Demand (COD) capability of LLVM&amp;rsquo;s JIT engine. The idea is the following: the system asks JIT to execute a function from a module, when the JIT hits unresolved function it calls back the system asking to resolve the function. At this callback, we can register the
+unresolved function as part of the call tree and then resolve the function the function and give it back to the JIT engine. I am going to investigate if this approach is working, but there is another problem: this way we could get a set of all called functions, but seems like we cannot build the actual tree and can&amp;rsquo;t measure the distance (unless the callback provides the caller function).&lt;/p&gt;
+&lt;h2 id=&#34;reporting&#34;&gt;Reporting&lt;/h2&gt;
+&lt;p&gt;Reporting is one of the trickiest parts, in my opinion. We are still trying to find a nice way to present results to an end user. So far we come up with the following solution.&lt;/p&gt;
+&lt;p&gt;At the very end of execution, the system spits out SQLite file with information
+about mutations points, tests, execution results, and so on.&lt;/p&gt;
+&lt;p&gt;Next, one could feed this SQLite file into our &lt;a href=&#34;https://github.com/mull-project/mull-reporter-sqlite&#34;&gt;reporter&lt;/a&gt;, that would generate nice HTML page like &lt;a href=&#34;https://lowlevelbits.org/IRTests/&#34;&gt;this one&lt;/a&gt;(Warning: Heavy page!).&lt;/p&gt;
+&lt;p&gt;Having an SQLite file is very handy: we could do different analysis of the same
+program without restarting potentially long running process.&lt;/p&gt;
+&lt;h2 id=&#34;nearest-plans&#34;&gt;Nearest Plans&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;add more test frameworks for C++&lt;/li&gt;
+&lt;li&gt;optimize algorithms to speed up the system&lt;/li&gt;
+&lt;li&gt;find a nice way to present reports&lt;/li&gt;
+&lt;li&gt;add more mutation operators&lt;/li&gt;
+&lt;li&gt;&lt;del&gt;add Linux support&lt;/del&gt; done!&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it&lt;/h2&gt;
+&lt;p&gt;Feel free to ask questions. There are must be many things I missed about the topic.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+
+    
+
+      
+
+    
+
+      
+        <item>
+        <title>Bitcode Demystified</title>
+        <link>https://lowlevelbits.org/bitcode-demystified/</link>
+        <pubDate>Sat, 05 Sep 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
+        <description>&lt;p&gt;A few months ago Apple announced a &amp;rsquo;new feature,&amp;rsquo; called &amp;lsquo;Bitcode.&amp;rsquo; In this article, I will try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.&lt;/p&gt;
+&lt;h2 id=&#34;what-is-bitcode&#34;&gt;What is Bitcode?&lt;/h2&gt;
+&lt;p&gt;To answer this question let&amp;rsquo;s look at what compilers do for us. Here is a brief overview of compilation process:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Lexer&lt;/code&gt;: takes source code as an input and translates it into a stream of tokens;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Parser&lt;/code&gt;: takes stream of tokens as an input and translates it into an &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;AST&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Semantic Analysis&lt;/code&gt;: takes an AST as an input, checks if a program is correct (method called with correct amount of parameters, method called on object actually exists and non-private, etc.), fills in &amp;lsquo;missing types&amp;rsquo; (e.g.: &lt;code&gt;let x = y&lt;/code&gt;, &lt;code&gt;x&lt;/code&gt; has type of &lt;code&gt;y&lt;/code&gt;) and passes AST to the next phase;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Code Generation&lt;/code&gt;: takes an AST as an input and emits some high-level IR (intermediate representation);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Optimization&lt;/code&gt;: takes IR, makes optimizations and emits IR which is potentially faster and/or smaller;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AsmPrinter&lt;/code&gt;: another code generation phase, it takes IR and emits assembly for particular CPU;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Assembler&lt;/code&gt;: takes assembly and converts it into an object code (stream of &lt;code&gt;0&lt;/code&gt;s and &lt;code&gt;1&lt;/code&gt;s);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Linker&lt;/code&gt;: usually programs refer to already compiled routines from other programs (e.g.: &lt;code&gt;printf&lt;/code&gt;) to avoid recompilation of the same code over and over. Until this phase these links do not have correct addresses, they are just placeholders. Linker&amp;rsquo;s job is to resolve those placeholders so that they point to the correct addresses of their corresponding routines.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;You can find more details here: &lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;In the modern world these phases are split into two parts: &lt;strong&gt;&lt;code&gt;compiler frontend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;lexer&lt;/code&gt;, &lt;code&gt;parser&lt;/code&gt;, &lt;code&gt;semantic analysis&lt;/code&gt;, &lt;code&gt;code generation&lt;/code&gt;) and &lt;strong&gt;&lt;code&gt;compiler backend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;optimization&lt;/code&gt;, &lt;code&gt;asm printer&lt;/code&gt;, &lt;code&gt;assembler&lt;/code&gt;, &lt;code&gt;linker&lt;/code&gt;). This separation makes much sense for both language designers and hardware manufacturers. If you want to create a new programming language you &amp;lsquo;just&amp;rsquo; need to implement a frontend, and you get all available optimizations and support of different CPUs for free. On the other hand, if you created a new chip, you &amp;lsquo;just&amp;rsquo; need to extend the backend and you get all the available languages (frontends) support for your CPU.&lt;/p&gt;
+&lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM &lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;has it is own&lt;/a&gt; format, that can be encoded using LLVM bitstream file format - &lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;Bitcode&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Just to recall it explicitly - &lt;strong&gt;Bitcode is a bitstream representation of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-apples-bitcode-aims-to-solve&#34;&gt;What problems Apple&amp;rsquo;s Bitcode aims to solve?&lt;/h2&gt;
+&lt;p&gt;Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend reading this article: &lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run a program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you run a program, OS reads the &amp;lsquo;Table Of Contents&amp;rsquo; and looks for a slice corresponding to the OS CPU.
+For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, then OS will load object code for &lt;code&gt;x86_64&lt;/code&gt; into a memory and run the program.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s happening with other slices? Nothing, they just waste your disk space.&lt;/p&gt;
+&lt;p&gt;This is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt; CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for &lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt;, so you can use them to test the app on a device or simulator. (Can you imagine how many copies of Google Analytics for &lt;code&gt;i386&lt;/code&gt; you have in your pocket?)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; I do not know why, but I was sure that final executable contains these slices as well (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, etc.), but it seems they are stripped during the build phase.&lt;/p&gt;
+&lt;p&gt;Apple did not give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you submit an app (including Bitcode) Apple&amp;rsquo;s &amp;lsquo;BlackBox&amp;rsquo; recompiles it for each supported platform and drops any &amp;lsquo;useless&amp;rsquo; object code, so AppStore has a copy of the app for each CPU. When an end user wants to install the app - she installs the only version for the particular processor, without any unused stuff.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bitcode might save up to 50% of disk space per program.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; Of course, I do not take in count resources, it is just about binary itself. For instance, an app I am working on currently has size ~40 megabytes (including assets, xibs. fonts), a size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them, it will decrease the size of the app by ~20%.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-do-bitcode-introduce&#34;&gt;What problems do Bitcode introduce?&lt;/h2&gt;
+&lt;p&gt;The idea of Bitcode and recompiling for each platform looks really great, and it is a huge improvement, though it has downsides as well: the biggest one is security.&lt;/p&gt;
+&lt;p&gt;To get the benefits of Bitcode, you should submit your app including Bitcode (surprisingly). If you use some proprietary third-party library, then it also should contain Bitcode, hence as a maintainer of a proprietary library, you should distribute the library with Bitcode.&lt;/p&gt;
+&lt;p&gt;To recall: &lt;strong&gt;Bitcode is just another form of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fmt, ...);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Run the following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;clang -S -emit-llvm main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;@.str = &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; Function Attrs: nounwind ssp uwtable
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @main() #0 {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = &lt;span style=&#34;color:#66d9ef&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;* %1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...) #1
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
+&lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
+&lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ bitcode_retriever some_binary
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x86_64.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ xar -xvf arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 1.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 2.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
+Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Another potential issue (can&amp;rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.&lt;/p&gt;
+&lt;p&gt;I know only one way to secure the IR - &lt;!-- raw HTML omitted --&gt;obfuscation&lt;!-- raw HTML omitted --&gt;. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Bitcode is a bitstream file format for LLVM IR&lt;/li&gt;
+&lt;li&gt;one of its goals is to decrease a size of an app by eliminating unused object code&lt;/li&gt;
+&lt;li&gt;malefactor can obtain your app or library, retrieve the IR from it and steal your &amp;lsquo;secret algorithm.&amp;rsquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;useful-links&#34;&gt;Useful links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;LLVM IR&lt;/a&gt; - language reference manual&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;LLVM Bitcode&lt;/a&gt; - Bitcode file format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt; - Clang/LLVM compilation phases&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt; - tool that retrieves xar-archives with bitcode from mach-o binary&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/obfuscator-llvm/obfuscator/wiki&#34;&gt;o-llvm&lt;/a&gt; - obfuscator based on LLVM&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

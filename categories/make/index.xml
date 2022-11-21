@@ -1,0 +1,249 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>make on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/categories/make/</link>
+    <description>Recent content in make on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Sun, 12 Jun 2016 21:05:00 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>System Under Test: GNU Make</title>
+        <link>https://lowlevelbits.org/system-under-test-gnu-make/</link>
+        <pubDate>Sun, 12 Jun 2016</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/system-under-test-gnu-make/</guid>
+        <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/gnu-make&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: This is a guest post written by a good friend and colleague of mine &lt;a href=&#34;https://twitter.com/sbpankevich&#34;&gt;Stanislav Pankevich&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;h3 id=&#34;introduction&#34;&gt;Introduction&lt;/h3&gt;
+&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test/&#34;&gt;System Under Test&lt;/a&gt;. It provides an overview of how GNU Make is tested.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; the author of this post is not involved into a development of GNU Make project. All of the following is merely a high-level report about what a curious developer can see from looking at the GNU Make&amp;rsquo;s sources. The author didn&amp;rsquo;t go very deep into the topic, could overlook something etc. Having that said, we always appreciate feedback from our colleagues who have advanced experience with the projects we write about, especially from the developers and maintainers.&lt;/p&gt;
+&lt;h3 id=&#34;getting-gnu-makes-sources&#34;&gt;Getting GNU Make&amp;rsquo;s sources&lt;/h3&gt;
+&lt;p&gt;GNU Make&amp;rsquo;s source code is available from git repository and can be found 2 links away from the Make&amp;rsquo;s main home page: &lt;a href=&#34;https://www.gnu.org/software/make/&#34;&gt;GNU Make&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Development&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;For development sources, issue trackers, and other information, please see the Make project page at savannah.gnu.org.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;On &lt;a href=&#34;http://savannah.gnu.org/projects/make&#34;&gt;Make&amp;rsquo;s Savannah&amp;rsquo;s page&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;a href=&#34;http://savannah.gnu.org/git/?group=make&#34;&gt;Git Source Code Manager: Git Repository&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;To get Make&amp;rsquo;s sources:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;good-news-make-has-tests&#34;&gt;Good news: Make has tests&lt;/h3&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;The actual tests are located in &lt;code&gt;tests/scripts&lt;/code&gt; directory:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;The following are interesting notes I found before running the tests.&lt;/p&gt;
+&lt;h4 id=&#34;the-oldest-update-in-news-file-dates-back-to-1992&#34;&gt;The oldest update in NEWS file dates back to 1992&lt;/h4&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;This means that &lt;strong&gt;tests in Make were introduced as early as of 1992!&lt;/strong&gt; which is a very good sign given some other tools are likely to not have a good coverage even in present days as described in another article of this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd&#34;&gt;System Under Test: FreeBSD&lt;/a&gt; (see Conclusion there).&lt;/p&gt;
+&lt;h4 id=&#34;the-test-suite-requires-perl-and-can-be-run-on-unix-windows-and-dos-systems&#34;&gt;The test suite requires Perl and can be run on UNIX, Windows and DOS systems&lt;/h4&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h4 id=&#34;the-test-suite-is-run-against-make-executable&#34;&gt;The test suite is run against Make executable&lt;/h4&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;This observation leads us to conclusion that these &lt;strong&gt;GNU Make&amp;rsquo;s tests are actually integration tests&lt;/strong&gt; - it is the final &lt;code&gt;make&lt;/code&gt; executable that is tested, not its parts like they would be with unit testing (depending on terminology this kind of testing of a final product can also be called functional or acceptance testing).&lt;/p&gt;
+&lt;h4 id=&#34;build-artefacts&#34;&gt;Build artefacts&lt;/h4&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;running-tests-against-default-osx-make&#34;&gt;Running tests against default OSX Make&lt;/h3&gt;
+&lt;p&gt;Having read both documents: &lt;code&gt;tests/NEWS&lt;/code&gt; and &lt;code&gt;tests/README&lt;/code&gt; let&amp;rsquo;s try to run the tests. As we learned earlier, by default the test suite will pick up first &lt;code&gt;make&lt;/code&gt; from path so it will default to default make of OSX system which is on my machine:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;If you ever wondered why default &lt;code&gt;make&lt;/code&gt; on OS X is so old, you are in good company - see &lt;a href=&#34;https://www.quora.com/What-is-the-reason-for-some-of-the-Linux-tools-on-OS-X-being-so-old-Is-this-related-to-GPL-licensing&#34;&gt;What is the reason for some of the Linux tools on OS X being so old? Is this related to GPL licensing?&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;To run tests:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;We see here that oldness of default Make on OS X does cost 212 failing tests. I assume that the reason why most of these failing tests are failing is not a regression in core functionality of Make but rather because of new features were added to GNU Make since 2006.&lt;/p&gt;
+&lt;p&gt;To understand how that is different for latest Make let&amp;rsquo;s build it from source and run tests against it.&lt;/p&gt;
+&lt;h3 id=&#34;running-tests-against-latest-make-built-from-source&#34;&gt;Running tests against latest Make built from source&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s get back from &lt;code&gt;tests&lt;/code&gt; directory one level up to the root directory of source tree. Inspired by the instructions in INSTALL and after some additional googling we need to run &lt;code&gt;autoreconf&lt;/code&gt; so that it creates proper &lt;code&gt;configure&lt;/code&gt; script for us:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;Then we want to run this newly created script with &lt;code&gt;--prefix&lt;/code&gt; parameter so that it will not install make to the &lt;code&gt;/usr/local/bin&lt;/code&gt; directory but rather to &lt;code&gt;./Build&lt;/code&gt; directory (to not conflict with OSX&amp;rsquo;s Make which we don&amp;rsquo;t want within the scope of this post).&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ ./configure --prefix=$(pwd)/Build
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;At this point if you run &lt;code&gt;make&lt;/code&gt; the very first time you will likely see errors about some localization files missing:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;To fix that you have to first run (solution found at &lt;a href=&#34;http://gnu-make.2324884.n4.nabble.com/NLS-related-failure-when-building-make-from-CVS-tp2157p2158.html&#34;&gt;GNU Make forums&lt;/a&gt;):&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;make update
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Everything should work fine since then, finally we run:&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;Which is 2006&amp;rsquo;s Make 3.81 that has just been used to build 2016&amp;rsquo;s Make 4.2!&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s run the tests!&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;The results are quite pleasant to look at - &lt;strong&gt;GNU Make built from latest source code on Mac OS X machine, passes all of its tests&lt;/strong&gt;:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;581 Tests in 118 Categories Complete ... No Failures :-)
+&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;test-case-template&#34;&gt;Test case template&lt;/h3&gt;
+&lt;p&gt;The file &lt;code&gt;tests/scripts/test_template&lt;/code&gt; is a generic template, most of the tests are based on it:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
+
+$description = &amp;quot;&amp;lt;FILL IN SHORT DESCRIPTION HERE&amp;gt;&amp;quot;;
+$details = &amp;quot;&amp;lt;FILL IN DETAILS OF HOW YOU TEST WHAT YOU SAY YOU ARE TESTING&amp;gt;&amp;quot;;
+
+# Run a make test.  See the documentation of run_make_test() in
+# run_make_tests.pl, but briefly the first argument is a string with the
+# contents of a makefile to be tested, the second is a string containing the
+# arguments to be passed to the make invocation, the third is a string
+# containing the expected output.  The fourth is the expected exit code for
+# make.  If not specified, it&#39;s assumed that the make program should succeed
+# (exit with 0).
+
+run_make_test(&#39;Your test makefile goes here&#39;,
+              &#39;Arguments to pass to make go here&#39;,
+              &#39;Expected output from the invocation goes here&#39;);
+
+# There are various special tokens, options, etc.  See the full documentation
+# in run_make_tests.pl.
+
+
+# This tells the test driver that the perl test script executed properly.
+1;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Other tests follow a bit different approach: they use &lt;code&gt;run_make_with_options&lt;/code&gt;/&lt;code&gt;compare_output&lt;/code&gt; pair of functions to verify the expected output that Make produces. My assumption is that this alternative way is the old way of writing tests - we can clearly see that it is the easier and cleaner way to write tests using the test template from above. Below I have collected 3 examples which use both approaches based on either:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;run_make_test&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;or&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;run_make_with_options&lt;/code&gt;/&lt;code&gt;compare_output&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These functions are located in the file: &lt;code&gt;tests/run_make_tests.pl&lt;/code&gt; which is a test driver file for the whole test suite (the file is too long so it is not discussed in this post).&lt;/p&gt;
+&lt;h4 id=&#34;test-case-example-1-simple-functionality-of-make&#34;&gt;Test case example #1: Simple functionality of make&lt;/h4&gt;
+&lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/misc/general1&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
+
+$description = &amp;quot;The following test creates a makefile to test the
+simple functionality of make.  It mimics the
+rebuilding of a product with dependencies.
+It also tests the simple definition of VPATH.&amp;quot;;
+
+open(MAKEFILE,&amp;quot;&amp;gt; $makefile&amp;quot;);
+
+print MAKEFILE &amp;lt;&amp;lt;EOF;
+VPATH = $workdir
+edit:  main.o kbd.o commands.o display.o \\
+       insert.o
+\t\@echo cc -o edit main.o kbd.o commands.o display.o \\
+                  insert.o
+main.o : main.c defs.h
+\t\@echo cc -c main.c
+kbd.o : kbd.c defs.h command.h
+\t\@echo cc -c kbd.c
+commands.o : command.c defs.h command.h
+\t\@echo cc -c commands.c
+display.o : display.c defs.h buffer.h
+\t\@echo cc -c display.c
+insert.o : insert.c defs.h buffer.h
+\t\@echo cc -c insert.c
+EOF
+
+close(MAKEFILE);
+
+
+@files_to_touch = (&amp;quot;$workdir${pathsep}main.c&amp;quot;,&amp;quot;$workdir${pathsep}defs.h&amp;quot;,
+               &amp;quot;$workdir${pathsep}kbd.c&amp;quot;,&amp;quot;$workdir${pathsep}command.h&amp;quot;,
+               &amp;quot;$workdir${pathsep}commands.c&amp;quot;,&amp;quot;$workdir${pathsep}display.c&amp;quot;,
+               &amp;quot;$workdir${pathsep}buffer.h&amp;quot;,&amp;quot;$workdir${pathsep}insert.c&amp;quot;,
+	       &amp;quot;$workdir${pathsep}command.c&amp;quot;);
+
+&amp;amp;touch(@files_to_touch);
+
+&amp;amp;run_make_with_options($makefile,&amp;quot;&amp;quot;,&amp;amp;get_logfile);
+
+# Create the answer to what should be produced by this Makefile
+$answer = &amp;quot;cc -c main.c\ncc -c kbd.c\ncc -c commands.c\ncc -c display.c
+cc -c insert.c\ncc -o edit main.o kbd.o commands.o display.o insert.o\n&amp;quot;;
+
+# COMPARE RESULTS
+
+if (&amp;amp;compare_output($answer,&amp;amp;get_logfile(1))) {
+  unlink @files_to_touch;
+}
+
+1;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h4 id=&#34;test-case-example-2-phony-targets&#34;&gt;Test case example #2: PHONY targets&lt;/h4&gt;
+&lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/targets/PHONY&lt;/code&gt;.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h4 id=&#34;test-case-example-3---warn-undefined-variables-option&#34;&gt;Test case example #3: &amp;ndash;warn-undefined-variables option&lt;/h4&gt;
+&lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/options/warn-undefined-variables&lt;/code&gt;.&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
+
+$description = &amp;quot;Test the --warn-undefined-variables option.&amp;quot;;
+
+$details = &amp;quot;Verify that warnings are printed for referencing undefined variables.&amp;quot;;
+
+# Without --warn-undefined-variables, nothing should happen
+run_make_test(&#39;
+EMPTY =
+EREF = $(EMPTY)
+UREF = $(UNDEFINED)
+
+SEREF := $(EREF)
+SUREF := $(UREF)
+
+all: ; @echo ref $(EREF) $(UREF)&#39;,
+              &#39;&#39;, &#39;ref&#39;);
+
+# With --warn-undefined-variables, it should warn me
+run_make_test(undef, &#39;--warn-undefined-variables&#39;,
+              &amp;quot;#MAKEFILE#:7: warning: undefined variable &#39;UNDEFINED&#39;
+#MAKEFILE#:9: warning: undefined variable &#39;UNDEFINED&#39;
+ref&amp;quot;);
+
+1;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;h3 id=&#34;open-issues&#34;&gt;Open issues&lt;/h3&gt;
+&lt;p&gt;The file &lt;code&gt;tests/README&lt;/code&gt; contains interesting section that one may read as high-level TODO list for the project (bold below is mine). It seems that there is some interesting stuff waiting for someone to contribute ;)&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;h2 id=&#34;open-issues-1&#34;&gt;Open Issues&lt;/h2&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;The test suite has a number of problems which should be addressed. &lt;strong&gt;One
+VERY serious one is that there is no real documentation&lt;/strong&gt;.  You just have
+to see the existing tests. Use the newer tests: many of the tests
+haven&amp;rsquo;t been updated to use the latest/greatest test methods.  See the
+ChangeLog in the tests directory for pointers.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;The second serious problem is that it&amp;rsquo;s not parallelizable&lt;/strong&gt;: it scribbles
+all over its installation directory and so can only test one make at a
+time. &lt;strong&gt;The third serious problem is that it&amp;rsquo;s not relocatable&lt;/strong&gt;: the only
+way it works when you build out of the source tree is to create
+symlinks, which doesn&amp;rsquo;t work on every system and is bogus to boot. &lt;strong&gt;The
+fourth serious problem is that it doesn&amp;rsquo;t create its own sandbox when
+running tests&lt;/strong&gt;, so that if a test forgets to clean up after itself that
+can impact future tests.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+&lt;ol&gt;
+&lt;li&gt;GNU Make has 581 tests: solid test suite introduced as early as of 1992.&lt;/li&gt;
+&lt;li&gt;All of these tests are integration tests: the final executable &lt;code&gt;make&lt;/code&gt; is tested, not the parts of C code.&lt;/li&gt;
+&lt;li&gt;Default GNU Make 3.81 on OSX machine is 10 years old, it fails 212 tests compared to the latest GNU Make 4.2 build from source which passes all of its tests green.&lt;/li&gt;
+&lt;li&gt;There is always space for contribution: more documentation is needed, tests should have better sandboxing to achieve parallelism and removability.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;So far we have Rust and Javascript programming languages, NeoVim editor and XTerm terminal emulator in our plans. Let us know what projects or tools you would like to see covered in this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test/&#34;&gt;System Under Test&lt;/a&gt;.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

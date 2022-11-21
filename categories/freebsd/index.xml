@@ -1,0 +1,127 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>freebsd on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/categories/freebsd/</link>
+    <description>Recent content in freebsd on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Thu, 31 Mar 2016 17:22:59 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>System Under Test: FreeBSD</title>
+        <link>https://lowlevelbits.org/system-under-test-freebsd/</link>
+        <pubDate>Thu, 31 Mar 2016</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/system-under-test-freebsd/</guid>
+        <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/freebsd&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
+&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test&#34;&gt;&amp;ldquo;System Under Test&amp;rdquo;&lt;/a&gt;. It provides an overview of the FreeBSD test suite and tools FreeBSD developers use to write and run tests.&lt;/p&gt;
+&lt;h3 id=&#34;what-is-the-project-about&#34;&gt;What is the project about?&lt;/h3&gt;
+&lt;p&gt;FreeBSD is a well known Unix-based operating system.&lt;/p&gt;
+&lt;h3 id=&#34;tests&#34;&gt;Tests&lt;/h3&gt;
+&lt;p&gt;FreeBSD has one test suite. It contains ~3.6k tests and takes ~7.5 minutes to run on a virtual machine with 2Gb of RAM.&lt;/p&gt;
+&lt;h4 id=&#34;getting-tests&#34;&gt;Getting Tests&lt;/h4&gt;
+&lt;p&gt;The tests can be found in &lt;code&gt;/usr/tests&lt;/code&gt; directory. Though, you may not have them there because of one of the following reasons:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Test suite is not a part of any distribution prior to FreeBSD 10.0.&lt;/li&gt;
+&lt;li&gt;Test suite is available out of the box only on FreeBSD 11.0 and newer.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;If you are on FreeBSD 10.0 and want to see tests, then you just need to re-build the system from sources.
+Fortunately, it is very easy:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;echo &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;WITH_TESTS=YES&amp;#34;&lt;/span&gt; &amp;gt;&amp;gt; /etc/src.conf
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd /usr/src
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make buildworld
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make installworld
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;running-tests&#34;&gt;Running tests&lt;/h4&gt;
+&lt;p&gt;FreeBSD adopted approach used by NetBSD project. Within the approach they included the toolchain: &lt;a href=&#34;https://github.com/jmmv/kyua&#34;&gt;Kyua&lt;/a&gt; and &lt;a href=&#34;https://github.com/jmmv/atf/&#34;&gt;ATF&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Initially ATF provided both tools (e.g. test runner, report generator, etc.) and libraries (e.g. test cases, assertions, etc.). Over the years tools from ATF were replaced by Kyua.&lt;/p&gt;
+&lt;p&gt;To run tests you need to point &lt;code&gt;kyua&lt;/code&gt; to a &lt;code&gt;Kyuafile&lt;/code&gt;.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;cd /usr/tests
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kyua test -k ./Kyuafile
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;when it’s done you may request report:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kyua report
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h4 id=&#34;toolchain&#34;&gt;Toolchain&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;Kyuafile&lt;/code&gt; specifies which tests to run. It also can include other &lt;code&gt;Kyuafile&lt;/code&gt;s. Here is an example:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;include(&amp;#39;lib/Kyuafile&amp;#39;)
+atf_test_program{name=’some_atf_test&amp;#39;}
+plain_test_program{name=&amp;#39;some_plain_test&amp;#39;}
+tap_test_program{name=&amp;#39;some_tap_test’}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;When run &lt;code&gt;kyua&lt;/code&gt; will execute all tests specified in &lt;code&gt;lib/Kyuafile&lt;/code&gt; (and in &lt;code&gt;Kyuafile&lt;/code&gt;s included from &lt;code&gt;lib/Kyuafile&lt;/code&gt;), and then will execute three tests: ATF test &lt;code&gt;some_atf_test&lt;/code&gt;, plain test &lt;code&gt;some_plain_test&lt;/code&gt;, and &lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;TAP&lt;/a&gt; test &lt;code&gt;some_tap_test&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Plain test is basically a simple program that returns non-zero if test failed and zero otherwise.&lt;/p&gt;
+&lt;p&gt;TAP tests are any possible tests, the only important thing there  is an output. If test prints &amp;ldquo;ok whatever&amp;rdquo; then it succeeded, if it prints &amp;ldquo;not ok whatnot&amp;rdquo; - it has failed.&lt;/p&gt;
+&lt;p&gt;ATF tests intended to be more sophisticated. They may contain several test cases per file and provide useful information besides the exit code. Also, the tests may be written using C, C++ and shell.&lt;/p&gt;
+&lt;p&gt;Here is a part of an ATF test written in shell:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;username&lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test5678901234567&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;atf_test_case longname cleanup
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;longname_head&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  atf_set &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;require.user&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;root&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  atf_set &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;descr&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Test that usernames longer than 16 &amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;\
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;characters are allowed (PR bin/39546)&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;longname_body&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  atf_check -s exit:0 -o ignore -e ignore -x &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pw useradd &lt;/span&gt;$username&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;longname_cleanup&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  atf_check -s ignore -o ignore -e ignore -x &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;pw userdel &lt;/span&gt;$username&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;atf_init_test_cases&lt;span style=&#34;color:#f92672&#34;&gt;()&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;{&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  atf_add_test_case longname
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;}&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;If you try to find there a test written let’s say in C, then you will not succeed. All tests under &lt;code&gt;/usr/tests&lt;/code&gt; are executables.
+The reason is that FreeBSD tools and libraries usually have their tests source code in their source tree. During installation these tests are compiled and copied to the &lt;code&gt;/usr/tests&lt;/code&gt;.
+For example, if you want to see tests for libc’ stdio, then you need to look at &lt;code&gt;/usr/src/lib/libc/tests/stdio&lt;/code&gt;.
+At the moment there is one test, here is part of it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ATF_TC_WITHOUT_HEAD(test_append_binary_pos);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ATF_TC_BODY(test_append_binary_pos, tc)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;{
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * For compatibility with other implementations (glibc), we set the
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * position to 0 when opening an automatically allocated binary stream
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * for appending.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fp;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fp &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmemopen(NULL, &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ab+&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0L&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fclose(fp);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  * Make sure that a pre-allocated buffer behaves correctly.
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; buf[] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fp &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fmemopen(buf, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(buf), &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;ab+&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  ATF_REQUIRE(ftell(fp) &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; strlen(buf));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fclose(fp);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;FreeBSD has ~3.6k tests. The amount of tests is suspiciously small for such a big project. Since I was (and still am) afraid that I missed some important part I did ask on mailing list &lt;a href=&#34;https://lists.freebsd.org/pipermail/freebsd-testing/2016-March/001306.html&#34;&gt;question about available tests&lt;/a&gt;, but didn’t
+get any answer so far.&lt;/p&gt;
+&lt;p&gt;FreeBSD has lots of various tools and libraries, but not all of them tested.&lt;/p&gt;
+&lt;p&gt;Maybe it’s a good starting point for a contribution?&lt;/p&gt;
+&lt;h3 id=&#34;further-reading&#34;&gt;Further reading&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;man 7 tests&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.freebsd.org/TestSuite&#34;&gt;FreeBSD Test Suite&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://wiki.netbsd.org/kyua/&#34;&gt;Kyua: An introduction for NetBSD users&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/jmmv/kyua/wiki/About&#34;&gt;Kyua: project wiki&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;Test Anything Protocol&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

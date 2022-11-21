@@ -1,0 +1,256 @@
+/* 
+    #########################################
+    # Wise Words Color Override - color.css #
+    #########################################
+
+  	Use this file to create your own variation of Wise Words. 
+
+  	This file contains all colors used in Wise Words. Create any
+  	number of color schemes by using this file as a starting template.
+
+    Table of contents
+    *****************
+    1. Content
+    2. Layout
+    3. Navigation
+        - 3.a Standard navigation
+        - 3.b Tinynav.js
+    4. Forms
+    5. Elements
+    6. Zones, Widgets and Special Stuff
+        - 6.a General
+        - 6.b Blog
+        - 6.c 404
+        - 6.d Search
+        - 6.e Tags
+        - 6.f Login
+        - 6.g Comments
+               - 6.g.i  Display
+               - 6.g.ii Form
+        - 6.h Zones
+        - 6.i Forms
+    7. Misc
+
+*/
+
+
+
+/***** 1. Content *****/
+
+a {
+    color: #D54563;
+}
+
+body{
+	background-color:#fff;
+}
+
+body, legend {
+    color:#494e55;
+}
+
+h1 {
+	color:#D54563;
+}
+
+hr {
+	border-bottom-color: #b2b8c1;
+}
+
+
+/***** 2. Layout *****/
+
+
+/***** 3. Navigation *****/
+
+
+/***** 3.a Standard navigation *****/
+
+.dropdown-menu {
+  background-color: #dfceee;
+}
+
+.dropdown-menu > li > a:hover,
+.dropdown-menu > li > a:focus,
+.dropdown-submenu:hover > a,
+.dropdown-submenu:focus > a,
+.dropdown-menu > .active > a:hover {
+    background-color: #d6c3e8;
+}
+
+.ww-nav a {
+	color:#494e55;
+}
+
+.ww-nav a:hover {
+	color:#D54563;
+}
+
+
+/***** 3.b Tinynav.js *****/
+
+/* Desktop */
+.tinynav { 
+    background-color:#f6f6ed; 
+}
+
+/***** 4. Forms *****/
+
+button
+{
+	background-color: #D54563;
+	color:#eeeee6;
+}
+
+button:hover
+{
+	background-color: #e58c9e;
+}
+
+textarea,
+input[type="text"],
+input[type="password"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="date"],
+input[type="month"],
+input[type="time"],
+input[type="week"],
+input[type="number"],
+input[type="email"],
+input[type="url"],
+input[type="search"],
+input[type="tel"],
+input[type="color"],
+.uneditable-input {
+  background-color: #fff;
+  border: 1px solid #b2b8c1;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+  -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+     -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+       -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+          transition: border linear 0.2s, box-shadow linear 0.2s;
+}
+
+textarea:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="datetime"]:focus,
+input[type="datetime-local"]:focus,
+input[type="date"]:focus,
+input[type="month"]:focus,
+input[type="time"]:focus,
+input[type="week"]:focus,
+input[type="number"]:focus,
+input[type="email"]:focus,
+input[type="url"]:focus,
+input[type="search"]:focus,
+input[type="tel"]:focus,
+input[type="color"]:focus,
+.uneditable-input:focus {
+  border-color: rgba(191, 167, 177, 0.8);
+  /* IE6-9 */
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #e58c9e;
+     -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #e58c9e;
+          box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px #e58c9e;
+}
+
+
+
+/***** 5. Elements *****/
+
+
+a.button-link {
+  background-color: #D54563;
+  color:#eeeee6;
+}
+
+a.button-link:hover {
+  background-color: #e58c9e;  
+}
+
+.nav-tabs > .active > a,
+.nav-tabs > .active > a:hover,
+.nav-tabs > .active > a:focus {
+  background-color: #f6f6ed;
+}
+
+
+
+.nav-tabs > li > a {
+  color:#494e55;
+}
+
+
+.table-striped tbody > tr:nth-child(odd) > td,
+.table-striped tbody > tr:nth-child(odd) > th {
+    background-color: #f6f6ed;
+}
+
+.table-hover tbody tr:hover > td,
+.table-hover tbody tr:hover > th {
+    background-color: #e2dbd8;
+}
+
+
+.pagination ul > li > a,
+.pagination ul > li > span {
+  background-color:  #f6f6ed;
+}
+
+
+
+/***** 6.b Blog *****/
+
+.widget-blogcategories a:hover,
+.widget-blogarchives a:hover
+{
+  color:#D54563;
+}
+
+
+
+/***** 6.e Tags *****/
+
+
+ul.tagcloud a:hover {
+	color:#D54563
+}
+
+
+
+/***** 6.g.ii Form *****/
+
+
+.comment-form legend#add-comment, h2.comment-count {
+	color:#D54563;
+}
+
+
+/***** 6.h Zones *****/
+
+
+
+aside.aside-column article.widget {
+	border-top:1px solid #b2b8c1;
+			}
+
+
+
+
+/***** 7. Misc *****/
+.glyphicons i:before {
+  color: #494e55;
+}
+
+
+::selection {
+  background: #494e55;
+  color:#fff;
+  }
+::-moz-selection {
+  background: #494e55;
+  color:#fff;
+}

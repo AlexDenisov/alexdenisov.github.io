@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Getting Started With LLVM/Clang on OS X - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="clang ,clang tutorial ,llvm ,llvm tutorial ,xcode ,howto" />
+  
+
+  
+  <meta name="description" content="How to start hacking on LLVM/Clang using OS X and Xcode" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Getting Started With LLVM/Clang on OS X" />
+<meta name="twitter:description" content="How to start hacking on LLVM/Clang using OS X and Xcode" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/getting-started-with-llvm/clang-on-os-x/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Getting Started With LLVM/Clang on OS X</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2014-12-27 23:03:50 &#43;0100 CET" pubdate>Dec 27, 2014</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>This article is a guide how to set up development environment for Clang on OS X.
+The following topics are covered:</p>
+<ul>
+<li>getting sources</li>
+<li>setting up IDE/compiling</li>
+<li>debugging</li>
+</ul>
+<!-- raw HTML omitted -->
+<p><em>The article doesn&rsquo;t cover basics of compiler construction. If you&rsquo;re looking for a theory take a look at Summary section at the bottom of the page.</em></p>
+<h3 id="getting-sources">Getting sources</h3>
+<p>Clang (and other projects from LLVM suite) uses SVN as a main version control system, but also provides a git mirror. Alternatively, you can use unofficial git mirror from Github, which updates every hour.</p>
+<p>In this tutorial I use git as a VCS, but you may use an SVN without any restrictions.</p>
+<p>To build Clang from sources you need to clone 4 projects: LLVM, Clang, compiler-rt and clang-tools-extra.</p>
+<p>Let’s grab the latest sources:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir ~/Projects/clang_dev
+</span></span><span style="display:flex;"><span>cd ~/Projects/clang_dev
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/llvm.git
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/clang.git llvm/tools/clang
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt
+</span></span></code></pre></div><p>You can checkout particular branch if you&rsquo;re interested in a particular version (e.g. 3.4)</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir ~/Projects/clang_dev
+</span></span><span style="display:flex;"><span>cd ~/Projects/clang_dev
+</span></span><span style="display:flex;"><span>export BRANCH<span style="color:#f92672">=</span>release_34
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/llvm.git -b $BRANCH
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/clang.git llvm/tools/clang -b $BRANCH
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/clang-tools-extra.git llvm/tools/clang/tools/extra -b $BRANCH
+</span></span><span style="display:flex;"><span>git clone http://llvm.org/git/compiler-rt.git llvm/projects/compiler-rt -b $BRANCH
+</span></span></code></pre></div><p>From to time to time you have to update the sources if you use <code>HEAD</code>. If you don’t want to do it manually, just put the script into <code>clang_dev</code> directory:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e">#!/bin/env sh
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>root<span style="color:#f92672">=</span><span style="color:#e6db74">`</span>~/Projects/clang_dev<span style="color:#e6db74">`</span>
+</span></span><span style="display:flex;"><span>cd $root/llvm <span style="color:#f92672">&amp;&amp;</span> git pull origin master
+</span></span><span style="display:flex;"><span>cd $root/llvm/tools/clang <span style="color:#f92672">&amp;&amp;</span> git pull origin master
+</span></span><span style="display:flex;"><span>cd $root/llvm/projects/compiler-rt <span style="color:#f92672">&amp;&amp;</span> git pull origin master
+</span></span><span style="display:flex;"><span>cd $root/llvm/tools/clang/tools/extra <span style="color:#f92672">&amp;&amp;</span> git pull origin master
+</span></span></code></pre></div><p>and make it executable</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>chmod +x update.sh
+</span></span></code></pre></div><h3 id="setting-up-ide-and-compiling">Setting up IDE and compiling</h3>
+<p>LLVM uses CMake, which supports a few build systems, such as NMake, GNU/Make, Visual Studio, Xcode, etc.</p>
+<p>Let’s create the project for Xcode</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>cd ~/Projects/clang_dev
+</span></span><span style="display:flex;"><span>mkdir build
+</span></span><span style="display:flex;"><span>cd build
+</span></span><span style="display:flex;"><span>cmake -G Xcode CMAKE_BUILD_TYPE<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Debug&#34;</span> ../llvm
+</span></span></code></pre></div><p>open it</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>open LLVM.xcodeproj
+</span></span></code></pre></div><p>and find something to do (it’s not about ‘make tea’, but about ‘go for a party&rsquo;), indexing will take a while and, unfortunately, Xcode is almost unresponsive due to the project processing.</p>
+<p>Well, once the project indexing is over you can build the clang.</p>
+<p>But before, probably, you need to cleanup the list of targets/schemes.</p>
+<p>Click on &lsquo;ALL_BUILD&rsquo;</p>
+<figure><img src="/img/getting-started-with-clang/all_build_target.png"
+         alt="ALL_BUILD target"/>
+</figure>
+
+<p>choose ‘Manage Schemes&hellip;'</p>
+<figure><img src="/img/getting-started-with-clang/manage_schemes.png"
+         alt="Manage Schemes..."/>
+</figure>
+
+<p>you’ll see a huge list of available targets, you don’t need most of them so feel free to hide &lsquo;useless&rsquo; ones by unchecking &lsquo;Show&rsquo; flag:</p>
+<p><!-- raw HTML omitted --></p>
+<p>If we just build and run clang, then it’ll do nothing, let’s add some parameters, for instance, print version.</p>
+<p>Select <code>Edit scheme</code>:</p>
+<figure><img src="/img/getting-started-with-clang/edit_scheme.png"
+         alt="Edit scheme"/>
+</figure>
+
+<p>and add <code>-v</code> to the <code>Arguments passed on launch</code>:</p>
+<p><!-- raw HTML omitted --></p>
+<p>That’s pretty much it, just hit <code>Cmd + R</code> and it’ll build clang and run built binary with a specified parameter.</p>
+<p>When build done (it also takes a while) and program executed you’ll see the clang version in the Xcode output window</p>
+<p><!-- raw HTML omitted --></p>
+<h3 id="debugging">Debugging</h3>
+<p>Clang is a big project therefore debugging without a decent GUI tool is not an easy task. Fortunately, we have Xcode.</p>
+<p>In this example we’re going to debug a parser and semantic analysis phase of clang.</p>
+<p>Create a file <code>/tmp/sum.c</code> which contains the following code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sum</span>(<span style="color:#66d9ef">int</span> a, <span style="color:#66d9ef">int</span> b) {
+</span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">return</span> a <span style="color:#f92672">+</span> b;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>and specify the file as an argument for a clang binary, with additional parameters:</p>
+<p><!-- raw HTML omitted --></p>
+<p><code>clang</code> executable itself is just a driver, which determines what to do next with all received parameters. By default it calls &lsquo;clang compiler’ and passes the parameters, but it calls it as a separate process, so it’s hard to debug in a traditional way. By specifying <code>-cc1</code> option it calls compiler directly, in the same process.</p>
+<p>Since we aren’t going to compile the source, but only make semantic analysis, we can add <code>-fsyntax-only</code> argument.</p>
+<p>Let’s start debugging.</p>
+<p>Find a <code>ParseExpr.cpp</code>, set a breakpoint at the <code>ParseExpression</code> method:</p>
+<p><!-- raw HTML omitted --></p>
+<p>and run. When program reach this breakpoint you can retrieve some useful information.</p>
+<p>Most of LLVM&rsquo; classes have method <code>dump</code> which prints all valuable information about an object. You can easily access it by evaluating LLDB command <code>expression</code> (or simply <code>expr</code>):</p>
+<p><!-- raw HTML omitted --></p>
+<p>Here you see an AST representation of the addition expression from a <code>sum</code> method: <code>a + b</code>.</p>
+<h3 id="summary">Summary</h3>
+<p>As you can see this article is not a comprehensive guide, but only a very small instruction set, which might be helpful if you just started playing with compiler internals and want to try to touch them.</p>
+<p>If you&rsquo;re looking for a more theoretical and practical information I&rsquo;d recommend to read the following articles:</p>
+<ul>
+<li><a href="http://aosabook.org/en/llvm.html">The Architecture of Open Source Applications: LLVM</a> by <a href="http://nondot.org/~sabre/">Chris Lattner</a></li>
+<li><a href="http://www.objc.io/issue-6/compiler.html">objc.io #6. The Compiler</a> by <a href="https://twitter.com/chriseidhof">Chris Eidhof</a></li>
+</ul>
+<p><strong>Stay tuned if you interested how-to write tests for Clang and LLVM.</strong></p>
+<p><strong>Happy hacking!</strong></p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

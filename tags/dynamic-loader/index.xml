@@ -1,0 +1,79 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>dynamic loader on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/dynamic-loader/</link>
+    <description>Recent content in dynamic loader on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Tue, 13 Nov 2018 08:00:00 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Debugging Dyld</title>
+        <link>https://lowlevelbits.org/debugging-dyld/</link>
+        <pubDate>Tue, 13 Nov 2018</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/debugging-dyld/</guid>
+        <description>&lt;p&gt;Recently, I was debugging an interesting issue: a program crashes whenever it tries to call a particular function from a dynamic library. It was not clear how to debug this issue. Eventually, I did resolve the problem: the key was in the dynamic linker, dyld.&lt;/p&gt;
+&lt;p&gt;In this article, I want to make a short intro on where to start if you have a similar issue. It is by no means an exhaustive guide, but rather a starting point that could have saved me a few hours would I have known this information before.&lt;/p&gt;
+&lt;h2 id=&#34;inspect-the-dyld-from-inside&#34;&gt;Inspect the dyld from inside&lt;/h2&gt;
+&lt;p&gt;The source code of dyld is generally available but is outdated. At the time of writing, you can get the source code for macOS High Sierra, 10.13.6, from &lt;a href=&#34;https://opensource.apple.com&#34;&gt;here&lt;/a&gt;. If you are running the latest version of macOS, 10.14, Mojave, then your last resort is binaries shipped with the OS. Though, the source code from previous versions is still helpful. So to get the full picture, I recommend doing the following:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Get the latest version of the source code from &lt;a href=&#34;https://opensource.apple.com/&#34;&gt;https://opensource.apple.com/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Use disassembler (&lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper&lt;/a&gt; ftw) to inspect dyld binaries: &lt;code&gt;/usr/lib/dyld&lt;/code&gt;, &lt;code&gt;/usr/lib/system/libdyld.dylib&lt;/code&gt; , and &lt;code&gt;/usr/lib/closure/libclosured.dylib&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;Disable &lt;a href=&#34;https://en.wikipedia.org/wiki/System_Integrity_Protection&#34;&gt;SIP&lt;/a&gt; (optional) and run you binary under &lt;code&gt;lldb&lt;/code&gt;. You can set breakpoints on all dyld related functions: &lt;code&gt;br set -r dyld&lt;/code&gt; or &lt;code&gt;br set -r dyld3&lt;/code&gt; for dyld3 only.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;During debugging, please be ready to jump a lot between the source code and the three libraries mentioned in step two.&lt;/p&gt;
+&lt;h2 id=&#34;inspect-the-dyld-from-the-outside&#34;&gt;Inspect the dyld from the outside&lt;/h2&gt;
+&lt;p&gt;There are a few other options to observe the behavior of dyld without looking at the code, source or binary.
+You will also need to disable &lt;a href=&#34;https://en.wikipedia.org/wiki/System_Integrity_Protection&#34;&gt;SIP&lt;/a&gt; if you want to exercise it on systems apps.
+All the options are controlled via environment variables. These are the ones I found the most useful:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;DYLD_PRINT_APIS&lt;/code&gt;: documented, prints a nice trace of almost everything that is happening inside of dyld. Here is an example output:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;_dyld_register_func_for_add_image(0x7fff7696ab92)
+_dyld_get_image_slide(0x1000f1000)
+_dyld_register_func_for_add_image(0x7fff7689cd98)
+_dyld_get_image_slide(0x1000f1000)
+_dyld_register_func_for_add_image(0x7fff76be67cb)
+dyld_image_path_containing_address(0x7fff75221000)
+...
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It looks cryptic, but it greatly helps to understand the program execution flow.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;DYLD_PRINT_LIBRARIES&lt;/code&gt;, documented, prints all the dynamic libraries that are being loaded during the app startup. Here is an example output:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dyld: loaded: /usr/lib/libiconv.2.dylib
+dyld: loaded: /System/Library/Frameworks/Security.framework/Versions/A/Security
+dyld: loaded: /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation
+dyld: loaded: /usr/lib/libz.1.dylib
+dyld: loaded: /usr/lib/libSystem.B.dylib
+dyld: loaded: /usr/lib/libresolv.9.dylib
+dyld: loaded: /usr/lib/system/libcache.dylib
+dyld: loaded: /usr/lib/system/libcommonCrypto.dylib
+dyld: loaded: /usr/lib/system/libcompiler_rt.dylib
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;DYLD_PRINT_WARNINGS&lt;/code&gt;, undocumented, may print some useful information. Currently, it definitely prints some info about &lt;a href=&#34;https://allegro.tech/2018/05/Static-linking-vs-dyld3.html&#34;&gt;dyld3 closures&lt;/a&gt;.
+An example output:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dyld: found closure 0x7ffff48ae9ac (size=844) in dyld shared cache
+dyld: closure 0x7ffff48ae9ac not used because DYLD_FRAMEWORK_PATH changed
+&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;DYLD_*_PATH&lt;/code&gt;, documented, changes the order of directories where dyld will search for dynamic libraries. The nice side effect of using these variables is that their presence disables the dyld3 closure cache. So if your suspect is dyld3 closures, then export any of the &lt;code&gt;DYLD_*_PATH&lt;/code&gt; variables to disable them. Some examples:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export DYLD_FRAMEWORK_PATH=
+export DYLD_LIBRARY_PATH=
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;For more info, please consult the dyld man page (&lt;code&gt;man dyld&lt;/code&gt;) or dig through the code, source or binary.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;p&gt;Debugging such thing as dyld is a nontrivial task, but it is indeed possible. If you know any other hints or tricks, please share them.&lt;/p&gt;
+&lt;p&gt;Happy debugging!&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

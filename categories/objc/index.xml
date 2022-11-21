@@ -1,0 +1,149 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>objc on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/categories/objc/</link>
+    <description>Recent content in objc on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Fri, 26 Jun 2015 09:22:57 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>NSValue and Boxed Expressions</title>
+        <link>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</link>
+        <pubDate>Fri, 26 Jun 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</guid>
+        <description>&lt;p&gt;Few hours ago I finally finished with my patch to Clang.
+It took a lot of time, but for me it is the most interesting and challenging OSS contribution so far.&lt;/p&gt;
+&lt;p&gt;I’m not going to dive deep into the details, but will give an overview of the new feature it brings to Objective-C.&lt;/p&gt;
+&lt;p&gt;For those of you who want to see the code and documentation: &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/3849076ca69f4277bfac55479c2fc0929f5bbd9d&#34;&gt;code&lt;/a&gt;
+&lt;a href=&#34;http://clang.llvm.org/docs/ObjectiveCLiterals.html#boxed-c-structures&#34;&gt;docs&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;boxed-expressions-and-structures&#34;&gt;Boxed Expressions and Structures&lt;/h3&gt;
+&lt;p&gt;Boxed expressions got limited support of NSValue:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;center &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.center&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;    &lt;span style=&#34;color:#75715e&#34;&gt;// Point p = view.center;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#75715e&#34;&gt;// [NSValue valueWithBytes:&amp;amp;p objCType:@encode(Point)];
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;frame &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;view.frame&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#75715e&#34;&gt;// Rect r = view.frame;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                                     &lt;span style=&#34;color:#75715e&#34;&gt;// [NSValue valueWithBytes:&amp;amp;r objCType:@encode(Rect)];
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;To use boxed expressions on a C struct or union you&amp;rsquo;ve defined, mark it as &lt;code&gt;objc_boxable&lt;/code&gt; first:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) Point {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x, y;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Size {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; width, height;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} Size;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;For C structs or unions defined in a different part of your code (legacy, third-party), simply ‘enable’ this feature before using it:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _Rect {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	Point origin;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  Size size;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} Rect;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;Rect r;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;bad_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;       &lt;span style=&#34;color:#75715e&#34;&gt;// error
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSValue &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;good_rect &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;r&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;      &lt;span style=&#34;color:#75715e&#34;&gt;// ok
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;availability&#34;&gt;Availability&lt;/h3&gt;
+&lt;p&gt;To write backward compatible code you need to check for attribute and feature availability:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_attribute(objc_boxable)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;__attribute__&lt;/span&gt;((objc_boxable)) _Rect Rect;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;CABasicAnimation animation &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [CABasicAnimation animationWithKeyPath:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;position&amp;#34;&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#if __has_feature(objc_boxed_nsvalue_expressions)
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;layer.position&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;@(&lt;/span&gt;newPosition&lt;span style=&#34;color:#ae81ff&#34;&gt;)&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#else
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    animation.fromValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:layer.position];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    animation.toValue &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSValue valueWithCGPoint:newPosition];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#endif
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[layer addAnimation:animation forKey:&lt;span style=&#34;color:#e6db74&#34;&gt;@&amp;#34;move&amp;#34;&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;boring-numbers&#34;&gt;Boring Numbers&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;222 days since first version of patch&lt;/li&gt;
+&lt;li&gt;85 commits in an own fork of clang&lt;/li&gt;
+&lt;li&gt;50 emails in the mail thread&lt;/li&gt;
+&lt;li&gt;8 versions of the patch&lt;/li&gt;
+&lt;li&gt;3 different implementations&lt;/li&gt;
+&lt;li&gt;1 retired reviewer&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it&lt;/h3&gt;
+&lt;p&gt;It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+
+    
+
+      
+        <item>
+        <title>Circular Containers in Objective-C</title>
+        <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
+        <pubDate>Mon, 13 Apr 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
+        <description>&lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    XCCEnvironment &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] initWithName:key
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                            parameters:dictionary[key]];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    [environments addObject:environments];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h3 id=&#34;problem&#34;&gt;Problem&lt;/h3&gt;
+&lt;p&gt;When I run the program I got a crash:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[environments addObject:environments];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
+&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
+&lt;p&gt;I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &amp;lsquo;programmers do not dereference null pointers&amp;rsquo; - it is still happens and probably it&amp;rsquo;s kinda unexpected behaviour.&lt;/p&gt;
+&lt;p&gt;I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&amp;rsquo;t find any warning/flag/setting that does this check.&lt;/p&gt;
+&lt;p&gt;Eventually I decided to implement it. Implementation took a couple of evenings but now it&amp;rsquo;s &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248&#34;&gt;in trunk&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Actual patch checks the following mutable collections:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;NSMutableArray&lt;/li&gt;
+&lt;li&gt;NSMutableDictionary&lt;/li&gt;
+&lt;li&gt;NSMutableSet&lt;/li&gt;
+&lt;li&gt;NSMutableOrderedSet&lt;/li&gt;
+&lt;li&gt;NSCountedSet&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;And shows warning if you trying to put collection inside itself&lt;/p&gt;
+&lt;p&gt;The warning could be enabled/disabled with &lt;code&gt;-wobjc-circular-container&lt;/code&gt;/&lt;code&gt;-wno-objc-circular-container&lt;/code&gt; respectively, though it&amp;rsquo;s enabled &amp;lsquo;by default&amp;rsquo;.&lt;/p&gt;
+&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
+&lt;p&gt;Recent clang version contains this feature, but it&amp;rsquo;s not yet available within Xcode, and I guess it&amp;rsquo;ll appear with the next major release - in a year or so.&lt;/p&gt;
+&lt;p&gt;But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.&lt;/p&gt;
+&lt;p&gt;Happy hacking!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+
+    
+  </channel>
+</rss>

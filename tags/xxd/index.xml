@@ -1,0 +1,201 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>xxd on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/xxd/</link>
+    <description>Recent content in xxd on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Reverse Engineering Stickies.app</title>
+        <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
+        <pubDate>Mon, 13 Feb 2017</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
+        <description>&lt;p&gt;Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.&lt;/p&gt;
+&lt;p&gt;However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.&lt;/p&gt;
+&lt;p&gt;I decided to fix that. Here is the result:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The explanation is following.&lt;/p&gt;
+&lt;h3 id=&#34;reversing-ui&#34;&gt;Reversing UI&lt;/h3&gt;
+&lt;p&gt;The task becomes easy since the six colors are hardcoded in the binary. I just need to find where exactly and change the values to ones I like more.&lt;/p&gt;
+&lt;p&gt;I don&amp;rsquo;t know where to start, but I have an idea.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&amp;rsquo;s used. Maybe then I will get another hint.&lt;/p&gt;
+&lt;p&gt;Localizations are stored within the app&amp;rsquo;s bundle, at &lt;code&gt;Contents/Resources&lt;/code&gt; folder. I am particularly interested in &lt;code&gt;Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;. By default, strings are Binary Plists. One can use &lt;code&gt;plutil&lt;/code&gt; to convert them into human-readable XML:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;Localizable.strings&lt;/code&gt; contains many things, but colors are not there.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It looks like the menu was created using Interface Builder.&lt;/p&gt;
+&lt;p&gt;Indeed, there is a menu and a view for a sticky note as well:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Unlikely that I can find something useful inside, but let&amp;rsquo;s see.
+The &lt;code&gt;MainMenu&lt;/code&gt; contains 20k lines. Also, it is quite cryptic:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The best thing one can do is to try find something. For instance look for a color name:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;If I replace &amp;ldquo;Blue&amp;rdquo; with &amp;ldquo;Blur&amp;rdquo; and restart the app, then I see the change:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Ok, I can modify menu entries. It doesn&amp;rsquo;t help me to achieve the initial goal, but at least I know where to look at if I ever decide to change a menu.&lt;/p&gt;
+&lt;h3 id=&#34;reversing-code&#34;&gt;Reversing Code&lt;/h3&gt;
+&lt;p&gt;My attempt to find traces from UI has failed.
+What&amp;rsquo;s left? The binary itself!&lt;/p&gt;
+&lt;p&gt;I usually use &lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt; if I need to look into a binary. Let&amp;rsquo;s see if I can find a method related to the colors.&lt;/p&gt;
+&lt;p&gt;Search for &amp;ldquo;blue&amp;rdquo; shows one hit &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt; that comes from AppKit&amp;rsquo;s &lt;code&gt;NSColor&lt;/code&gt; class. Search for &amp;ldquo;yellow&amp;rdquo; and other colors gives no results.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It feels like a dead end.&lt;/p&gt;
+&lt;p&gt;Instead of searching for other words hoping that I will find something useful I can ask &lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt; for help.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Shallow look at &lt;code&gt;Stickies.h&lt;/code&gt; shows that class &lt;code&gt;StickiesWindow&lt;/code&gt; has a method &lt;code&gt;setColorByIndex:&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Perfect. It looks like this method receives an index of a color from the menu.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s explore the program in the wild.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Hm, what does it mean? Why can&amp;rsquo;t LLDB find the symbol?
+Eventually, I left the questions open.&lt;/p&gt;
+&lt;p&gt;Then I decided to look at the binary through the excellent &lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The Hopper app has a beautiful feature: pseudo-code mode.&lt;/p&gt;
+&lt;p&gt;It (almost) clearly shows what happens inside of &lt;code&gt;setColorByIndex:&lt;/code&gt; method:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;r14&lt;/code&gt; contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.&lt;/p&gt;
+&lt;p&gt;What is important here: three consecutive values starting at &lt;code&gt;0x10000c790&lt;/code&gt; moved to &lt;code&gt;xmm_&lt;/code&gt; registers. I&amp;rsquo;m not 100% sure, but I&amp;rsquo;d assume that they are used to pass parameters into &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The method accepts color components as &lt;code&gt;double&lt;/code&gt;s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a &lt;code&gt;double&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s use lldb to confirm the hypothesis.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;So, I found the following address/value pairs:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 : 0.99607800000000002 (or 254)
+0x10000c798 : 0.95686199999999999 (or 244)
+0x10000c7a0 : 0.61176399999999997 (or 156)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I&amp;rsquo;m pretty sure I&amp;rsquo;m done here, but one more check, just to make sure there is no mistake.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Perfect! Now I need to patch the binary and change the values.&lt;/p&gt;
+&lt;h3 id=&#34;patching-the-binary&#34;&gt;Patching The Binary&lt;/h3&gt;
+&lt;p&gt;Now I know where the colors reside in code. I need to find them in the binary.
+The address of a first color component is 0x10000c790. To find its on-disk address I need to subtract a base address from it.
+The base address can be obtained via LLDB as well.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Little math:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 - 0x0000000100000000 = 0xc790
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now I can use xxd with -s (&lt;code&gt;--seek&lt;/code&gt;) and -l (&lt;code&gt;--length&lt;/code&gt;) parameters to get exactly 8 bytes at a given address.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;In this case, these bytes are: &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt;. Guess what I would see if I write 0.99607800000000002 into a file? Exactly, I&amp;rsquo;d see &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt; there.&lt;/p&gt;
+&lt;p&gt;Now I can pick value I want to use and start writing them one by one starting at &lt;code&gt;0xc790&lt;/code&gt;. But I have a better idea.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s recall and rewrite a pseudo-code from Hopper:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc790&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;24&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;48&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;56&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;72&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;88&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color4 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.&lt;/p&gt;
+&lt;p&gt;Here where the color index comes into play:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; (colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x2&lt;/span&gt;)) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Depending on the value of &lt;code&gt;colorIndex&lt;/code&gt; it will give the following numbers:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0: 0
+1: 96
+2: 192
+3: 288
+4: 384
+5: 480
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The step is 96: this number of bytes is needed to store four colors.
+I don&amp;rsquo;t know how the source code looked initially, but I can represent it using the following structures:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; red;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; green;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; blue;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c1;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c2;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c3;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c4;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} theme;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// One color theme for each color index
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; theme themes[&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;/// actual color definitions
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I know that four colors are used, but I don&amp;rsquo;t yet know what they are used for.
+Patching them one by one gives the following result:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;I can now rename field name to be more descriptive.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color background_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color border_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color window_title_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color icon_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} theme;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Once I have this in place changing the colors becomes a trivial task:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;changeColor&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; colorIndex, FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;binary) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  theme t;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.background_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.window_title_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color:#ae81ff&#34;&gt;38&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;173&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;228&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.icon_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t.window_title_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.border_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color:#ae81ff&#34;&gt;77&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;188&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;233&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc790&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;96&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fseek(binary, offset, SEEK_SET);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fwrite(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;t, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(theme), &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, binary);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rewind(binary);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After running this code, I see a much better Sticky Note!&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+&lt;p&gt;Reverse Engineering can be not as straightforward and easy as I described
+above. Indeed, I didn&amp;rsquo;t describe some &amp;lsquo;wrong&amp;rsquo; paths I went through during this
+&amp;lsquo;research&amp;rsquo;.
+Here are few examples:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I first was looking for integers instead doubles and could not make any sense out of it.&lt;/li&gt;
+&lt;li&gt;I converted first double into hex, and it didn&amp;rsquo;t match one in the binary. Few hours later I realized that there must be different endianness, which was the case.&lt;/li&gt;
+&lt;li&gt;I didn&amp;rsquo;t have to change the machine code. Otherwise, the process would be
+less pleasant - I would have to invalidate the whole Mach-O binary changing sizes of sections and offsets.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Anyway, I enjoyed this exercise and learned a few new things. So if you are in doubt, I can recommend following my instructions. Though, only for educational purposes!&lt;/p&gt;
+&lt;p&gt;Here are few helpful tips I can give:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Work only with a copy of a program; it&amp;rsquo;s very easy to break things.&lt;/li&gt;
+&lt;li&gt;Put everything under version control, and make commit after each small change. It will be easier to take another direction if you&amp;rsquo;re stuck.&lt;/li&gt;
+&lt;li&gt;Make sure you preserve a size and a length if you change something. Otherwise, it may break the whole thing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is a list of tools that may be helpful for reverse engineering:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;lldb, xxd, plutil&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The code for this patch is on Github: &lt;a href=&#34;https://github.com/AlexDenisov/ModernStickies&#34;&gt;ModernStickies&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy Hacking!&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

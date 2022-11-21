@@ -1,0 +1,598 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>mach-o on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/categories/mach-o/</link>
+    <description>Recent content in mach-o on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Mon, 13 Feb 2017 11:23:48 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Reverse Engineering Stickies.app</title>
+        <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
+        <pubDate>Mon, 13 Feb 2017</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
+        <description>&lt;p&gt;Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.&lt;/p&gt;
+&lt;p&gt;However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.&lt;/p&gt;
+&lt;p&gt;I decided to fix that. Here is the result:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The explanation is following.&lt;/p&gt;
+&lt;h3 id=&#34;reversing-ui&#34;&gt;Reversing UI&lt;/h3&gt;
+&lt;p&gt;The task becomes easy since the six colors are hardcoded in the binary. I just need to find where exactly and change the values to ones I like more.&lt;/p&gt;
+&lt;p&gt;I don&amp;rsquo;t know where to start, but I have an idea.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&amp;rsquo;s used. Maybe then I will get another hint.&lt;/p&gt;
+&lt;p&gt;Localizations are stored within the app&amp;rsquo;s bundle, at &lt;code&gt;Contents/Resources&lt;/code&gt; folder. I am particularly interested in &lt;code&gt;Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;. By default, strings are Binary Plists. One can use &lt;code&gt;plutil&lt;/code&gt; to convert them into human-readable XML:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;Localizable.strings&lt;/code&gt; contains many things, but colors are not there.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It looks like the menu was created using Interface Builder.&lt;/p&gt;
+&lt;p&gt;Indeed, there is a menu and a view for a sticky note as well:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Unlikely that I can find something useful inside, but let&amp;rsquo;s see.
+The &lt;code&gt;MainMenu&lt;/code&gt; contains 20k lines. Also, it is quite cryptic:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The best thing one can do is to try find something. For instance look for a color name:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;If I replace &amp;ldquo;Blue&amp;rdquo; with &amp;ldquo;Blur&amp;rdquo; and restart the app, then I see the change:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Ok, I can modify menu entries. It doesn&amp;rsquo;t help me to achieve the initial goal, but at least I know where to look at if I ever decide to change a menu.&lt;/p&gt;
+&lt;h3 id=&#34;reversing-code&#34;&gt;Reversing Code&lt;/h3&gt;
+&lt;p&gt;My attempt to find traces from UI has failed.
+What&amp;rsquo;s left? The binary itself!&lt;/p&gt;
+&lt;p&gt;I usually use &lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt; if I need to look into a binary. Let&amp;rsquo;s see if I can find a method related to the colors.&lt;/p&gt;
+&lt;p&gt;Search for &amp;ldquo;blue&amp;rdquo; shows one hit &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt; that comes from AppKit&amp;rsquo;s &lt;code&gt;NSColor&lt;/code&gt; class. Search for &amp;ldquo;yellow&amp;rdquo; and other colors gives no results.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It feels like a dead end.&lt;/p&gt;
+&lt;p&gt;Instead of searching for other words hoping that I will find something useful I can ask &lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt; for help.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Shallow look at &lt;code&gt;Stickies.h&lt;/code&gt; shows that class &lt;code&gt;StickiesWindow&lt;/code&gt; has a method &lt;code&gt;setColorByIndex:&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Perfect. It looks like this method receives an index of a color from the menu.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s explore the program in the wild.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Hm, what does it mean? Why can&amp;rsquo;t LLDB find the symbol?
+Eventually, I left the questions open.&lt;/p&gt;
+&lt;p&gt;Then I decided to look at the binary through the excellent &lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The Hopper app has a beautiful feature: pseudo-code mode.&lt;/p&gt;
+&lt;p&gt;It (almost) clearly shows what happens inside of &lt;code&gt;setColorByIndex:&lt;/code&gt; method:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;r14&lt;/code&gt; contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.&lt;/p&gt;
+&lt;p&gt;What is important here: three consecutive values starting at &lt;code&gt;0x10000c790&lt;/code&gt; moved to &lt;code&gt;xmm_&lt;/code&gt; registers. I&amp;rsquo;m not 100% sure, but I&amp;rsquo;d assume that they are used to pass parameters into &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;The method accepts color components as &lt;code&gt;double&lt;/code&gt;s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a &lt;code&gt;double&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s use lldb to confirm the hypothesis.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;So, I found the following address/value pairs:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 : 0.99607800000000002 (or 254)
+0x10000c798 : 0.95686199999999999 (or 244)
+0x10000c7a0 : 0.61176399999999997 (or 156)
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I&amp;rsquo;m pretty sure I&amp;rsquo;m done here, but one more check, just to make sure there is no mistake.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Perfect! Now I need to patch the binary and change the values.&lt;/p&gt;
+&lt;h3 id=&#34;patching-the-binary&#34;&gt;Patching The Binary&lt;/h3&gt;
+&lt;p&gt;Now I know where the colors reside in code. I need to find them in the binary.
+The address of a first color component is 0x10000c790. To find its on-disk address I need to subtract a base address from it.
+The base address can be obtained via LLDB as well.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;Little math:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 - 0x0000000100000000 = 0xc790
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now I can use xxd with -s (&lt;code&gt;--seek&lt;/code&gt;) and -l (&lt;code&gt;--length&lt;/code&gt;) parameters to get exactly 8 bytes at a given address.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;In this case, these bytes are: &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt;. Guess what I would see if I write 0.99607800000000002 into a file? Exactly, I&amp;rsquo;d see &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt; there.&lt;/p&gt;
+&lt;p&gt;Now I can pick value I want to use and start writing them one by one starting at &lt;code&gt;0xc790&lt;/code&gt;. But I have a better idea.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s recall and rewrite a pseudo-code from Hopper:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc790&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;24&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;48&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;56&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;72&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;88&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color4 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(r, g, b);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.&lt;/p&gt;
+&lt;p&gt;Here where the color index comes into play:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; (colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x2&lt;/span&gt;)) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Depending on the value of &lt;code&gt;colorIndex&lt;/code&gt; it will give the following numbers:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0: 0
+1: 96
+2: 192
+3: 288
+4: 384
+5: 480
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The step is 96: this number of bytes is needed to store four colors.
+I don&amp;rsquo;t know how the source code looked initially, but I can represent it using the following structures:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; red;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; green;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; blue;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c1;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c2;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c3;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c4;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} theme;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// One color theme for each color index
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; theme themes[&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;/// actual color definitions
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I know that four colors are used, but I don&amp;rsquo;t yet know what they are used for.
+Patching them one by one gives the following result:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;I can now rename field name to be more descriptive.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color background_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color border_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color window_title_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color icon_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} theme;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Once I have this in place changing the colors becomes a trivial task:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;changeColor&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; colorIndex, FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;binary) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  theme t;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.background_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.window_title_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color:#ae81ff&#34;&gt;38&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;173&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;228&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.icon_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t.window_title_color;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.border_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; rgb(&lt;span style=&#34;color:#ae81ff&#34;&gt;77&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;188&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;233&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc790&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;96&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fseek(binary, offset, SEEK_SET);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fwrite(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;t, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(theme), &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, binary);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rewind(binary);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After running this code, I see a much better Sticky Note!&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
+&lt;p&gt;Reverse Engineering can be not as straightforward and easy as I described
+above. Indeed, I didn&amp;rsquo;t describe some &amp;lsquo;wrong&amp;rsquo; paths I went through during this
+&amp;lsquo;research&amp;rsquo;.
+Here are few examples:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I first was looking for integers instead doubles and could not make any sense out of it.&lt;/li&gt;
+&lt;li&gt;I converted first double into hex, and it didn&amp;rsquo;t match one in the binary. Few hours later I realized that there must be different endianness, which was the case.&lt;/li&gt;
+&lt;li&gt;I didn&amp;rsquo;t have to change the machine code. Otherwise, the process would be
+less pleasant - I would have to invalidate the whole Mach-O binary changing sizes of sections and offsets.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Anyway, I enjoyed this exercise and learned a few new things. So if you are in doubt, I can recommend following my instructions. Though, only for educational purposes!&lt;/p&gt;
+&lt;p&gt;Here are few helpful tips I can give:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Work only with a copy of a program; it&amp;rsquo;s very easy to break things.&lt;/li&gt;
+&lt;li&gt;Put everything under version control, and make commit after each small change. It will be easier to take another direction if you&amp;rsquo;re stuck.&lt;/li&gt;
+&lt;li&gt;Make sure you preserve a size and a length if you change something. Otherwise, it may break the whole thing.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;This is a list of tools that may be helpful for reverse engineering:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;lldb, xxd, plutil&amp;hellip;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The code for this patch is on Github: &lt;a href=&#34;https://github.com/AlexDenisov/ModernStickies&#34;&gt;ModernStickies&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Happy Hacking!&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>Bitcode Demystified</title>
+        <link>https://lowlevelbits.org/bitcode-demystified/</link>
+        <pubDate>Sat, 05 Sep 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
+        <description>&lt;p&gt;A few months ago Apple announced a &amp;rsquo;new feature,&amp;rsquo; called &amp;lsquo;Bitcode.&amp;rsquo; In this article, I will try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.&lt;/p&gt;
+&lt;h2 id=&#34;what-is-bitcode&#34;&gt;What is Bitcode?&lt;/h2&gt;
+&lt;p&gt;To answer this question let&amp;rsquo;s look at what compilers do for us. Here is a brief overview of compilation process:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Lexer&lt;/code&gt;: takes source code as an input and translates it into a stream of tokens;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Parser&lt;/code&gt;: takes stream of tokens as an input and translates it into an &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;AST&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Semantic Analysis&lt;/code&gt;: takes an AST as an input, checks if a program is correct (method called with correct amount of parameters, method called on object actually exists and non-private, etc.), fills in &amp;lsquo;missing types&amp;rsquo; (e.g.: &lt;code&gt;let x = y&lt;/code&gt;, &lt;code&gt;x&lt;/code&gt; has type of &lt;code&gt;y&lt;/code&gt;) and passes AST to the next phase;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Code Generation&lt;/code&gt;: takes an AST as an input and emits some high-level IR (intermediate representation);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Optimization&lt;/code&gt;: takes IR, makes optimizations and emits IR which is potentially faster and/or smaller;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AsmPrinter&lt;/code&gt;: another code generation phase, it takes IR and emits assembly for particular CPU;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Assembler&lt;/code&gt;: takes assembly and converts it into an object code (stream of &lt;code&gt;0&lt;/code&gt;s and &lt;code&gt;1&lt;/code&gt;s);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Linker&lt;/code&gt;: usually programs refer to already compiled routines from other programs (e.g.: &lt;code&gt;printf&lt;/code&gt;) to avoid recompilation of the same code over and over. Until this phase these links do not have correct addresses, they are just placeholders. Linker&amp;rsquo;s job is to resolve those placeholders so that they point to the correct addresses of their corresponding routines.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;You can find more details here: &lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;In the modern world these phases are split into two parts: &lt;strong&gt;&lt;code&gt;compiler frontend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;lexer&lt;/code&gt;, &lt;code&gt;parser&lt;/code&gt;, &lt;code&gt;semantic analysis&lt;/code&gt;, &lt;code&gt;code generation&lt;/code&gt;) and &lt;strong&gt;&lt;code&gt;compiler backend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;optimization&lt;/code&gt;, &lt;code&gt;asm printer&lt;/code&gt;, &lt;code&gt;assembler&lt;/code&gt;, &lt;code&gt;linker&lt;/code&gt;). This separation makes much sense for both language designers and hardware manufacturers. If you want to create a new programming language you &amp;lsquo;just&amp;rsquo; need to implement a frontend, and you get all available optimizations and support of different CPUs for free. On the other hand, if you created a new chip, you &amp;lsquo;just&amp;rsquo; need to extend the backend and you get all the available languages (frontends) support for your CPU.&lt;/p&gt;
+&lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM &lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;has it is own&lt;/a&gt; format, that can be encoded using LLVM bitstream file format - &lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;Bitcode&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Just to recall it explicitly - &lt;strong&gt;Bitcode is a bitstream representation of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-apples-bitcode-aims-to-solve&#34;&gt;What problems Apple&amp;rsquo;s Bitcode aims to solve?&lt;/h2&gt;
+&lt;p&gt;Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend reading this article: &lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run a program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you run a program, OS reads the &amp;lsquo;Table Of Contents&amp;rsquo; and looks for a slice corresponding to the OS CPU.
+For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, then OS will load object code for &lt;code&gt;x86_64&lt;/code&gt; into a memory and run the program.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s happening with other slices? Nothing, they just waste your disk space.&lt;/p&gt;
+&lt;p&gt;This is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt; CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for &lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt;, so you can use them to test the app on a device or simulator. (Can you imagine how many copies of Google Analytics for &lt;code&gt;i386&lt;/code&gt; you have in your pocket?)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; I do not know why, but I was sure that final executable contains these slices as well (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, etc.), but it seems they are stripped during the build phase.&lt;/p&gt;
+&lt;p&gt;Apple did not give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you submit an app (including Bitcode) Apple&amp;rsquo;s &amp;lsquo;BlackBox&amp;rsquo; recompiles it for each supported platform and drops any &amp;lsquo;useless&amp;rsquo; object code, so AppStore has a copy of the app for each CPU. When an end user wants to install the app - she installs the only version for the particular processor, without any unused stuff.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bitcode might save up to 50% of disk space per program.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; Of course, I do not take in count resources, it is just about binary itself. For instance, an app I am working on currently has size ~40 megabytes (including assets, xibs. fonts), a size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them, it will decrease the size of the app by ~20%.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-do-bitcode-introduce&#34;&gt;What problems do Bitcode introduce?&lt;/h2&gt;
+&lt;p&gt;The idea of Bitcode and recompiling for each platform looks really great, and it is a huge improvement, though it has downsides as well: the biggest one is security.&lt;/p&gt;
+&lt;p&gt;To get the benefits of Bitcode, you should submit your app including Bitcode (surprisingly). If you use some proprietary third-party library, then it also should contain Bitcode, hence as a maintainer of a proprietary library, you should distribute the library with Bitcode.&lt;/p&gt;
+&lt;p&gt;To recall: &lt;strong&gt;Bitcode is just another form of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fmt, ...);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Run the following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;clang -S -emit-llvm main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;@.str = &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; Function Attrs: nounwind ssp uwtable
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @main() #0 {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = &lt;span style=&#34;color:#66d9ef&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;* %1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...) #1
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
+&lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
+&lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ bitcode_retriever some_binary
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x86_64.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ xar -xvf arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 1.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 2.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
+Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Another potential issue (can&amp;rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.&lt;/p&gt;
+&lt;p&gt;I know only one way to secure the IR - &lt;!-- raw HTML omitted --&gt;obfuscation&lt;!-- raw HTML omitted --&gt;. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Bitcode is a bitstream file format for LLVM IR&lt;/li&gt;
+&lt;li&gt;one of its goals is to decrease a size of an app by eliminating unused object code&lt;/li&gt;
+&lt;li&gt;malefactor can obtain your app or library, retrieve the IR from it and steal your &amp;lsquo;secret algorithm.&amp;rsquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;useful-links&#34;&gt;Useful links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;LLVM IR&lt;/a&gt; - language reference manual&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;LLVM Bitcode&lt;/a&gt; - Bitcode file format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt; - Clang/LLVM compilation phases&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt; - tool that retrieves xar-archives with bitcode from mach-o binary&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/obfuscator-llvm/obfuscator/wiki&#34;&gt;o-llvm&lt;/a&gt; - obfuscator based on LLVM&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>Parsing Mach-O files</title>
+        <link>https://lowlevelbits.org/parsing-mach-o-files/</link>
+        <pubDate>Thu, 20 Aug 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/parsing-mach-o-files/</guid>
+        <description>&lt;p&gt;This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
+For more information consider reading official documentation and header files provided by operating system.&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;h2 id=&#34;what-is-mach-o-file&#34;&gt;What is Mach-O file&lt;/h2&gt;
+&lt;p&gt;Brief description taken from &lt;a href=&#34;https://en.wikipedia.org/wiki/Mach-O&#34;&gt;Wikipedia&lt;/a&gt;:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Mach-O, short for Mach object file format, is a file format for executables, object code, shared libraries, dynamically-loaded code, and core dumps. A replacement for the a.out format, Mach-O offers more extensibility and faster access to information in the symbol table.&lt;/p&gt;
+&lt;p&gt;Mach-O is used by most systems based on the Mach kernel. NeXTSTEP, OS X, and iOS are examples of systems that have used this format for native executables, libraries and object code.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;mach-o-format&#34;&gt;Mach-O format&lt;/h2&gt;
+&lt;p&gt;Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.&lt;/p&gt;
+&lt;p&gt;Typical Mach-O file (&lt;a href=&#34;https://github.com/aidansteele/osx-abi-macho-file-format-reference&#34;&gt;copy of the (now removed) official documentation&lt;/a&gt;) consists of a three regions:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Header - contains general information about the binary: byte order (magic number), cpu type, amount of load commands etc.&lt;/li&gt;
+&lt;li&gt;Load Commands - it’s kind of a table of contents, that describes position of segments, symbol table, dynamic symbol table etc. Each load command includes a meta-information, such as type of command, its name, position in a binary and so on.&lt;/li&gt;
+&lt;li&gt;Data - usually the biggest part of object file. It contains code and data, such as symbol tables, dynamic symbol tables and so on.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Here is a simplified graphical representation:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;There are two types of object files on OS X: Mach-O files and Universal Binaries, also so-called Fat files. The difference between them: Mach-O file contains object code for one architecture (i386, x86_64, arm64, etc.) while Fat binaries might contain several object files, hence contain object code for different architectures (i386 and x86_64, arm and arm64, etc.)&lt;/p&gt;
+&lt;p&gt;The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;h2 id=&#34;parse-mach-o-file&#34;&gt;Parse Mach-O file&lt;/h2&gt;
+&lt;p&gt;OS X doesn’t provide us with any &lt;code&gt;libmacho&lt;/code&gt; or something similar, the only thing we have here - a set of C structures defined under &lt;code&gt;/usr/include/mach-o/*&lt;/code&gt;, hence we need to implement parsing on our own. It might be tricky, but it’s not that hard.&lt;/p&gt;
+&lt;h3 id=&#34;memory-representation&#34;&gt;Memory Representation&lt;/h3&gt;
+&lt;p&gt;Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;The only structures we need to represent the file:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;      magic;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  cpu_type_t    cputype;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  cpu_subtype_t cpusubtype;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;      filetype;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;      ncmds;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;      sizeofcmds;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;      flags;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; segment_command {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  cmd;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  cmdsize;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt;      segname[&lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  vmaddr;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  vmsize;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  fileoff;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  filesize;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  vm_prot_t maxprot;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  vm_prot_t initprot;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  nsects;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  flags;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here is how memory mapping looks like:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;If you want to read particular info from a file, you just need a correct data structure and an offset.&lt;/p&gt;
+&lt;h3 id=&#34;parsing&#34;&gt;Parsing&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s write a program that&amp;rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.&lt;/p&gt;
+&lt;p&gt;At the end we might have something similar:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ ./segname_dumper some_binary
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;i386
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;segname __PAGEZERO
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;segname __TEXT
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;segname __LINKEDIT
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;driver&#34;&gt;Driver&lt;/h4&gt;
+&lt;p&gt;Let&amp;rsquo;s start with a simple &amp;lsquo;driver&amp;rsquo;.&lt;/p&gt;
+&lt;p&gt;There are at least two possible ways to parse such files: load content into memory and work with buffer directly or open a file and jump back and forth through it. Both approaches have their own pros and cons, but I&amp;rsquo;ll stick to a second one. Also, I assume that no one going to use the program in a wrong way, hence no error handling whatsoever.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdio.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;stdlib.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;mach-o/loader.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;#include&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;&amp;lt;mach-o/swap.h&amp;gt;&lt;/span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segments&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; argc, &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;argv[]) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;filename &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; argv[&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;];
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fopen(filename, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;rb&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  dump_segments(obj_file);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fclose(obj_file);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segments&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// Driver
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;magic-numbers-cpu-and-endianness&#34;&gt;Magic numbers, CPU and Endianness&lt;/h4&gt;
+&lt;p&gt;To read at least the object file header we need to get all the information we need: CPU arch (32 bit or 64 bit) and the Byte Order. But first we need to retrieve a magic number:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;read_magic&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fseek(obj_file, offset, SEEK_SET);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fread(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;magic, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;), &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, obj_file);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; magic;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segments&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; read_magic(obj_file, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The function &lt;code&gt;read_magic&lt;/code&gt; is pretty straitforward, though one thing there might look weird: &lt;code&gt;fseek&lt;/code&gt;. The problem is that whenever somebody read from a file, the internal &lt;code&gt;_offset&lt;/code&gt; of the file changes. It&amp;rsquo;s better to specify the offset explicitly, to ensure that we read what we actually want to read. Also, this small trick will be useful later on.&lt;/p&gt;
+&lt;p&gt;Structures that represent object file with 32 and 64 bits are different (e.g.: &lt;code&gt;mach_header&lt;/code&gt; and &lt;code&gt;mach_header_64&lt;/code&gt;), to choose which to use we need to check file&amp;rsquo;s architecture:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;is_magic_64&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; MH_MAGIC_64 &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; MH_CIGAM_64;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segments&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; read_magic(obj_file, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_64 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; is_magic_64(magic);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;MH_MAGIC_64&lt;/code&gt; and &lt;code&gt;MH_CIGAM_64&lt;/code&gt; are &amp;lsquo;magic&amp;rsquo; numbers provided by the system. Second one looks even more magicly than first one. Explanation is following.&lt;/p&gt;
+&lt;p&gt;Due to historical reasons different computers might use different &lt;a href=&#34;https://en.wikipedia.org/wiki/Endianness&#34;&gt;byte order&lt;/a&gt;: Big Endian (left to right) and Little Endian (right to left). Magic numbers store this information as well: &lt;code&gt;MH_CIGAM&lt;/code&gt; and &lt;code&gt;MH_CIGAM_64&lt;/code&gt; says that byte order differs from host OS, hence all the bytes should be swapped:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;should_swap_bytes&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; MH_CIGAM &lt;span style=&#34;color:#f92672&#34;&gt;||&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; MH_CIGAM_64;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segments&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; read_magic(obj_file, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_64 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; is_magic_64(magic);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_swap &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; should_swap_bytes(magic);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;mach-o-header&#34;&gt;Mach-O Header&lt;/h4&gt;
+&lt;p&gt;Finally we can read &lt;code&gt;mach_header&lt;/code&gt;. Let&amp;rsquo;s first introduce generic function for reading data from a file.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load_bytes&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; size) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;buf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; calloc(&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fseek(obj_file, offset, SEEK_SET);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  fread(buf, size, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, obj_file);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; buf;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;strong&gt;Note: The data should be freed after usage!&lt;/strong&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_mach_header&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_64, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_64) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; header_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header_64);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header_64 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;header &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, offset, header_size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      swap_mach_header_64(header, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    free(header);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; header_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;header &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, offset, header_size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      swap_mach_header(header, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    free(header);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  free(buffer);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segments&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; magic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; read_magic(obj_file, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_64 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; is_magic_64(magic);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_swap &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; should_swap_bytes(magic);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  dump_mach_header(obj_file, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, is_64, is_swap);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here we introduced another function &lt;code&gt;dump_mach_header&lt;/code&gt; to not mess up &amp;lsquo;driver&amp;rsquo; function.
+The next step is to read all segment commands and print their names.
+The problem is that mach-o files usually contain other commands as well. If you recall the first field of &lt;code&gt;segment_command&lt;/code&gt; structure is a &lt;code&gt;uint32_t cmd;&lt;/code&gt;, this field represents type of a command.
+Here is another structure provided by the system that we&amp;rsquo;ll use:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; load_command {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; cmd;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; cmdsize;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Besides all the information &lt;code&gt;mach_header&lt;/code&gt; has number of load commands, so we can just iterate over and skip commands we&amp;rsquo;re not interested in. Also, we need to calculate offset where the header ends. Here is the final version of &lt;code&gt;dump_mach_header&lt;/code&gt;:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_mach_header&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_64, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; ncmds;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; load_commands_offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; offset;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_64) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; header_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header_64);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header_64 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;header &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, offset, header_size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      swap_mach_header_64(header, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ncmds &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; header&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;ncmds;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    load_commands_offset &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; header_size;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    free(header);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; header_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;header &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, offset, header_size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      swap_mach_header(header, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    ncmds &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; header&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;ncmds;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    load_commands_offset &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; header_size;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    free(header);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  dump_segment_commands(obj_file, load_commands_offset, is_swap, ncmds);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;segment-command&#34;&gt;Segment Command&lt;/h4&gt;
+&lt;p&gt;It&amp;rsquo;s time to dump all segment names:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;dump_segment_commands&lt;/span&gt;(FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;obj_file, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; is_swap, &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt; ncmds) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; actual_offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; offset;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt;  i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; ncmds; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt;) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; load_command &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;cmd &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, actual_offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; load_command));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      swap_load_command(cmd, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (cmd&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;cmd &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; LC_SEGMENT_64) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; segment_command_64 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;segment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, actual_offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; segment_command_64));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        swap_segment_command_64(segment, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;segname: %s&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, segment&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;segname);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      free(segment);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    } &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (cmd&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;cmd &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; LC_SEGMENT) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; segment_command &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;segment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, actual_offset, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; segment_command));
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        swap_segment_command(segment, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;segname: %s&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, segment&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;segname);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      free(segment);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    actual_offset &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; cmd&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;cmdsize;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    free(cmd);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This function doesn&amp;rsquo;t need &lt;code&gt;is_64&lt;/code&gt; parameter, because we can infer it from &lt;code&gt;cmd&lt;/code&gt; type itself (&lt;code&gt;LC_SEGMENT&lt;/code&gt;/&lt;code&gt;LC_SEGMENT_64&lt;/code&gt;). If it&amp;rsquo;s not a segment, then we just skip the command and move forward to the next one.&lt;/p&gt;
+&lt;h4 id=&#34;cpu-name&#34;&gt;CPU name&lt;/h4&gt;
+&lt;p&gt;The last thing I want to show is how to retrieve the name of a processor based on a &lt;code&gt;cputype&lt;/code&gt; from &lt;code&gt;mach_header&lt;/code&gt;.
+I believe this is not the best option, but it&amp;rsquo;s acceptable for this artificial example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _cpu_type_names {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  cpu_type_t cputype;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;cpu_name;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _cpu_type_names cpu_type_names[] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  { CPU_TYPE_I386, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;i386&amp;#34;&lt;/span&gt; },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  { CPU_TYPE_X86_64, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;x86_64&amp;#34;&lt;/span&gt; },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  { CPU_TYPE_ARM, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;arm&amp;#34;&lt;/span&gt; },
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  { CPU_TYPE_ARM64, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;arm64&amp;#34;&lt;/span&gt; }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;cpu_type_name&lt;/span&gt;(cpu_type_t cpu_type) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; cpu_type_names_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(cpu_type_names) &lt;span style=&#34;color:#f92672&#34;&gt;/&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; _cpu_type_names);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; i &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;; i &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt; cpu_type_names_size; i&lt;span style=&#34;color:#f92672&#34;&gt;++&lt;/span&gt; ) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (cpu_type &lt;span style=&#34;color:#f92672&#34;&gt;==&lt;/span&gt; cpu_type_names[i].cputype) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; cpu_type_names[i].cpu_name;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;unknown&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;OS X provides &lt;code&gt;CPU_TYPE_*&lt;/code&gt; for a lot of CPUs, so we can &amp;rsquo;easily&amp;rsquo; associate particular magic number with a string literal. To print name of a CPU we need to modify &lt;code&gt;dump_mach_header&lt;/code&gt; a bit:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; header_size &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header_64);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header_64 &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;header &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; load_bytes(obj_file, offset, header_size);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (is_swap) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  swap_mach_header_64(header, &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;ncmds &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; header&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;ncmds;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;load_commands_offset &lt;span style=&#34;color:#f92672&#34;&gt;+=&lt;/span&gt; header_size;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;%s&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;, cpu_type_name(header&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;cputype)); &lt;span style=&#34;color:#75715e&#34;&gt;// &amp;lt;-
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;free(header);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h4 id=&#34;fat-objects&#34;&gt;Fat objects&lt;/h4&gt;
+&lt;p&gt;The article is already way too big, so I&amp;rsquo;m not going to describe how to handle Fat objects, but you can find implementation here: &lt;a href=&#34;https://github.com/AlexDenisov/segment_dumper&#34;&gt;segment_dumper&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id=&#34;whats-next&#34;&gt;What&amp;rsquo;s next&lt;/h2&gt;
+&lt;p&gt;That&amp;rsquo;s pretty much it.&lt;/p&gt;
+&lt;p&gt;Here is a set of links that might be useful if you want to dig deeper and learn more about mach-o:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://developer.apple.com/library/mac/documentation/DeveloperTools/Conceptual/MachORuntime/index.html&#34;&gt;OS X ABI Mach-O File Format Reference&lt;/a&gt; - official documentation from Apple&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt; - is a visual Mach-O file browser. It provides a complete solution for exploring and in-place editing Intel and ARM binaries.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.objc.io/issues/6-build-tools/mach-o-executables/&#34;&gt;Mach-O Executables&lt;/a&gt; - nice article from &lt;a href=&#34;http://www.objc.io&#34;&gt;objc.io&lt;/a&gt;.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt; - simple C program that retrieves &lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;Bitcode&lt;/a&gt; from Mach-O binaries.&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/AlexDenisov/segment_dumper&#34;&gt;segment_dumper&lt;/a&gt; - source code from this article.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;strong&gt;Happy hacking!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;P.S.&lt;/strong&gt; This is a supplementary material for the next post, which will cover &amp;rsquo;new&amp;rsquo; &lt;a href=&#34;https://developer.apple.com/library/prerelease/ios/documentation/IDEs/Conceptual/AppDistributionGuide/AppThinning/AppThinning.html#//apple_ref/doc/uid/TP40012582-CH35-SW2&#34;&gt;Bitcode feature&lt;/a&gt; from Apple.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

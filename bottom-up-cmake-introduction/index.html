@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Bottom-up CMake introduction - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="cmake ,build system ,introduction ,ninja ,xcode ,eclipse ,visual studio ,cmake macro ,cmake function ,cmake tutorial ,tutorial" />
+  
+
+  
+  <meta name="description" content="If you want to learn CMake, but do not have time to go through all the resources on the internet, then this article is for you." />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/bottom-up-cmake-introduction/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Bottom-up CMake introduction</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2019-05-24 08:00:00 &#43;0100 &#43;0100" pubdate>May 24, 2019</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>If you want to learn CMake, but do not have time to go through all the
+resources on the internet, then this article is for you. I will cover
+essentials you&rsquo;ll need to start:</p>
+<ul>
+<li>targets</li>
+<li>commands</li>
+<li>variables</li>
+<li>functions</li>
+<li>macros</li>
+</ul>
+<p>In the next few minutes, we will reimplement some CMake&rsquo;s builtin functionality
+using the CMake itself.</p>
+<p><strong>Disclaimer:</strong> there are several very inaccurate statements about CMake in
+this article. Most of them are here on purpose: the goal is to build an
+intuition of how CMake works, not to be 100% correct.</p>
+<h3 id="what-is-cmake">What is CMake?</h3>
+<p>CMake is not a build system as many think of it. CMake is a <em>build system
+generator</em>.
+Basically, you can see it as a compiler that compiles CMake scripts into
+Makefiles. Or several other build systems including <a href="https://ninja-build.org">Ninja</a>
+and Xcode, Eclipse, and Visual Studio projects.</p>
+<p><!-- raw HTML omitted --></p>
+<p>The typical workflow is as follows: you create a <code>CMakeLists.txt</code> (can be
+empty), you generate the build system, you build something. Here is the code:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; touch CMakeLists.txt
+</span></span><span style="display:flex;"><span>&gt; cmake .
+</span></span><span style="display:flex;"><span>&gt; make help
+</span></span></code></pre></div><p>This is the bare minimum you need to start. Now let&rsquo;s learn some CMake
+concepts.</p>
+<h3 id="targets">Targets</h3>
+<p>All the work in CMake is organized around <strong>targets</strong>. A <strong>target</strong> is
+something you can <em>build</em> or <em>call</em>.</p>
+<h4 id="target-calls">Target calls</h4>
+<p>Create a <code>CMakeLists.txt</code> with the following content:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>add_custom_target(<span style="color:#e6db74">hello-target</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#e6db74">COMMAND</span> <span style="color:#e6db74">cmake</span> <span style="color:#e6db74">-E</span> <span style="color:#e6db74">echo</span> <span style="color:#e6db74">&#34;Hello, CMake World&#34;</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>And run the following commands:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; cmake .
+</span></span><span style="display:flex;"><span>&lt; truncated &gt;
+</span></span><span style="display:flex;"><span>-- Configuring <span style="color:#66d9ef">done</span>
+</span></span><span style="display:flex;"><span>-- Generating <span style="color:#66d9ef">done</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>&gt; make hello-target
+</span></span><span style="display:flex;"><span>Scanning dependencies of target hello-target
+</span></span><span style="display:flex;"><span>Hello, CMake World
+</span></span><span style="display:flex;"><span>Built target hello-target
+</span></span></code></pre></div><p>Here, the <code>make</code> tells us that it has built the target <code>hello-target</code>, even
+though it just called <code>echo</code> command and did not produce any artifacts.</p>
+<h4 id="build-targets">Build targets</h4>
+<p>Let&rsquo;s fix that and actually build some simple program. Create the following
+files:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// main.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">hello_world</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>  hello_world();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// hello.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">extern</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">printf</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>, ...);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">hello_world</span>() {
+</span></span><span style="display:flex;"><span>  printf(<span style="color:#e6db74">&#34;Hello, CMake world</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Replace the custom target COMMAND:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>add_custom_target(<span style="color:#e6db74">hello-target</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#e6db74">COMMAND</span> <span style="color:#e6db74">gcc</span> <span style="color:#e6db74">main.c</span> <span style="color:#e6db74">hello.c</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>And re-run <code>make</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; make hello-target
+</span></span><span style="display:flex;"><span>&lt; truncated &gt;
+</span></span><span style="display:flex;"><span>-- Configuring <span style="color:#66d9ef">done</span>
+</span></span><span style="display:flex;"><span>-- Generating <span style="color:#66d9ef">done</span>
+</span></span><span style="display:flex;"><span>Built target hello-target
+</span></span></code></pre></div><p>As you can see <code>make</code> detected the change and reconfigured CMake. If everything
+is right, you should have the <code>hello</code> executable:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; ./hello
+</span></span><span style="display:flex;"><span>Hello, CMake world
+</span></span></code></pre></div><p>Great success!!!</p>
+<h3 id="commands">Commands</h3>
+<p>In fact, you can describe the whole build process using the custom target as we
+did above. The problem is, however, that the command will re-run every time
+whenever you run <code>make hello-target</code>: the <code>hello</code> program will be re-compiled
+completely even when nothing has changed.</p>
+<p>Let&rsquo;s use separate <strong>commands</strong> to solve this problem. The new version of
+<code>CMakeLists.txt</code>:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#e6db74">hello.o</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">COMMAND</span> <span style="color:#e6db74">gcc</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">hello.c</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#e6db74">main.o</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">COMMAND</span> <span style="color:#e6db74">gcc</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">main.c</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_custom_target(<span style="color:#e6db74">hello-target</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#e6db74">COMMAND</span> <span style="color:#e6db74">gcc</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The important point here is the <code>DEPENDS</code>. This construct describes the build
+process in the form of a (direct acyclic) graph: A depends on B, B depends on
+C and D, and so forth. Then, a change of D or C means that B is changed, which
+means that A is also changed, and therefore, all the changed items should be
+re-created.</p>
+<p>Now try the following: build the program, add some change to one of the files,
+re-run the build twice, you should see something like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; make hello-target
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span> 50%<span style="color:#f92672">]</span> Generating hello.o
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>100%<span style="color:#f92672">]</span> Generating main.o
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>100%<span style="color:#f92672">]</span> Built target hello-target
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Add small change to hello.c</span>
+</span></span><span style="display:flex;"><span>&gt; make hello-target
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span> 50%<span style="color:#f92672">]</span> Generating hello.o
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>100%<span style="color:#f92672">]</span> Built target hello-target
+</span></span><span style="display:flex;"><span>&gt; make hello-target
+</span></span><span style="display:flex;"><span><span style="color:#f92672">[</span>100%<span style="color:#f92672">]</span> Built target hello-target
+</span></span></code></pre></div><p>We&rsquo;ve just got <strong>incremental compilation</strong>, yay!</p>
+<h3 id="variables">Variables</h3>
+<p>It is time to do some refactoring: I&rsquo;m more of a <code>clang</code> person than <code>gcc</code>, and
+therefore I want an easier way to change the compiler. Let&rsquo;s extract it into
+a separate variable.</p>
+<p>Definition of a variable is as easy as <code>set (FOO bar)</code> call, that defines a
+variable <code>FOO</code> with value <code>bar</code>. The usage is also straightforward: <code>${FOO}</code>
+becomes <code>bar</code> when executed.</p>
+<p>Here is how a better version of <code>CMakeLists.txt</code> looks like:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">C_COMPILER</span> <span style="color:#e6db74">gcc</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#e6db74">hello.o</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">hello.c</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#e6db74">main.o</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">main.c</span>
+</span></span><span style="display:flex;"><span>                   <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_custom_target(<span style="color:#e6db74">hello-target</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
+</span></span><span style="display:flex;"><span>                  <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The variable definition can be recursive. Try to add the following code to the
+CMake script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">NUMBERS</span> <span style="color:#e6db74">1</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>message(<span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">NUMBERS</span> <span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span> <span style="color:#e6db74">2</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>message(<span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">NUMBERS</span> <span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span> <span style="color:#e6db74">3</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>message(<span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">NUMBERS</span> <span style="color:#e6db74">0</span> <span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>message(<span style="color:#f92672">${</span>NUMBERS<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>And re-run <code>cmake .</code> to see this in action:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; cmake .
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">12</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">123</span>
+</span></span><span style="display:flex;"><span><span style="color:#ae81ff">0123</span>
+</span></span></code></pre></div><h3 id="functions">Functions</h3>
+<p>In CMake, everything is a function!</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">FOO</span> <span style="color:#e6db74">bar</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p><code>set</code> is a function that takes two arguments.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>if(<span style="color:#e6db74">CMAKE_SYSTEM_NAME</span> <span style="color:#e6db74">STREQUAL</span> <span style="color:#e6db74">Linux</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#75715e"># ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>else()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#75715e"># ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>endif()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p><code>if</code>, <code>else</code>, and <code>endif</code> are functions.</p>
+<p><code>add_custom_target</code> and <code>add_custom_command</code> are also functions.</p>
+<p>Let&rsquo;s create our own function and hide all the intricacies of our CMake script:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">C_COMPILER</span> <span style="color:#e6db74">gcc</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>function(<span style="color:#e6db74">create_executable</span> <span style="color:#e6db74">name</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#e6db74">hello.o</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">hello.c</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#e6db74">main.o</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">main.c</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_target(<span style="color:#f92672">${</span>name<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.o</span> <span style="color:#e6db74">hello.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endfunction()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>create_executable(<span style="color:#e6db74">hello-target</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p><em>Fun fact: <code>function</code> and <code>endfunction</code> are also functions.</em></p>
+<p>The function is now reusable, but quite useless since the source files are
+hardcoded. Let&rsquo;s go a bit deeper and fix this issue.</p>
+<h3 id="macros">Macros</h3>
+<p>In CMake, everything is a function! Except for macros.</p>
+<p>Macros are like functions, with one exception: they are inlined whenever they
+called. We can extract compilation into the macro:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>macro(<span style="color:#e6db74">compile</span> <span style="color:#e6db74">source_file</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  get_filename_component(<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span> <span style="color:#e6db74">NAME_WE</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span><span style="color:#e6db74">.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endmacro()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The macro uses <code>get_filename_component</code> to cut the extension from the input
+source file and constructs the output file name: <code>main.c -&gt; main.o</code>.</p>
+<p>Now we can use this macro:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>function(<span style="color:#e6db74">create_executable</span> <span style="color:#e6db74">name</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  compile(<span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_files</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  compile(<span style="color:#e6db74">main.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_files</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_target(<span style="color:#f92672">${</span>name<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endfunction()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>The code looks a bit cleaner now, but there is at least one part that may look
+confusing: <code>set (output_files ${output_file})</code>. Since the body of a macro is
+inlined, we can rewrite this function like this (just for illustration):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>function(<span style="color:#e6db74">create_executable</span> <span style="color:#e6db74">name</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  get_filename_component(<span style="color:#e6db74">output_file</span> <span style="color:#e6db74">hello.c</span> <span style="color:#e6db74">NAME_WE</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span><span style="color:#e6db74">.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">hello.c</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_files</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  get_filename_component(<span style="color:#e6db74">output_file</span> <span style="color:#e6db74">main.c</span> <span style="color:#e6db74">NAME_WE</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span><span style="color:#e6db74">.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#e6db74">main.c</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#e6db74">main.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_files</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_target(<span style="color:#f92672">${</span>name<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endfunction()<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>So basically, we reuse the variable <code>output_file</code>. We can use it to construct
+the list of object files for the custom target. I hope it is clearer now.</p>
+<h3 id="loops">Loops</h3>
+<p>It obviously follows (c) that we can use a loop to handle a variable amount of
+source files passed to this function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>function(<span style="color:#e6db74">create_executable</span> <span style="color:#e6db74">name</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  foreach(<span style="color:#e6db74">file</span> <span style="color:#f92672">${</span>ARGN<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    compile(<span style="color:#f92672">${</span>file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    set (<span style="color:#e6db74">output_files</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  endforeach()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_target(<span style="color:#f92672">${</span>name<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#e6db74">-o</span> <span style="color:#e6db74">hello</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endfunction()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>create_executable(<span style="color:#e6db74">hello-target</span> <span style="color:#e6db74">main.c</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>Here we iterate over passed source files (<code>main.c</code>, <code>hello.c</code>) stored in the
+<code>ARGN</code> variable, and accumulate all the intermediate files in <code>output_files</code>.</p>
+<h3 id="final-touches">Final touches</h3>
+<p>I added three more things to the final version:</p>
+<ul>
+<li>I added another variable <code>C_FLAGS</code> that stores some additional compile flags
+one may need</li>
+<li>the name of the executable passed as a separate argument</li>
+<li>extracted the linking phase into a separate command</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">C_COMPILER</span> <span style="color:#e6db74">gcc</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">C_FLAGS</span> <span style="color:#e6db74">-g</span> <span style="color:#e6db74">-O0</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>macro(<span style="color:#e6db74">compile</span> <span style="color:#e6db74">source_file</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  get_filename_component(<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span> <span style="color:#e6db74">NAME_WE</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  set (<span style="color:#e6db74">output_file</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span><span style="color:#e6db74">.o</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>C_FLAGS<span style="color:#f92672">}</span> <span style="color:#e6db74">-c</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>source_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endmacro()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>function(<span style="color:#e6db74">create_executable</span> <span style="color:#e6db74">name</span> <span style="color:#e6db74">exe</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  foreach(<span style="color:#e6db74">file</span> <span style="color:#f92672">${</span>ARGN<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    compile(<span style="color:#f92672">${</span>file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    set (<span style="color:#e6db74">output_files</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_file<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  endforeach()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_command(<span style="color:#e6db74">OUTPUT</span> <span style="color:#f92672">${</span>exe<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">COMMAND</span> <span style="color:#f92672">${</span>C_COMPILER<span style="color:#f92672">}</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span> <span style="color:#e6db74">-o</span> <span style="color:#f92672">${</span>exe<span style="color:#f92672">}</span>
+</span></span><span style="display:flex;"><span>                     <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>output_files<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  add_custom_target(<span style="color:#f92672">${</span>name<span style="color:#f92672">}</span> <span style="color:#e6db74">DEPENDS</span> <span style="color:#f92672">${</span>exe<span style="color:#f92672">}</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>endfunction()<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>create_executable(<span style="color:#e6db74">hello-target</span> <span style="color:#e6db74">hello</span> <span style="color:#e6db74">main.c</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><p>Give it another try:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>&gt; cmake .
+</span></span><span style="display:flex;"><span>&gt; make hello-target
+</span></span><span style="display:flex;"><span>&gt; ./hello
+</span></span><span style="display:flex;"><span>Hello, CMake world!
+</span></span></code></pre></div><h3 id="conclusion">Conclusion</h3>
+<p>We&rsquo;ve just replicated (limited) version of CMake&rsquo;s
+<a href="https://cmake.org/cmake/help/latest/command/add_executable.html"><code>add_executable</code></a>
+functionality.</p>
+<p>Here is the version you would use if you didn&rsquo;t know how to build the thing on
+your own:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cmake" data-lang="cmake"><span style="display:flex;"><span>set (<span style="color:#e6db74">CMAKE_C_COMPILER</span> <span style="color:#e6db74">gcc</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>set (<span style="color:#e6db74">CMAKE_C_FLAGS</span> <span style="color:#e6db74">-g</span> <span style="color:#e6db74">-O0</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>add_executable(<span style="color:#e6db74">hello</span> <span style="color:#e6db74">main.c</span> <span style="color:#e6db74">hello.c</span>)<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h3 id="whats-next">What&rsquo;s next?</h3>
+<p>Go and learn about other CMake <a href="https://cmake.org/cmake/help/latest/manual/cmake-commands.7.html">functions</a>
+(that are confusingly called <em>commands</em>), you are ready now!</p>
+<p>I would highly recommend learning about the following concepts:</p>
+<ul>
+<li><a href="https://cmake.org/cmake/help/latest/command/add_subdirectory.html">add_subdirectory</a></li>
+<li><a href="https://cmake.org/cmake/help/latest/command/include.html">include</a></li>
+<li><a href="https://cmake.org/cmake/help/latest/manual/cmake-properties.7.html">properties</a>
+<ul>
+<li><a href="https://cmake.org/cmake/help/latest/command/get_property.html">get_property</a></li>
+<li><a href="https://cmake.org/cmake/help/latest/command/set_property.html">set_property</a></li>
+</ul>
+</li>
+<li><a href="https://cmake.org/cmake/help/latest/index.html">All the rest</a></li>
+</ul>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

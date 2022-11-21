@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Debugging Dyld - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="debugging ,dyld ,dynamic linker ,dynamic loader ,linker ,loader ,dyld closure ,dyld3 ,DYLD_PRINT_APIS ,DYLD_PRINT_WARNINGS ,macOS ,DYLD_PRINT_LIBRARIES ,DYLD_FRAMEWORK_PATH ,libdyld.dylib ,mojave ,dyld macos" />
+  
+
+  
+  <meta name="description" content="Short technical note on how to debug issues with macOS dynamic linker - dyld" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/debugging-dyld/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Debugging Dyld</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2018-11-13 08:00:00 &#43;0100 CET" pubdate>Nov 13, 2018</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>Recently, I was debugging an interesting issue: a program crashes whenever it tries to call a particular function from a dynamic library. It was not clear how to debug this issue. Eventually, I did resolve the problem: the key was in the dynamic linker, dyld.</p>
+<p>In this article, I want to make a short intro on where to start if you have a similar issue. It is by no means an exhaustive guide, but rather a starting point that could have saved me a few hours would I have known this information before.</p>
+<h2 id="inspect-the-dyld-from-inside">Inspect the dyld from inside</h2>
+<p>The source code of dyld is generally available but is outdated. At the time of writing, you can get the source code for macOS High Sierra, 10.13.6, from <a href="https://opensource.apple.com">here</a>. If you are running the latest version of macOS, 10.14, Mojave, then your last resort is binaries shipped with the OS. Though, the source code from previous versions is still helpful. So to get the full picture, I recommend doing the following:</p>
+<ol>
+<li>Get the latest version of the source code from <a href="https://opensource.apple.com/">https://opensource.apple.com/</a></li>
+<li>Use disassembler (<a href="https://www.hopperapp.com">Hopper</a> ftw) to inspect dyld binaries: <code>/usr/lib/dyld</code>, <code>/usr/lib/system/libdyld.dylib</code> , and <code>/usr/lib/closure/libclosured.dylib</code>.</li>
+<li>Disable <a href="https://en.wikipedia.org/wiki/System_Integrity_Protection">SIP</a> (optional) and run you binary under <code>lldb</code>. You can set breakpoints on all dyld related functions: <code>br set -r dyld</code> or <code>br set -r dyld3</code> for dyld3 only.</li>
+</ol>
+<p>During debugging, please be ready to jump a lot between the source code and the three libraries mentioned in step two.</p>
+<h2 id="inspect-the-dyld-from-the-outside">Inspect the dyld from the outside</h2>
+<p>There are a few other options to observe the behavior of dyld without looking at the code, source or binary.
+You will also need to disable <a href="https://en.wikipedia.org/wiki/System_Integrity_Protection">SIP</a> if you want to exercise it on systems apps.
+All the options are controlled via environment variables. These are the ones I found the most useful:</p>
+<ul>
+<li><code>DYLD_PRINT_APIS</code>: documented, prints a nice trace of almost everything that is happening inside of dyld. Here is an example output:</li>
+</ul>
+<pre tabindex="0"><code>_dyld_register_func_for_add_image(0x7fff7696ab92)
+_dyld_get_image_slide(0x1000f1000)
+_dyld_register_func_for_add_image(0x7fff7689cd98)
+_dyld_get_image_slide(0x1000f1000)
+_dyld_register_func_for_add_image(0x7fff76be67cb)
+dyld_image_path_containing_address(0x7fff75221000)
+...
+</code></pre><p>It looks cryptic, but it greatly helps to understand the program execution flow.</p>
+<ul>
+<li><code>DYLD_PRINT_LIBRARIES</code>, documented, prints all the dynamic libraries that are being loaded during the app startup. Here is an example output:</li>
+</ul>
+<pre tabindex="0"><code>dyld: loaded: /usr/lib/libiconv.2.dylib
+dyld: loaded: /System/Library/Frameworks/Security.framework/Versions/A/Security
+dyld: loaded: /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation
+dyld: loaded: /usr/lib/libz.1.dylib
+dyld: loaded: /usr/lib/libSystem.B.dylib
+dyld: loaded: /usr/lib/libresolv.9.dylib
+dyld: loaded: /usr/lib/system/libcache.dylib
+dyld: loaded: /usr/lib/system/libcommonCrypto.dylib
+dyld: loaded: /usr/lib/system/libcompiler_rt.dylib
+</code></pre><ul>
+<li><code>DYLD_PRINT_WARNINGS</code>, undocumented, may print some useful information. Currently, it definitely prints some info about <a href="https://allegro.tech/2018/05/Static-linking-vs-dyld3.html">dyld3 closures</a>.
+An example output:</li>
+</ul>
+<pre tabindex="0"><code>dyld: found closure 0x7ffff48ae9ac (size=844) in dyld shared cache
+dyld: closure 0x7ffff48ae9ac not used because DYLD_FRAMEWORK_PATH changed
+</code></pre><ul>
+<li><code>DYLD_*_PATH</code>, documented, changes the order of directories where dyld will search for dynamic libraries. The nice side effect of using these variables is that their presence disables the dyld3 closure cache. So if your suspect is dyld3 closures, then export any of the <code>DYLD_*_PATH</code> variables to disable them. Some examples:</li>
+</ul>
+<pre tabindex="0"><code>export DYLD_FRAMEWORK_PATH=
+export DYLD_LIBRARY_PATH=
+</code></pre><p>For more info, please consult the dyld man page (<code>man dyld</code>) or dig through the code, source or binary.</p>
+<h2 id="summary">Summary</h2>
+<p>Debugging such thing as dyld is a nontrivial task, but it is indeed possible. If you know any other hints or tricks, please share them.</p>
+<p>Happy debugging!</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

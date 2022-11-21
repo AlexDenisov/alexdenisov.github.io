@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Handling timeouts in child processes - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="setitimer ,fork ,systems programming ,unix ,posix ,timer ,signal ,sigaction ,ualarm ,setitimer ,macos ,linux ,freebsd" />
+  
+
+  
+  <meta name="description" content="The article describes how to deal with timeouts in child processes and serves as an introduction into the timers of Unix systems" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Handling timeouts in child processes" />
+<meta name="twitter:description" content="The article describes how to deal with timeouts in child processes and serves as an introduction into the timers of Unix systems" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/timeouts/worker_timer.png" />
+
+
+
+  <script type="text/javascript" src="//downloads.mailchimp.com/js/signup-forms/popup/unique-methods/embed.js"
+    data-dojo-config="usePlainJson: true, isDebug: false"></script>
+  <script
+    type="text/javascript">window.dojoRequire(["mojo/signup-forms/Loader"], function (L) { L.start({ "baseUrl": "mc.us10.list-manage.com", "uuid": "aaa39cd123ecae87821d0d66a", "lid": "d2ec0322b7", "uniqueMethods": true }) })</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/handling-timeouts-in-child-processes/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Handling timeouts in child processes</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2018-10-30 21:50:00 &#43;0100 CET" pubdate>Oct 30, 2018</time></i>
+            </p>
+          </div>
+
+          <div>
+            <p>Building a <a href="https://github.com/mull-project/mull">tool for mutation testing</a> has many challenges in it.
+Sandboxing is one of them. We do trust the original code of a program, but we cannot trust the mutated code: a mutant can crash or just run into an infinite loop.
+The most obvious solution for this problem is to run this code in a child process and limit its execution time.</p>
+<p>In this article, I want to describe several approaches on how to handle timeouts in child processes.
+Please, let me know if you see any flaws in these solutions.</p>
+<h2 id="timer-worker-and-watchdog">Timer, Worker, and Watchdog</h2>
+<p>I have found one of the solutions on <a href="https://stackoverflow.com/a/8020324/829116">the internet</a>.
+I find it very elegant!</p>
+<p>The parent process, the watchdog, forks two processes: timer and worker.
+Timer <code>sleep</code>s for some time, while the worker does its job.
+Watchdog is waiting for either of those to finish. If timer finishes first,
+then the worker is timed out. And vice versa.</p>
+<p>Here is an illustration of this idea:</p>
+<p><!-- raw HTML omitted --></p>
+<p>It looks very straightforward, but there are few more details when it comes to the implementation. Let&rsquo;s
+look at them (full code listing is available <a href="https://github.com/AlexDenisov/articles/blob/04f74fff494b7288d3e68f48c60a106753782d48/timeouts/timers.c">online</a>).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">void</span> (<span style="color:#f92672">*</span>work_t)(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">watchdog_worker_timer</span>(work_t work, <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t timer_pid <span style="color:#f92672">=</span> fork();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (timer_pid <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;fork timer&#34;</span>);
+</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (timer_pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/// Timer process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    usleep(timeout <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>);
+</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t worker_pid <span style="color:#f92672">=</span> fork();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;fork worker&#34;</span>);
+</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/// Worker process
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    work();
+</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> status <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t finished_first <span style="color:#f92672">=</span> waitpid_eintr(<span style="color:#f92672">&amp;</span>status);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (finished_first <span style="color:#f92672">==</span> timer_pid) {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;timed out</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    kill(worker_pid, SIGKILL);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (finished_first <span style="color:#f92672">==</span> worker_pid) {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;all good</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    kill(timer_pid, SIGKILL);
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    assert(<span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#e6db74">&#34;Something went wrong&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  waitpid_eintr(<span style="color:#f92672">&amp;</span>status);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>This function does exactly what is described above. It takes a pointer to a function that does the actual work and sets a timeout.
+The tricky part, however, is the call to <code>waitpid_eintr</code>. Here is the body:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>pid_t <span style="color:#a6e22e">waitpid_eintr</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">&amp;</span>status) {
+</span></span><span style="display:flex;"><span>  pid_t pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> ( (pid <span style="color:#f92672">=</span> waitpid(WAIT_ANY, status, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> ) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (errno <span style="color:#f92672">==</span> EINTR) {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">continue</span>;
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>      perror(<span style="color:#e6db74">&#34;waitpid&#34;</span>);
+</span></span><span style="display:flex;"><span>      abort();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> pid;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Call to <code>waitpid</code> can fail for many reasons. One of them that is likely to happen is <code>EINTR</code>, or &lsquo;interrupted function call.&rsquo; You can get more details <a href="http://250bpm.com/blog:12">here</a> and from the man page: <code>man 2 intro</code> on macOS and <code>man 3 errno</code> on Linux.</p>
+<p>In our case there is no need for some special treatment - we keep calling <code>waitpid</code> until it succeeds or fails with some other reason.</p>
+<p>This solution is elegant and easy to understand, though it has one disadvantage:
+we need to create an additional process, thus wasting system&rsquo; resources. Fortunately,
+there is another approach.</p>
+<h2 id="system-timers">System timers</h2>
+<h3 id="which-timer-to-use">Which timer to use</h3>
+<p>Programs on Linux and macOS can receive a signal after some time passes.
+To do that a program manipulates one of the three timers provided by an
+operating system: real, virtual, and profiling.</p>
+<p>But which one to pick? Look at the following illustration.
+For simplicity, let&rsquo;s assume that each &lsquo;brick&rsquo; takes one second to run.</p>
+<p><!-- raw HTML omitted --></p>
+<p>Here, two processes are being run. The first one (green) does some work for a second. Then it makes a system call that takes another second. At this point, OS decides to preempt it with another (blue) process. It also does some job in the user space for a second, and then switches to the kernel space by making some heavy system call. After two seconds in the kernel, the blue process terminates. OS runs the green process for one more second, and it also terminates.</p>
+<p>In total, it took 6 seconds to run both processes: 3 seconds for each of them.</p>
+<p>However, according to different timers the time will be slightly different:</p>
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<!-- raw HTML omitted -->
+<p>Real timer, <code>ITIMER_REAL</code>, counts total time, you can see it as a real clock.
+Virtual timer, <code>ITIMER_VIRTUAL</code>,
+counts only time spent in the user space. And the profiling timer, <code>ITIMER_PROF</code>,
+counts time spent both in the user space and in the kernel space.</p>
+<p>For more information, please look at <code>man 2 setitimer</code> on Linux and <code>man 3 setitimer</code> on macOS.</p>
+<p>You are free to use the one that fits your requirements better. However, be aware, when you call <code>sleep()</code> the process is preempted by OS and neither virtual nor profiling timers are counting.</p>
+<h3 id="how-to-use-a-timer">How to use a timer</h3>
+<p>The algorithm is relatively trivial:</p>
+<ul>
+<li>setup the timer</li>
+<li>setup a signal handler</li>
+<li>handle the signal</li>
+<li>handle exit status</li>
+</ul>
+<p>However, you should be aware of some pitfalls.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handle_alarm_signal</span>(<span style="color:#66d9ef">int</span> signal, siginfo_t <span style="color:#f92672">*</span>info, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>context) {
+</span></span><span style="display:flex;"><span>  _exit(<span style="color:#ae81ff">112</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setup_timer</span>(<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> sigaction action;
+</span></span><span style="display:flex;"><span>  memset(<span style="color:#f92672">&amp;</span>action, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(action));
+</span></span><span style="display:flex;"><span>  action.sa_sigaction <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>handle_alarm_signal;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (sigaction(SIGALRM, <span style="color:#f92672">&amp;</span>action, NULL) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;sigaction&#34;</span>);
+</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> itimerval timer;
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/// Get only seconds in
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  timer.it_value.tv_sec <span style="color:#f92672">=</span> timeout <span style="color:#f92672">/</span> <span style="color:#ae81ff">1000</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/// Cut off seconds, and convert what&#39;s left into microseconds
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  timer.it_value.tv_usec <span style="color:#f92672">=</span> (timeout <span style="color:#f92672">%</span> <span style="color:#ae81ff">1000</span>) <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">/// Do not repeat
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  timer.it_interval.tv_sec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  timer.it_interval.tv_usec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (setitimer(ITIMER_REAL, <span style="color:#f92672">&amp;</span>timer, NULL) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;setitimer&#34;</span>);
+</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">system_timers</span>(work_t work, <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t worker_pid <span style="color:#f92672">=</span> fork();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;fork worker&#34;</span>);
+</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    setup_timer(timeout);
+</span></span><span style="display:flex;"><span>    work();
+</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">144</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> status <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  waitpid_eintr(status);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (WIFEXITED(status) <span style="color:#f92672">&amp;&amp;</span> WEXITSTATUS(status) <span style="color:#f92672">==</span> <span style="color:#ae81ff">112</span>) {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;timed out</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (WIFEXITED(status) <span style="color:#f92672">&amp;&amp;</span> WEXITSTATUS(status) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">144</span>) {
+</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;all good</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>system_timers</code> function takes a pointer to a worker function and the desired timeout in milliseconds. Then, it forks a new process, the child process sets up a timer and runs the worker function. Then it handles the exit status of the worker process: this is where it gets interesting. <code>122</code> and <code>144</code> are some arbitrary numbers, but it is important to have there something that does not collide with a &rsquo;normal&rsquo; exit code. By using these exit codes, we can differentiate whether the process terminated because of timeout (122) or just because the work has finished (144).</p>
+<p>The signal handler takes care of the <code>SIGALRM</code> signal because we use the real timer:
+<code>ITIMER_REAL</code>. For <code>ITIMER_VIRTUAL</code> and <code>ITIMER_PROF</code> you should use <code>SIGVTALRM</code>
+and <code>SIGPROF</code> respectively.</p>
+<p>You may notice that <code>handle_alarm_signal</code> calls <code>_exit</code> function instead of the more familiar <code>exit</code>: it is done on purpose. Signal handlers are allowed to call only functions that considered as safe. When you call an unsafe function - behavior is undefined.</p>
+<p><code>_exit</code> is safe, <code>exit</code> is unsafe. Follow the safe way here. Believe me, you
+don&rsquo;t want to debug this stuff.</p>
+<p>For the list of safe functions consult man page on your system: <code>man sigaction</code>.</p>
+<p>The last point. <code>setitimer</code> function may look a bit verbose. In fact, there is
+a shortcut: <code>ualarm</code>. However, you should avoid using this function. It works
+excellent on macOS, but it is buggy on Linux.</p>
+<p>macOS implementation (from <a href="https://opensource.apple.com">macOS libc</a>, <code>gen/FreeBSD/ualarm.c</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> itimerval new, old;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>new.it_interval.tv_usec <span style="color:#f92672">=</span> reload <span style="color:#f92672">%</span> USPS;
+</span></span><span style="display:flex;"><span>new.it_interval.tv_sec <span style="color:#f92672">=</span> reload <span style="color:#f92672">/</span> USPS;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>new.it_value.tv_usec <span style="color:#f92672">=</span> usecs <span style="color:#f92672">%</span> USPS;
+</span></span><span style="display:flex;"><span>new.it_value.tv_sec <span style="color:#f92672">=</span> usecs <span style="color:#f92672">/</span> USPS;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (setitimer(ITIMER_REAL, <span style="color:#f92672">&amp;</span>new, <span style="color:#f92672">&amp;</span>old) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (old.it_value.tv_sec <span style="color:#f92672">*</span> USPS <span style="color:#f92672">+</span> old.it_value.tv_usec);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/* else */</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
+</span></span></code></pre></div><p>Linux implementation (from <a href="https://www.gnu.org/software/libc/sources.html">GNU libc</a>, <code>sysdeps/unix/bsd/ualarm.c</code>):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> itimerval timer, otimer;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>timer.it_value.tv_sec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>timer.it_value.tv_usec <span style="color:#f92672">=</span> value;
+</span></span><span style="display:flex;"><span>timer.it_interval.tv_sec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>timer.it_interval.tv_usec <span style="color:#f92672">=</span> interval;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (__setitimer (ITIMER_REAL, <span style="color:#f92672">&amp;</span>timer, <span style="color:#f92672">&amp;</span>otimer) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> (otimer.it_value.tv_sec <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000000</span>) <span style="color:#f92672">+</span> otimer.it_value.tv_usec;
+</span></span></code></pre></div><p>macOS&rsquo;s implementation sets up the timer correctly. On Linux, it ignores seconds (<code>tv_sec</code>), while <code>setitimer</code> ignores any microseconds value (<code>tv_usec</code>) that is more than <code>1 000 000</code>, which is one second. To put it simply: <code>ualarm</code> works correctly on Linux only when called with the timeout interval that is less than one second.</p>
+<h2 id="summary">Summary</h2>
+<p>Both approaches have proven to be working very well.</p>
+<p>Initially, we started with the watchdog process approach because of its
+simplicity. At that point, we did not care about the performance and resources that
+much.</p>
+<p>Later, when it came to parallelization, we decided not to waste
+resources and switched to the second approach. We had hell load amount of weird
+issues: deadlocks after <code>exit</code> (not <code>_exit</code>), faulty <code>ualarm</code> on Linux, wrong
+kind of timer, to name a few. I am still not sure if we are using it right
+at the moment.</p>
+<p>To wrap it up: if you ever decide to implement something similar, I would strongly recommend using the first approach, since it has fewer surprises.</p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
+              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/type-equality-in-llvm/"> Type Equality in LLVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-an-llvm-based-tool.-lessons-learned/"> Building an LLVM-based tool. Lessons learned</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

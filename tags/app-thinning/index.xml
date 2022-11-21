@@ -1,0 +1,120 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>app thinning on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/app-thinning/</link>
+    <description>Recent content in app thinning on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Sat, 05 Sep 2015 12:25:00 +0200</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Bitcode Demystified</title>
+        <link>https://lowlevelbits.org/bitcode-demystified/</link>
+        <pubDate>Sat, 05 Sep 2015</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/bitcode-demystified/</guid>
+        <description>&lt;p&gt;A few months ago Apple announced a &amp;rsquo;new feature,&amp;rsquo; called &amp;lsquo;Bitcode.&amp;rsquo; In this article, I will try to answer the questions like what is Bitcode, what problems it aims to solve, what issues it introduces and so on.&lt;/p&gt;
+&lt;h2 id=&#34;what-is-bitcode&#34;&gt;What is Bitcode?&lt;/h2&gt;
+&lt;p&gt;To answer this question let&amp;rsquo;s look at what compilers do for us. Here is a brief overview of compilation process:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Lexer&lt;/code&gt;: takes source code as an input and translates it into a stream of tokens;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Parser&lt;/code&gt;: takes stream of tokens as an input and translates it into an &lt;a href=&#34;https://en.wikipedia.org/wiki/Abstract_syntax_tree&#34;&gt;AST&lt;/a&gt;;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Semantic Analysis&lt;/code&gt;: takes an AST as an input, checks if a program is correct (method called with correct amount of parameters, method called on object actually exists and non-private, etc.), fills in &amp;lsquo;missing types&amp;rsquo; (e.g.: &lt;code&gt;let x = y&lt;/code&gt;, &lt;code&gt;x&lt;/code&gt; has type of &lt;code&gt;y&lt;/code&gt;) and passes AST to the next phase;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Code Generation&lt;/code&gt;: takes an AST as an input and emits some high-level IR (intermediate representation);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Optimization&lt;/code&gt;: takes IR, makes optimizations and emits IR which is potentially faster and/or smaller;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;AsmPrinter&lt;/code&gt;: another code generation phase, it takes IR and emits assembly for particular CPU;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Assembler&lt;/code&gt;: takes assembly and converts it into an object code (stream of &lt;code&gt;0&lt;/code&gt;s and &lt;code&gt;1&lt;/code&gt;s);&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Linker&lt;/code&gt;: usually programs refer to already compiled routines from other programs (e.g.: &lt;code&gt;printf&lt;/code&gt;) to avoid recompilation of the same code over and over. Until this phase these links do not have correct addresses, they are just placeholders. Linker&amp;rsquo;s job is to resolve those placeholders so that they point to the correct addresses of their corresponding routines.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;You can find more details here: &lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;In the modern world these phases are split into two parts: &lt;strong&gt;&lt;code&gt;compiler frontend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;lexer&lt;/code&gt;, &lt;code&gt;parser&lt;/code&gt;, &lt;code&gt;semantic analysis&lt;/code&gt;, &lt;code&gt;code generation&lt;/code&gt;) and &lt;strong&gt;&lt;code&gt;compiler backend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;optimization&lt;/code&gt;, &lt;code&gt;asm printer&lt;/code&gt;, &lt;code&gt;assembler&lt;/code&gt;, &lt;code&gt;linker&lt;/code&gt;). This separation makes much sense for both language designers and hardware manufacturers. If you want to create a new programming language you &amp;lsquo;just&amp;rsquo; need to implement a frontend, and you get all available optimizations and support of different CPUs for free. On the other hand, if you created a new chip, you &amp;lsquo;just&amp;rsquo; need to extend the backend and you get all the available languages (frontends) support for your CPU.&lt;/p&gt;
+&lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM &lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;has it is own&lt;/a&gt; format, that can be encoded using LLVM bitstream file format - &lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;Bitcode&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Just to recall it explicitly - &lt;strong&gt;Bitcode is a bitstream representation of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-apples-bitcode-aims-to-solve&#34;&gt;What problems Apple&amp;rsquo;s Bitcode aims to solve?&lt;/h2&gt;
+&lt;p&gt;Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend reading this article: &lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run a program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you run a program, OS reads the &amp;lsquo;Table Of Contents&amp;rsquo; and looks for a slice corresponding to the OS CPU.
+For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, then OS will load object code for &lt;code&gt;x86_64&lt;/code&gt; into a memory and run the program.&lt;/p&gt;
+&lt;p&gt;What&amp;rsquo;s happening with other slices? Nothing, they just waste your disk space.&lt;/p&gt;
+&lt;p&gt;This is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt; CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for &lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt;, so you can use them to test the app on a device or simulator. (Can you imagine how many copies of Google Analytics for &lt;code&gt;i386&lt;/code&gt; you have in your pocket?)&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; I do not know why, but I was sure that final executable contains these slices as well (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, etc.), but it seems they are stripped during the build phase.&lt;/p&gt;
+&lt;p&gt;Apple did not give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;When you submit an app (including Bitcode) Apple&amp;rsquo;s &amp;lsquo;BlackBox&amp;rsquo; recompiles it for each supported platform and drops any &amp;lsquo;useless&amp;rsquo; object code, so AppStore has a copy of the app for each CPU. When an end user wants to install the app - she installs the only version for the particular processor, without any unused stuff.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Bitcode might save up to 50% of disk space per program.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; Of course, I do not take in count resources, it is just about binary itself. For instance, an app I am working on currently has size ~40 megabytes (including assets, xibs. fonts), a size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them, it will decrease the size of the app by ~20%.&lt;/p&gt;
+&lt;h2 id=&#34;what-problems-do-bitcode-introduce&#34;&gt;What problems do Bitcode introduce?&lt;/h2&gt;
+&lt;p&gt;The idea of Bitcode and recompiling for each platform looks really great, and it is a huge improvement, though it has downsides as well: the biggest one is security.&lt;/p&gt;
+&lt;p&gt;To get the benefits of Bitcode, you should submit your app including Bitcode (surprisingly). If you use some proprietary third-party library, then it also should contain Bitcode, hence as a maintainer of a proprietary library, you should distribute the library with Bitcode.&lt;/p&gt;
+&lt;p&gt;To recall: &lt;strong&gt;Bitcode is just another form of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
+&lt;h3 id=&#34;llvm-ir&#34;&gt;LLVM IR&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s write some code to see LLVM IR in action.&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;printf&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;fmt, ...);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;main&lt;/span&gt;() {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  printf(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\n&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Run the following:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;clang -S -emit-llvm main.c
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And you&amp;rsquo;ll have &lt;code&gt;main.ll&lt;/code&gt; containing IR:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;@.str = &lt;span style=&#34;color:#66d9ef&#34;&gt;private&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;unnamed_addr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Hello World\0A\00&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; Function Attrs: nounwind ssp uwtable
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @main() #0 {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = &lt;span style=&#34;color:#66d9ef&#34;&gt;alloca&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;align&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;store&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt;* %1
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...)* @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;getelementptr&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;inbounds&lt;/span&gt; ([&lt;span style=&#34;color:#ae81ff&#34;&gt;13&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;]* @.str, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;))
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...) #1
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
+&lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
+&lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
+&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ bitcode_retriever some_binary
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x86_64.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ xar -xvf arm.xar
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 1.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ llvm-dis &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;# outputs 2.ll&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
+Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Another potential issue (can&amp;rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.&lt;/p&gt;
+&lt;p&gt;I know only one way to secure the IR - &lt;!-- raw HTML omitted --&gt;obfuscation&lt;!-- raw HTML omitted --&gt;. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.&lt;/p&gt;
+&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
+&lt;ul&gt;
+&lt;li&gt;Bitcode is a bitstream file format for LLVM IR&lt;/li&gt;
+&lt;li&gt;one of its goals is to decrease a size of an app by eliminating unused object code&lt;/li&gt;
+&lt;li&gt;malefactor can obtain your app or library, retrieve the IR from it and steal your &amp;lsquo;secret algorithm.&amp;rsquo;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;useful-links&#34;&gt;Useful links&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;LLVM IR&lt;/a&gt; - language reference manual&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;LLVM Bitcode&lt;/a&gt; - Bitcode file format&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt; - Clang/LLVM compilation phases&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt; - tool that retrieves xar-archives with bitcode from mach-o binary&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/obfuscator-llvm/obfuscator/wiki&#34;&gt;o-llvm&lt;/a&gt; - obfuscator based on LLVM&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

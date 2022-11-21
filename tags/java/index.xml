@@ -1,0 +1,122 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Java on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/java/</link>
+    <description>Recent content in Java on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Wed, 23 Nov 2016 11:18:07 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Java Papers</title>
+        <link>https://lowlevelbits.org/java-papers/</link>
+        <pubDate>Wed, 23 Nov 2016</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/java-papers/</guid>
+        <description>&lt;p&gt;Recently I looked at source code of OpenJDK and found there a link to
+a scientific paper. I decided to dive deeper and &lt;code&gt;grep&lt;/code&gt;ed the whole source tree for &lt;code&gt;pdf&lt;/code&gt;.
+It uncovered many interesting papers.&lt;/p&gt;
+&lt;p&gt;Here I compiled the list that may be interested for you.&lt;/p&gt;
+&lt;p&gt;Please let me know if any other papers must be in this list.&lt;/p&gt;
+&lt;p&gt;Enjoy!&lt;/p&gt;
+&lt;h3 id=&#34;a-practical-minimal-perfect-hashing-method&#34;&gt;A Practical Minimal Perfect Hashing Method&lt;/h3&gt;
+&lt;h5 id=&#34;abstract&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;We propose a novel algorithm based on random graphs to construct minimal perfect hash functions &lt;em&gt;h&lt;/em&gt;. For a set of &lt;em&gt;n&lt;/em&gt; keys, our algorithm outputs &lt;em&gt;h&lt;/em&gt; in expected time &lt;em&gt;O(n)&lt;/em&gt;. The evaluation of &lt;em&gt;h(x)&lt;/em&gt; requires two memory accesses for any key &lt;em&gt;x&lt;/em&gt; and the description of &lt;em&gt;h&lt;/em&gt; takes up 1.15_n_ words. This improves the space requirement to 55% of a previous minimal perfect hashing scheme due to Czech, Havas and Majewski. A simple heuristic further reduces the space requirement to 0.93_n_ words, at the expense of a slightly worse constant in the time complexity. Large scale experimental results are presented.&lt;/p&gt;
+&lt;h5 id=&#34;link&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://homepages.dcc.ufmg.br/~nivio/papers/wea05.pdf&#34;&gt;http://homepages.dcc.ufmg.br/~nivio/papers/wea05.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;an-optimistic-approach-to-lock-free-fifo-queues&#34;&gt;An optimistic approach to lock-free FIFO queues&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-1&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;First-in-first-out (FIFO) queues are among the most fundamental and highly studied concurrent data structures. The most effective and practical dynamic-memory concurrent queue implementation in the literature is the lock-free FIFO queue algorithm of Michael and Scott, included in the standard &lt;em&gt;Java™ Concurrency Package&lt;/em&gt;. This work presents a new dynamic-memory concurrent lock-free FIFO queue algorithm that in a variety of circumstances performs better than the Michael and Scott queue. The key idea behind our new algorithm is a novel way of replacing the singly-linked list of Michael and Scott, whose pointers are inserted using a costly compare-and-swap (CAS) operation, by an &amp;ldquo;optimistic&amp;rdquo; doubly-linked list whose pointers are updated using a simple store, yet can be &amp;ldquo;fixed&amp;rdquo; if a bad ordering of events causes them to be inconsistent. We believe it is the first example of such an &amp;ldquo;optimistic&amp;rdquo; approach being applied to a real world data structure.&lt;/p&gt;
+&lt;h5 id=&#34;link-1&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://people.csail.mit.edu/edya/publications/OptimisticFIFOQueue-journal.pdf&#34;&gt;http://people.csail.mit.edu/edya/publications/OptimisticFIFOQueue-journal.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;correct-and-efficient-work-stealing-for-weak-memory-models&#34;&gt;Correct and Efficient Work-Stealing for Weak Memory Models&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-2&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;Chase and Lev’s concurrent deque is a key data structure in shared-memory parallel programming and plays an essential role in work-stealing schedulers. We provide the first correctness proof of an optimized implementation of Chase and Lev’s deque on top of the POWER and ARM architectures: these provide very relaxed memory models, which we exploit to improve performance but considerably complicate the reasoning. We also study an optimized x86 and a portable C11 implementation, conducting systematic experiments to evaluate the impact of memory barrier optimizations. Our results demonstrate the benefits of hand tuning the deque code when running on top of relaxed memory models.&lt;/p&gt;
+&lt;h5 id=&#34;link-2&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://www.di.ens.fr/~zappa/readings/ppopp13.pdf&#34;&gt;http://www.di.ens.fr/~zappa/readings/ppopp13.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;digital-signature-standard-dss&#34;&gt;Digital Signature Standard (DSS)&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-3&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;This Standard specifies a suite of algorithms that can be used to generate a digital signature. Digital signatures are used to detect unauthorized modifications to data and to authenticate the identity of the signatory. In addition, the recipient of signed data can use a digital signature as evidence in demonstrating to a third party that the signature was, in fact, generated by the claimed signatory. This is known as non-repudiation, since the signatory cannot easily repudiate the signature at a later time.&lt;/p&gt;
+&lt;h5 id=&#34;link-3&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf&#34;&gt;http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;effective-synchronization-on-linuxnuma-systems&#34;&gt;Effective Synchronization on Linux/NUMA Systems&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-4&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;Effective locking is necessary for satisfactory performance on large Itanium based NUMA systems. Synchronization of parallel executing streams on NUMA machines is currently realized in the Linux kernel through a variety of mechanisms which include atomic operations, locking and ordering of memory accesses. Various synchronization methods may also be combined in order to increase performance. The talk presents the realization of basic synchronization in Linux on Itanium and then investigates more complex locking schemes.
+The current Linux locking mechanisms rely heavily on a simple spinlock implementation that may be fitting for systems of up to 8 processors. However, spinlocks cause excessive cache line bouncing if more processors are contending for a lock. Some approaches that have so far been made to solve the contention issue are presented and it is then suggested to use an implementation for Linux of the approach first proposed by Zoran Radovic which he called &amp;ldquo;Hierarchical Backoff Locks&amp;rdquo;.&lt;/p&gt;
+&lt;h5 id=&#34;link-4&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;https://web.archive.org/web/20060707150749/http://lameter.com/gelato2005.pdf&#34;&gt;https://web.archive.org/web/20060707150749/http://lameter.com/gelato2005.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;implementing-fast-javatrade-monitors-with-relaxed-locks&#34;&gt;Implementing Fast Java™ Monitors with Relaxed-Locks&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-5&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;The Java™ Programming Language permits synchronization operations (lock, unlock, wait, notify) on any object. Synchronization is very common in applications and is endemic in the library code upon which applications depend. It is therefore critical that a monitor implementation be both space-efficient and time-efficient. We present a locking protocol, the &lt;em&gt;Relaxed-Lock&lt;/em&gt;, that satisfies those requirements. The Relaxed-Lock is reasonably compact, using only one machine word in the object header. It is fast, requiring in the uncontested case only one atomic compare-and-swap to lock a monitor and no atomic instructions to release a monitor. The Relaxed-Lock protocol is unique in that it admits a benign data race in the monitor unlock path (hence its name) but detects and recovers from the race and thus maintains correct mutual exclusion. We also introduce speculative deflation, a mechanism for releasing a monitor when it is no longer needed&lt;/p&gt;
+&lt;h5 id=&#34;link-5&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://www.usenix.org/events/jvm01/full_papers/dice/dice.pdf&#34;&gt;http://www.usenix.org/events/jvm01/full_papers/dice/dice.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;mirrors-design-principles-for-meta-level-facilities-of-object-oriented-programming-languages&#34;&gt;Mirrors: Design Principles for Meta-level Facilities of Object-Oriented Programming Languages&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-6&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;We identify three design principles for reflection and metaprogramming facilities in object oriented programming languages. &lt;em&gt;Encapsulation&lt;/em&gt;: meta-level facilities must encapsulate their implementation. &lt;em&gt;Stratification&lt;/em&gt;: meta-level facilities must be separated from base-level functionality. &lt;em&gt;Ontological correspondence&lt;/em&gt;: the ontology of meta-level facilities should correspond to the ontology of the language they manipulate. Traditional/mainstream reflective architectures do not follow these precepts. In contrast, reflective APIs built around the concept of &lt;em&gt;mirrors&lt;/em&gt; are characterized by adherence to these three principles. Consequently, mirror-based architectures have significant advantages with respect to distribution, deployment and general purpose metaprogramming.&lt;/p&gt;
+&lt;h5 id=&#34;link-6&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://bracha.org/mirrors.pdf&#34;&gt;http://bracha.org/mirrors.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;nonblocking-concurrent-data-structures-with-condition-synchronization&#34;&gt;Nonblocking Concurrent Data Structures with Condition Synchronization⋆&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-7&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;We apply the classic theory of linearizability to operations that must wait for some other thread to establish a precondition. We model such an operation as a &lt;em&gt;request&lt;/em&gt; and a &lt;em&gt;follow-up&lt;/em&gt;, each with its own linearization point. Linearization of the request marks the point at which a thread’s wishes become visible to its peers; linearization of the follow-up marks the point at which the request is fulfilled and the operation takes effect. By placing both linearization points within the purview of object semantics, we can specify not only the effects of operations, but also the order in which pending requests should be fulfilled.
+We use the term &lt;em&gt;dual data structure&lt;/em&gt; to describe a concurrent object implementation that may hold both data and &lt;em&gt;reservations&lt;/em&gt; (registered requests). By reasoning separately about a request, its successful follow-up, and the period in-between, we obtain meaningful definitions of nonblocking dual data structures. As concrete examples, we present lock-free &lt;em&gt;dualstacks&lt;/em&gt; and &lt;em&gt;dualqueues&lt;/em&gt;, and experimentally compare their performance with that of lock-based and nonblocking alternatives.&lt;/p&gt;
+&lt;h5 id=&#34;link-7&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;https://web.archive.org/web/20110206165336/http://www.cs.rice.edu/~wns1/papers/2004-DISC-DDS.pdf&#34;&gt;https://web.archive.org/web/20110206165336/http://www.cs.rice.edu/~wns1/papers/2004-DISC-DDS.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;openjdks-javautilscollectionsort-is-broken-the-good-the-bad-and-the-worst-case&#34;&gt;OpenJDK’s java.utils.Collection.sort() is broken: The good, the bad and the worst case&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-8&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;We investigate the correctness of TimSort, which is the main sorting algorithm provided by the Java standard library. The goal is functional verification with mechanical proofs. During our verification attempt we discovered a bug which causes the implementation to crash. We characterize the conditions under which the bug occurs, and from this we derive a bug-free version that does not compromise the performance. We formally specify the new version and mechanically verify the absence of this bug with KeY, a state-of-the-art verification tool for Java.&lt;/p&gt;
+&lt;h5 id=&#34;link-8&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://envisage-project.eu/wp-content/uploads/2015/02/sorting.pdf&#34;&gt;http://envisage-project.eu/wp-content/uploads/2015/02/sorting.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;recommendation-for-block-cipher-modes-of-operation-galoiscounter-mode-gcm-and-gmac&#34;&gt;Recommendation for Block Cipher Modes of Operation: Galois/Counter Mode (GCM) and GMAC&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-9&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;This Recommendation specifies the Galois/Counter Mode (GCM), an algorithm for authenticated encryption with associated data, and its specialization, GMAC, for generating a message authentication code (MAC) on data that is not encrypted. GCM and GMAC are modes of operation for an underlying approved symmetric key block cipher.&lt;/p&gt;
+&lt;h5 id=&#34;link-9&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf&#34;&gt;http://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-38d.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;recommendation-for-random-number-generation-using-deterministic-random-bit-generators&#34;&gt;Recommendation for Random Number Generation Using Deterministic Random Bit Generators&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-10&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;This Recommendation specifies mechanisms for the generation of random bits using deterministic methods. The methods provided are based on either hash functions or block cipher algorithms.&lt;/p&gt;
+&lt;h5 id=&#34;link-10&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf&#34;&gt;http://nvlpubs.nist.gov/nistpubs/SpecialPublications/NIST.SP.800-90Ar1.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;scalable-synchronous-queues&#34;&gt;Scalable Synchronous Queues&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-11&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;In a thread-safe &lt;em&gt;concurrent queue&lt;/em&gt;, consumers typically wait for producers to make data available. In a &lt;em&gt;synchronous queue&lt;/em&gt;, producers similarly wait for consumers to take the data. We present two new nonblocking, contention-free synchronous queues that achieve high performance through a form of &lt;em&gt;dualism&lt;/em&gt;: The underlying data structure may hold both data and, symmetrically, &lt;em&gt;requests&lt;/em&gt;.
+We present performance results on 16-processor SPARC and 4-processor Opteron machines. We compare our algorithms to commonly used alternatives from the literature and from the Java SE 5.0 class &lt;em&gt;java.util.concurrent.SynchronousQueue&lt;/em&gt; both directly in synthetic microbenchmarks and indirectly as the core of Java’s &lt;em&gt;ThreadPoolExecutor&lt;/em&gt; mechanism. Our new algorithms consistently outperform the Java SE 5.0 &lt;em&gt;SynchronousQueue&lt;/em&gt; by factors of three in unfair mode and 14 in fair mode; this translates to factors of two and ten for the &lt;em&gt;ThreadPoolExecutor&lt;/em&gt;. Our synchronous queues have been adopted for inclusion in Java 6.&lt;/p&gt;
+&lt;h5 id=&#34;link-11&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://www.cs.rochester.edu/u/scott/papers/2009_Scherer_CACM_SSQ.pdf&#34;&gt;http://www.cs.rochester.edu/u/scott/papers/2009_Scherer_CACM_SSQ.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;security-requirements-for-cryptographic-modules&#34;&gt;Security requirements for cryptographic modules&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-12&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;The selective application of technological and related procedural safeguards is an important responsibility of every Federal organization in providing adequate security in its computer and telecommunication systems. This publication provides a standard that will be used by Federal organizations when these organizations specify that cryptographic-based security systems are to be used to provide protection for sensitive or valuable data. Protection of a cryptographic module within a security system is necessary to maintain the confidentiality and integrity of the information protected by the module. This standard specifies the security requirements that will be satisfied by a cryptographic module. The standard provides four increasing, qualitative levels of security intended to cover a wide range of potential applications and environments. The security requirements cover areas related to the secure design and implementation of a cryptographic module. These areas include cryptographic module specification; cryptographic module ports and interfaces; roles, services, and authentication; finite state model; physical security; operational environment; cryptographic key management; electromagnetic interference/electromagnetic compatibility (EMI/EMC); self-tests; design assurance; and mitigation of other attacks.&lt;/p&gt;
+&lt;h5 id=&#34;link-12&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://csrc.nist.gov/publications/fips/fips140-2/fips1402.pdf&#34;&gt;http://csrc.nist.gov/publications/fips/fips140-2/fips1402.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;simple-fast-and-practical-non-blocking-and-blocking-concurrent-queue-algorithms&#34;&gt;Simple, Fast, and Practical Non-Blocking and Blocking Concurrent Queue Algorithms&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-13&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;Drawing ideas from previous authors, we present a new non-blocking concurrent queue algorithm and a new two-lock queue algorithm in which one enqueue and one dequeue can proceed concurrently. Both algorithms are simple, fast, and practical; we were surprised not to find them in the literature. Experiments on a 12-node SGI Challenge multiprocessor indicate that the new non-blocking queue consistently outperforms the best known alternatives; it is the clear algorithm of choice for machines that provide a universal atomic primitive (e.g. &lt;em&gt;compare_and_swap&lt;/em&gt; or &lt;em&gt;load_linked/store_conditional&lt;/em&gt;). The two-lock concurrent queue outperforms a single lock when several processes are competing simultaneously for access; it appears to be the algorithm of choice for busy queues on machines with non-universal atomic primitives (e.g. &lt;em&gt;test_and_set&lt;/em&gt;). Since much of the motivation for non-blocking algorithms is rooted in their immunity to large, unpredictable delays in process execution, we report experimental results both for systems with dedicated processors and for systems with several processes multiprogrammed on each processor.&lt;/p&gt;
+&lt;h5 id=&#34;link-13&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://www.cs.rochester.edu/~scott/papers/1996_PODC_queues.pdf&#34;&gt;http://www.cs.rochester.edu/~scott/papers/1996_PODC_queues.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;the-galoiscounter-mode-of-operation-gcm&#34;&gt;The Galois/Counter Mode of Operation (GCM)&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-14&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;Galois/Counter Mode (GCM) is a block cipher mode of operation that uses universal hashing over a binary Galois field to provide authenticated encryption. It can be implemented in hardware to achieve high speeds with low cost and low latency. Software implementations can achieve excellent performance by using table-driven field operations. It uses mechanisms that are supported by a well-understood theoretical foundation, and its security follows from a single reasonable assumption about the security of the block cipher.&lt;/p&gt;
+&lt;h5 id=&#34;link-14&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-revised-spec.pdf&#34;&gt;http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-revised-spec.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;triple-handshakes-and-cookie-cutters-breaking-and-fixing-authentication-over-tls&#34;&gt;Triple Handshakes and Cookie Cutters: Breaking and Fixing Authentication over TLS&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-15&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;TLS was designed as a transparent channel abstraction to allow developers with no cryptographic expertise to protect their application against attackers that may control some clients, some servers, and may have the capability to tamper with network connections. However, the security guarantees of TLS fall short of those of a secure channel, leading to a variety of attacks.
+We show how some widespread false beliefs about these guarantees can be exploited to attack popular applications and defeat several standard authentication methods that rely too naively on TLS. We present new client impersonation attacks against TLS renegotiations, wireless networks, challenge-response protocols, and channel-bound cookies. Our attacks exploit combinations of RSA and Diffie-Hellman key exchange, session resumption, and renegotiation to bypass many recent countermeasures. We also demonstrate new ways to exploit known weaknesses of HTTP over TLS. We investigate the root causes for these attacks and propose new countermeasures. At the protocol level, we design and implement two new TLS extensions that strengthen the authentication guarantees of the handshake. At the application level, we develop an exemplary HTTPS client library that implements several mitigations, on top of a previously verified TLS implementation, and verify that their composition provides strong, simple application security.&lt;/p&gt;
+&lt;h5 id=&#34;link-15&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;https://web.archive.org/web/20160304042237/https://secure-resumption.com/tlsauth.pdf&#34;&gt;https://web.archive.org/web/20160304042237/https://secure-resumption.com/tlsauth.pdf&lt;/a&gt;&lt;/p&gt;
+&lt;h3 id=&#34;worst-cases-for-correct-rounding-of-the-elementary-functions-in-double-precision&#34;&gt;Worst Cases for Correct Rounding of the Elementary Functions in Double Precision&lt;/h3&gt;
+&lt;h5 id=&#34;abstract-16&#34;&gt;Abstract:&lt;/h5&gt;
+&lt;p&gt;We give the results of our search for the worst cases for correct rounding of the major elementary functions in double precision floating-point arithmetic. These results allow the design of reasonably fast routines that will compute these functions with correct rounding, at least in some interval, for any of the four rounding modes specified by the IEEE-754 standard. They will also allow one to easily test libraries that are claimed to provide correctly rounded functions.&lt;/p&gt;
+&lt;h5 id=&#34;link-16&#34;&gt;Link:&lt;/h5&gt;
+&lt;p&gt;&lt;a href=&#34;http://perso.ens-lyon.fr/jean-michel.muller/TMDworstcases.pdf&#34;&gt;http://perso.ens-lyon.fr/jean-michel.muller/TMDworstcases.pdf&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

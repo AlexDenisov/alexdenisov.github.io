@@ -1,0 +1,152 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>compiler construction on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/compiler-construction/</link>
+    <description>Recent content in compiler construction on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Thu, 04 Nov 2021 20:30:00 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>How to learn compilers: LLVM Edition</title>
+        <link>https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/</link>
+        <pubDate>Thu, 04 Nov 2021</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/</guid>
+        <description>&lt;p&gt;Compilers and Programming Languages is a huge topic. You cannot just take
+a learning path and finish it at some point. There are many different areas,
+each of which is endless.&lt;/p&gt;
+&lt;p&gt;Here, I want to share some links that would help to learn compilers.
+The list could not be exhaustive - everyone is busy, and no one has time to read the &lt;a href=&#34;https://en.wikipedia.org/wiki/Compilers:_Principles,_Techniques,_and_Tools&#34;&gt;Dragon Book&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The main criteria behind each link:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;I can personally recommend the material as I went through it&lt;/li&gt;
+&lt;li&gt;each entry should be relatively short and can be consumed in a reasonable time&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I&amp;rsquo;m a big fan of learning through practicing. Thus the main focus is on LLVM, as you can go and do something cool with real-world programs!&lt;/p&gt;
+&lt;p&gt;The list consists of four groups: general theory, front-end, middle-end, and back-end.&lt;/p&gt;
+&lt;p&gt;At the first run, you can take the first item from each group, and it should put you on solid ground.&lt;/p&gt;
+&lt;h3 id=&#34;disclaimer&#34;&gt;Disclaimer&lt;/h3&gt;
+&lt;p&gt;There are a lot of excellent resources out there!
+Some of them are not on the list because of my subjective judgment, and the others are not here because I&amp;rsquo;ve never seen them!&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Please, share your favorite resource either via
+&lt;a href=&#34;mailto:alex@lowlevelbits.org&#34;&gt;email&lt;/a&gt; or on &lt;a href=&#34;https://twitter.com/1101_debian/status/1456346324794806274&#34;&gt;Twitter&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
+&lt;h3 id=&#34;general-theory--introduction&#34;&gt;General Theory / Introduction&lt;/h3&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;http://aosabook.org/en/llvm.html&#34;&gt;AOSA book: LLVM&lt;/a&gt;.
+This is a chapter from the &lt;a href=&#34;http://aosabook.org/en/index.html&#34;&gt;Architecture of Open Source Applications&lt;/a&gt; book.
+It is written by Chris Lattner and covers high-level LLVM design.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://online.stanford.edu/courses/soe-ycscs1-compilers&#34;&gt;Compilers&lt;/a&gt;.
+The course is taught by Alex Aiken. In this course, you build a compiler for a real programming language from scratch. It covers the whole compilation pipeline: parsing, type-checking, optimizations, code generation. Besides practical parts, it also dives into the theory.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://online.stanford.edu/courses/soe-ycsautomata-automata-theory&#34;&gt;Automata Theory&lt;/a&gt;.
+The course is taught by Jeffrey Ullman. This one is pretty heavy on theory. It starts with relatively simple topics like state machines and finite automata (deterministic and otherwise). It gradually moves on to more complex things like Turing-machines, computational complexity, famous P vs. NP, etc.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;or&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://ocw.mit.edu/courses/mathematics/18-404j-theory-of-computation-fall-2020/&#34;&gt;Theory of Computation&lt;/a&gt;.
+This course is taught by Michael Sipser. It is similar to the one above but delivered in a different style. It goes into more detail on specific topics.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;front-end&#34;&gt;Front-end&lt;/h3&gt;
+&lt;p&gt;The compiler front-end is where the interaction with the actual source code happens. The compiler parses the source code into an Abstract Syntax Tree (AST), does semantic analysis and type-checking, and converts it into the intermediate representation (IR).&lt;/p&gt;
+&lt;p&gt;The Compilers course from the above covers the general parts.
+Here are some links specific to Clang:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://jonasdevlieghere.com/understanding-the-clang-ast/&#34;&gt;Understanding the Clang AST&lt;/a&gt;.
+This article is written by Jonas Devlieghere. It goes into detail and touches implementation details of Clang&amp;rsquo;s AST. It also has a lot of excellent links to dive deeper into the subject.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/banach-space/clang-tutor/&#34;&gt;clang-tutor&lt;/a&gt;. This repository maintained by Andrzej Warzyński. It contains several Clang plugins covering various topics, from simple AST traversals to more involved subjects such as automatic refactoring and obfuscation.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;middle-end&#34;&gt;Middle-end&lt;/h3&gt;
+&lt;p&gt;The middle-end is a place where various optimizations happen. Typically, the middle-ends use some intermediate representation. The intermediate representation of LLVM is usually referred to as LLVM IR or LLVM Bitcode.
+In a nutshell, it is a human-readable assembly language for a pseudo-machine (i.e., the IR does not target any specific CPU).
+The LLVM IR maintains certain properties: it is in a Static Single Assignment (SSA) form organized as a Control-Flow Graph (CFG).&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=m8G_S5LwlTo&#34;&gt;LLVM IR Tutorial - Phis, GEPs and other things, oh my!&lt;/a&gt;.
+This is a great talk by Vince Bridgers and Felipe de Azevedo Piovezan.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=J5xExRGaIIY&#34;&gt;Introduction to LLVM&lt;/a&gt;. A one-hour-long talk/tutorial from LLVM Developers meeting given by Eric Christopher and Johannes Doerfert. Another great tutorial that better builds on top of the previous video.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.cs.cornell.edu/courses/cs6120/2020fa/self-guided/&#34;&gt;CS 6120: Advanced Compilers&lt;/a&gt;.
+The course is taught by Adrian Sampson. The title says &amp;ldquo;advanced,&amp;rdquo; but it covers what one would expect in a modern production-grade compiler: SSA, CFG, optimizations, various analyses.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/bitcode-demystified/&#34;&gt;Bitcode Demystified&lt;/a&gt;(🔌).
+This one is from me. It gives a high-level description of what&amp;rsquo;s the LLVM
+Bitcode is.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://github.com/banach-space/llvm-tutor&#34;&gt;llvm-tutor&lt;/a&gt;. This one is also from Andrzej Warzyński. It covers LLVM plugins (so-called passes) that allow one to analyze and transform the programs in the LLVM IR form.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;back-end&#34;&gt;Back-end&lt;/h3&gt;
+&lt;p&gt;The last phase of the compilation is a back-end. This phase aims to convert the intermediate representation into a machine code (zeros and ones). The zeros and ones later can be run on the CPU. Therefore, to understand the back-end, you need to understand the machine code and how CPUs work.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.coursera.org/learn/build-a-computer&#34;&gt;Build a Modern Computer from First Principles: From Nand to Tetris&lt;/a&gt;.
+Taught by Shimon Schocken and Noam Nisan. This course starts backward: first, you build the logic gates (and, or, xor, etc.), then use the logic gates to construct Arithmetic-Logic Unit (ALU), and then use the ALU to build the CPU. Then you learn how to control the CPU with zeros and ones (machine code), and eventually, you develop your assembler to convert the human-readable assembly into the machine code.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/parsing-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt;(🔌).
+This is a short article written by me. It shows how to parse object files on macOS (Mach-O). If you are on Linux or Windows, search for similar articles on &lt;code&gt;elf&lt;/code&gt; and &lt;code&gt;PE/COFF&lt;/code&gt; files, respectively.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://book.easyperf.net/perf_book&#34;&gt;Performance Analysis and Tuning on Modern CPUs&lt;/a&gt;.
+The book by Denis Bakhvalov. While it is about performance, it gives an excellent introduction to how CPUs work.&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;bonus-points&#34;&gt;Bonus points&lt;/h3&gt;
+&lt;p&gt;Here are some more LLVM related channels I recommend looking at:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://www.youtube.com/channel/UCv2_41bSAa5Y_8BacJUZfjQ&#34;&gt;LLVM&amp;rsquo;s YouTube channel&lt;/a&gt;.
+Here you can find a lot of talks from developer meetings.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://llvmweekly.org&#34;&gt;LLVM Weekly&lt;/a&gt;.
+A weekly newsletter run by Alex Bradbury. This is the single newsletter
+I am aware of that doesn&amp;rsquo;t have ads!&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://blog.llvm.org&#34;&gt;LLVM Blog&lt;/a&gt;.
+This is, well, LLVM&amp;rsquo;s blog.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://llvm.org/docs/tutorial/&#34;&gt;LLVM Tutorials&lt;/a&gt;.
+Good starting points, even if you know nothing about compilers.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;&lt;a href=&#34;https://blog.regehr.org/archives/category/compilers&#34;&gt;Embedded in academia&lt;/a&gt;.
+John Regehr&amp;rsquo;s blog has lots of goodies when it comes to LLVM and compilers!&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;strings-attached&#34;&gt;Strings attached&lt;/h3&gt;
+&lt;p&gt;As I mentioned in the beginning, Compilers is a huge field!
+If you go through the material above, you will learn a lot, but you will still
+have a few knowledge gaps in the whole compilation pipeline (I certainly do).
+But the good thing is - you&amp;rsquo;d know what the gaps are and how to address
+them!&lt;/p&gt;
+&lt;p&gt;Good luck!&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>
