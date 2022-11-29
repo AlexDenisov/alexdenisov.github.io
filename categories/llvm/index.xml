@@ -448,11 +448,38 @@ So let&amp;rsquo;s look at how to use &lt;code&gt;llvm2cpg&lt;/code&gt; with Joe
 &lt;h2 id=&#34;some-numbers&#34;&gt;Some numbers&lt;/h2&gt;
 &lt;p&gt;These are just some numbers mined from the &lt;code&gt;libLLVMCore.a&lt;/code&gt;.&lt;/p&gt;
 &lt;h4 id=&#34;how-many&#34;&gt;How many&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table class=&#34;table&#34;&gt;
+  &lt;tr&gt;&lt;td&gt;Number of functions&lt;/td&gt; &lt;td&gt;71 019&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Number of basic blocks&lt;/td&gt; &lt;td&gt;172 621&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Number of instructions&lt;/td&gt; &lt;td&gt;1 212 322&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Number of types&lt;/td&gt; &lt;td&gt;122 220&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
 &lt;h4 id=&#34;top-10-instructions&#34;&gt;Top 10 instructions:&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table class=&#34;table&#34;&gt;
+  &lt;tr&gt;&lt;td&gt;call&lt;/td&gt; &lt;td&gt;290 495&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;load&lt;/td&gt; &lt;td&gt;214 769&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;store&lt;/td&gt; &lt;td&gt;167 640&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;alloca&lt;/td&gt; &lt;td&gt;154 922&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;br&lt;/td&gt; &lt;td&gt;96 848&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;getelementptr&lt;/td&gt; &lt;td&gt;78 622&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;ret&lt;/td&gt; &lt;td&gt;67 729&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;bitcast&lt;/td&gt; &lt;td&gt;62 760&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;icmp&lt;/td&gt; &lt;td&gt;20 624&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;phi&lt;/td&gt; &lt;td&gt;9 716&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
 &lt;h4 id=&#34;top-10-biggest-functions&#34;&gt;Top 10 biggest functions:&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table class=&#34;table&#34;&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::UpgradeIntrinsicCall(llvm::CallInst*, llvm::Function*)&lt;/td&gt; &lt;td&gt;14033&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::Intrinsic::getAttributes(llvm::LLVMContext&amp;, unsigned int)&lt;/td&gt; &lt;td&gt;8420&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;ShouldUpgradeX86Intrinsic(llvm::Function*, llvm::StringRef)&lt;/td&gt; &lt;td&gt;3635&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::LLVMContextImpl::~LLVMContextImpl()&lt;/td&gt; &lt;td&gt;2181&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;UpgradeIntrinsicFunction1(llvm::Function*, llvm::Function*&amp;)&lt;/td&gt; &lt;td&gt;2006&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;(anonymous namespace)::Verifier::visitIntrinsicCall(unsigned int, llvm::CallBase&amp;)&lt;/td&gt; &lt;td&gt;1887&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;(anonymous namespace)::AssemblyWriter::printInstruction(llvm::Instruction const&amp;)&lt;/td&gt; &lt;td&gt;1869&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::ConstantFoldBinaryInstruction(unsigned int, llvm::Constant*, llvm::Constant*)&lt;/td&gt; &lt;td&gt;1244&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;upgradeAVX512MaskToSelect(llvm::StringRef, llvm::IRBuilder&lt;llvm::ConstantFolder, llvm::IRBuilderDefaultInserter&gt;&amp;, llvm::CallInst&amp;, llvm::Value*&amp;)&lt;/td&gt; &lt;td&gt;1073&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::ConstantFoldGetElementPtr(llvm::Type*, llvm::Constant*, bool, llvm::Optional&lt;unsigned int&gt;, llvm::ArrayRef&lt;llvm::Value*&gt;)&lt;/td&gt; &lt;td&gt;1055&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
 &lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
 &lt;p&gt;Here are some links if you want to learn more about Gremlin Queries and what&amp;rsquo;s possible:&lt;/p&gt;
 &lt;ul&gt;
@@ -625,7 +652,12 @@ The tree is constructed in the depth-first order, here are the same examples as 
 &lt;li&gt;fgagfaa&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Here is a more comprehensive example:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/tree-automata.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The arrows show the depth-first order.&lt;/p&gt;
 &lt;p&gt;We can map our type equivalence problem on the ranked alphabet/tree automaton concepts.&lt;/p&gt;
 &lt;h3 id=&#34;type-equality&#34;&gt;Type Equality&lt;/h3&gt;
@@ -649,7 +681,12 @@ Examples of types represented as a tree:&lt;/p&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;em&gt;Note: the values in &lt;code&gt;S&lt;/code&gt; are the number of elements (3), struct ID (&lt;code&gt;S0&lt;/code&gt;), and all its contained types defined recursively.&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;Same types, but represented graphically:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/tree-automata-types.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;h3 id=&#34;structural-equality&#34;&gt;Structural Equality&lt;/h3&gt;
 &lt;p&gt;Above, I mentioned the &lt;code&gt;struct ID&lt;/code&gt;. We need it to define the structural equality for recursive types.
 Consider the following example:&lt;/p&gt;
@@ -663,7 +700,12 @@ By our definition of equality the following holds:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; list
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The reasoning is simple: the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; has the same layout and the same structure (recursive), while &lt;code&gt;root&lt;/code&gt; has another structure.&lt;/p&gt;
 &lt;p&gt;Here is a graphical representation to highlight the idea. If we discard the struct titles, then it&amp;rsquo;s clear the first two are equal while the third one is distinct.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/recursive-structs.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;To take the structure into account and to make the equality hold, we do not use the names of the structures, but before building the tree, we assign them symbolic names or IDs.
 So both the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; encoded as the following: &lt;code&gt;S(2, S0, P(S(2, S0, x, x), I(32))&lt;/code&gt; where &lt;code&gt;S0&lt;/code&gt; is the struct ID. To terminate the recursion we do not re-emit types for the structure that has already been emitted, but we do emit symbols &lt;code&gt;x&lt;/code&gt; instead (otherwise we won&amp;rsquo;t respect the arity of the struct).&lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;root&lt;/code&gt; is defined as follows &lt;code&gt;S(2, S0, P(S(2, S1, P(S(2, S1, x, x), I(32), I(32))), I(32))&lt;/code&gt; please note the nestedness and &lt;code&gt;S0&lt;/code&gt; and &lt;code&gt;S1&lt;/code&gt; struct IDs.&lt;/p&gt;
@@ -864,13 +906,19 @@ You can add a bunch of &lt;code&gt;#ifdef&lt;/code&gt;s to the source code. This
 &lt;/ol&gt;
 &lt;p&gt;As soon as it finds the right folder, it will include it in the build process. So far we used only &lt;code&gt;&amp;lt;number&amp;gt;.x.x&lt;/code&gt;, but the idea is that we can provide a particular library for any version of LLVM if we need to.
 Here is how two header files look like:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/llvm-compat.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Then, in the source code we simply use the compatibility layer instead of bunch of &lt;code&gt;ifdef&lt;/code&gt;s:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;auto&lt;/span&gt; module &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; llvm_compat&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;parseBitcode(buffer.getMemBufferRef(),
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        context);
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;sources-vs-binaries&#34;&gt;Sources VS Binaries&lt;/h3&gt;
 &lt;p&gt;So far I only covered builds against precompiled binary versions of LLVM. However, there are reasons you should also build against the source code. Look at the table:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/sources-binaries.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Build time against precompiled versions is much faster, but you give up the ability to debug the LLVM itself which is needed when you hit some bug or some weird behavior.
 Another significant drawback: asserts. They are disabled in the release builds you get from the &lt;a href=&#34;http://releases.llvm.org&#34;&gt;http://releases.llvm.org&lt;/a&gt;.
 In fact, we did violate some of the LLVM constraints but didn&amp;rsquo;t realize it until somebody tried to build Mull against the source code.&lt;/p&gt;
@@ -920,7 +968,10 @@ In fact, we did violate some of the LLVM constraints but didn&amp;rsquo;t realiz
 &lt;p&gt;Any LLVM-based tool is an excellent example of the fair parallelization: if you have 20 tasks and 4 cores, then you can run 5 tasks per each core and them merge the results.
 However, LLVM is not very friendly when it comes to the parallelization: lots of classes are not thread-safe.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s consider this picture:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/LLVM-parallelization.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;There are three phases: loading, analysis, and transformation:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;We load two modules(#1, #2) within the Thread 1, and the third module (#3) within the Thread 2. What&amp;rsquo;s important is that each thread should have its own &lt;code&gt;LLVMContext&lt;/code&gt;!&lt;/li&gt;
@@ -932,7 +983,10 @@ However, LLVM is not very friendly when it comes to the parallelization: lots of
 &lt;p&gt;Also, LLVM&amp;rsquo;s &lt;code&gt;PassManager&lt;/code&gt;s are not (yet?) parallelization-friendly.&lt;/p&gt;
 &lt;p&gt;My advice here is to start with separate analysis &amp;amp; transformation phases. It&amp;rsquo;s easier to implement and easier to test. You can wrap these phases into LLVM pass later if needed.&lt;/p&gt;
 &lt;p&gt;And of course, you should always measure the performance. Here is one of our measurements:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/analysis-transform.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;You may get the opposite results.&lt;/p&gt;
 &lt;h3 id=&#34;getting-bitcode&#34;&gt;Getting Bitcode&lt;/h3&gt;
 &lt;p&gt;Once per 2-3 months, there is a question on the mailing lists: &amp;ldquo;How do I compile my program to bitcode?&amp;rdquo; Clearly, there is a demand for that.&lt;/p&gt;
@@ -1293,7 +1347,13 @@ These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
 &lt;p&gt;They can be run using &lt;code&gt;make&lt;/code&gt;:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make check-llvm-unit
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Showing this beautiful output:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34;
+alt=&#34;Unit tests&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.&lt;/p&gt;
 &lt;p&gt;Unit Tests are written using &lt;a href=&#34;https://github.com/google/googletest&#34;&gt;Google Test&lt;/a&gt; framework.
 Here is an example of a simple test:&lt;/p&gt;
@@ -1321,7 +1381,13 @@ It is the largest group of tests used in LLVM. It is 10 times bigger than Unit T
 It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make check-llvm
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34;
+alt=&#34;Regression tests&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Regression Tests (unlike Unit Tests) are using custom tools such as &lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;lit (LLVM Integrated Tester)&lt;/a&gt; and &lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;.
 Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; RUN: %lli %s | FileCheck %s
@@ -1462,20 +1528,35 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
 &lt;p&gt;&lt;em&gt;You can find more details here: &lt;a href=&#34;https://www.objc.io/issues/6-build-tools/compiler/&#34;&gt;The Compiler&lt;/a&gt;.&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;In the modern world these phases are split into two parts: &lt;strong&gt;&lt;code&gt;compiler frontend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;lexer&lt;/code&gt;, &lt;code&gt;parser&lt;/code&gt;, &lt;code&gt;semantic analysis&lt;/code&gt;, &lt;code&gt;code generation&lt;/code&gt;) and &lt;strong&gt;&lt;code&gt;compiler backend&lt;/code&gt;&lt;/strong&gt; (&lt;code&gt;optimization&lt;/code&gt;, &lt;code&gt;asm printer&lt;/code&gt;, &lt;code&gt;assembler&lt;/code&gt;, &lt;code&gt;linker&lt;/code&gt;). This separation makes much sense for both language designers and hardware manufacturers. If you want to create a new programming language you &amp;lsquo;just&amp;rsquo; need to implement a frontend, and you get all available optimizations and support of different CPUs for free. On the other hand, if you created a new chip, you &amp;lsquo;just&amp;rsquo; need to extend the backend and you get all the available languages (frontends) support for your CPU.&lt;/p&gt;
 &lt;p&gt;Below you can see a picture that illustrates compilation process using Clang and LLVM:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/compilation_process.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM &lt;a href=&#34;http://llvm.org/docs/LangRef.html&#34;&gt;has it is own&lt;/a&gt; format, that can be encoded using LLVM bitstream file format - &lt;a href=&#34;http://llvm.org/docs/BitCodeFormat.html&#34;&gt;Bitcode&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Just to recall it explicitly - &lt;strong&gt;Bitcode is a bitstream representation of LLVM IR&lt;/strong&gt;.&lt;/p&gt;
 &lt;h2 id=&#34;what-problems-apples-bitcode-aims-to-solve&#34;&gt;What problems Apple&amp;rsquo;s Bitcode aims to solve?&lt;/h2&gt;
 &lt;p&gt;Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend reading this article: &lt;a href=&#34;http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html&#34;&gt;How OS X Executes Applications&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;OS X and iOS can run on different CPUs (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt;, &lt;code&gt;arm64&lt;/code&gt;, etc.), if you want to run a program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/macho_file.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;When you run a program, OS reads the &amp;lsquo;Table Of Contents&amp;rsquo; and looks for a slice corresponding to the OS CPU.
 For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, then OS will load object code for &lt;code&gt;x86_64&lt;/code&gt; into a memory and run the program.&lt;/p&gt;
 &lt;p&gt;What&amp;rsquo;s happening with other slices? Nothing, they just waste your disk space.&lt;/p&gt;
 &lt;p&gt;This is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt; CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for &lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, &lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;arm64&lt;/code&gt;, so you can use them to test the app on a device or simulator. (Can you imagine how many copies of Google Analytics for &lt;code&gt;i386&lt;/code&gt; you have in your pocket?)&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; I do not know why, but I was sure that final executable contains these slices as well (&lt;code&gt;i386&lt;/code&gt;, &lt;code&gt;x86_64&lt;/code&gt;, etc.), but it seems they are stripped during the build phase.&lt;/p&gt;
 &lt;p&gt;Apple did not give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/app_thinning.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;When you submit an app (including Bitcode) Apple&amp;rsquo;s &amp;lsquo;BlackBox&amp;rsquo; recompiles it for each supported platform and drops any &amp;lsquo;useless&amp;rsquo; object code, so AppStore has a copy of the app for each CPU. When an end user wants to install the app - she installs the only version for the particular processor, without any unused stuff.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Bitcode might save up to 50% of disk space per program.&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; Of course, I do not take in count resources, it is just about binary itself. For instance, an app I am working on currently has size ~40 megabytes (including assets, xibs. fonts), a size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them, it will decrease the size of the app by ~20%.&lt;/p&gt;
@@ -1509,7 +1590,12 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).&lt;/p&gt;
 &lt;h3 id=&#34;how-could-malefactor-get-the-ir&#34;&gt;How could malefactor get the IR?&lt;/h3&gt;
 &lt;p&gt;iOS and OS X executables have their own format - Mach-O (read &lt;a href=&#34;http://lowlevelbits.org/parse-mach-o-files/&#34;&gt;Parsing Mach-O files&lt;/a&gt; for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain &lt;a href=&#34;https://en.wikipedia.org/wiki/Xar_%28archiver%29&#34;&gt;xar&lt;/a&gt; archive with Bitcode:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bitcode-demystified/bitcode_storage.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: &lt;a href=&#34;https://github.com/AlexDenisov/bitcode_retriever&#34;&gt;bitcode_retriever&lt;/a&gt;. The workflow is pretty straightforward. Let&amp;rsquo;s assume that &lt;code&gt;some_binary&lt;/code&gt; is a Mach-O file that contains object code for two CPUs (&lt;code&gt;arm&lt;/code&gt; and &lt;code&gt;x86_64&lt;/code&gt;), and each object code is built using two source files:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;$ bitcode_retriever some_binary
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;arm.xar
@@ -1522,7 +1608,7 @@ For instance, if you run operating system on &lt;code&gt;x86_64&lt;/code&gt;, th
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Bitcode does not store any information about original filenames but uses numbers instead (&lt;code&gt;1&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt;, &lt;code&gt;3&lt;/code&gt;, etc.).
 Also, probably you do not have &lt;code&gt;llvm-dis&lt;/code&gt; installed/built on your machine, but you can easily obtain it, see this article for more details: &lt;a href=&#34;http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/&#34;&gt;Getting Started with Clang/LLVM on OS X&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;Another potential issue (can&amp;rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.&lt;/p&gt;
-&lt;p&gt;I know only one way to secure the IR - &lt;!-- raw HTML omitted --&gt;obfuscation&lt;!-- raw HTML omitted --&gt;. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.&lt;/p&gt;
+&lt;p&gt;I know only one way to secure the IR - &lt;a href=&#34;https://en.wikipedia.org/wiki/Obfuscation_(software)&#34; &gt;obfuscation&lt;/a&gt;. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.&lt;/p&gt;
 &lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
 &lt;ul&gt;
 &lt;li&gt;Bitcode is a bitstream file format for LLVM IR&lt;/li&gt;

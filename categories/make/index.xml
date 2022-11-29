@@ -36,57 +36,155 @@
 &lt;p&gt;&lt;a href=&#34;http://savannah.gnu.org/git/?group=make&#34;&gt;Git Source Code Manager: Git Repository&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;To get Make&amp;rsquo;s sources:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+git clone git://git.savannah.gnu.org/make.git GNUMake
+cd make
+&lt;/pre&gt;
 &lt;h3 id=&#34;good-news-make-has-tests&#34;&gt;Good news: Make has tests&lt;/h3&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ ls -l tests/
+total 376
+-rw-r--r--   1 Stanislaw  staff  35147 May 27 20:54 COPYING
+-rw-r--r--   1 Stanislaw  staff  48828 May 27 20:54 ChangeLog.1
+-rw-r--r--   1 Stanislaw  staff   6765 May 27 20:54 NEWS
+-rw-r--r--   1 Stanislaw  staff   4677 May 27 20:54 README
+-rw-r--r--   1 Stanislaw  staff    470 May 27 20:54 config-flags.pm.in
+-rwxr-xr-x   1 Stanislaw  staff   1705 May 27 20:54 config_flags_pm.com
+-rw-r--r--   1 Stanislaw  staff    359 May 27 20:54 guile.supp
+-rwxr-xr-x   1 Stanislaw  staff   1424 May 27 20:54 mkshadow
+-rwxr-xr-x   1 Stanislaw  staff     36 May 27 20:54 run_make_tests
+-rwxr-xr-x   1 Stanislaw  staff   8330 May 27 20:54 run_make_tests.com
+-rw-r--r--   1 Stanislaw  staff  14179 May 27 20:54 run_make_tests.pl
+drwxr-xr-x  10 Stanislaw  staff    340 May 27 20:54 scripts
+-rw-r--r--   1 Stanislaw  staff  40197 May 27 20:54 test_driver.pl
+&lt;/pre&gt;
 &lt;p&gt;The actual tests are located in &lt;code&gt;tests/scripts&lt;/code&gt; directory:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ ls -l tests/scripts
+total 8
+drwxr-xr-x  40 Stanislaw  staff  1360 Jun  2 21:47 features
+drwxr-xr-x  31 Stanislaw  staff  1054 May 27 20:54 functions
+drwxr-xr-x  10 Stanislaw  staff   340 May 27 20:54 misc
+drwxr-xr-x  18 Stanislaw  staff   612 May 29 10:22 options
+drwxr-xr-x  12 Stanislaw  staff   408 Jun 10 20:42 targets
+-rw-r--r--   1 Stanislaw  staff  1015 May 27 20:54 test_template
+drwxr-xr-x  22 Stanislaw  staff   748 May 27 20:54 variables
+drwxr-xr-x   3 Stanislaw  staff   102 May 27 20:54 vms
+&lt;/pre&gt;
 &lt;p&gt;The following are interesting notes I found before running the tests.&lt;/p&gt;
 &lt;h4 id=&#34;the-oldest-update-in-news-file-dates-back-to-1992&#34;&gt;The oldest update in NEWS file dates back to 1992&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+Changes from 0.1 to 0.2 (5-4-92):
+
+README corrected to require perl 4.019, not 4.010.
+
+-make_path replaces -old.
+
+errors_in_commands test updated for change in format introduced in
+make 3.62.6.
+
+test_driver_core now uses a better way of figuring what OS it is
+running on (thanks to meyering@cs.utexas.edu (Jim Meyering) for
+suggesting this, as well as discovering the hard way that the old
+way (testing for /mnt) fails on his machine).
+
+Some new tests were added.
+&lt;/pre&gt;
 &lt;p&gt;This means that &lt;strong&gt;tests in Make were introduced as early as of 1992!&lt;/strong&gt; which is a very good sign given some other tools are likely to not have a good coverage even in present days as described in another article of this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd&#34;&gt;System Under Test: FreeBSD&lt;/a&gt; (see Conclusion there).&lt;/p&gt;
 &lt;h4 id=&#34;the-test-suite-requires-perl-and-can-be-run-on-unix-windows-and-dos-systems&#34;&gt;The test suite requires Perl and can be run on UNIX, Windows and DOS systems&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+To run the test suite on a UNIX system, use &#34;perl ./run_make_tests&#34;
+(or just &#34;./run_make_tests&#34; if you have a perl on your PATH).
+
+To run the test suite on Windows NT or DOS systems, use
+&#34;perl.exe ./run_make-tests.pl&#34;.
+&lt;/pre&gt;
 &lt;h4 id=&#34;the-test-suite-is-run-against-make-executable&#34;&gt;The test suite is run against Make executable&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+By default, the test engine picks up the first executable called &#34;make&#34;
+that it finds in your path.  You may use the -make_path option (i.e.,
+&#34;perl run_make_tests -make_path /usr/local/src/make-3.78/make&#34;) if
+you want to run a particular copy.  This now works correctly with
+relative paths and when make is called something other than &#34;make&#34; (like
+&#34;gmake&#34;).
+&lt;/pre&gt;
 &lt;p&gt;This observation leads us to conclusion that these &lt;strong&gt;GNU Make&amp;rsquo;s tests are actually integration tests&lt;/strong&gt; - it is the final &lt;code&gt;make&lt;/code&gt; executable that is tested, not its parts like they would be with unit testing (depending on terminology this kind of testing of a final product can also be called functional or acceptance testing).&lt;/p&gt;
 &lt;h4 id=&#34;build-artefacts&#34;&gt;Build artefacts&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+A directory named &#34;work&#34; will be created when the tests are run which
+will contain any makefiles and &#34;diff&#34; files of tests that fail so that
+you may look at them afterward to see the output of make and the
+expected result.
+&lt;/pre&gt;
 &lt;h3 id=&#34;running-tests-against-default-osx-make&#34;&gt;Running tests against default OSX Make&lt;/h3&gt;
 &lt;p&gt;Having read both documents: &lt;code&gt;tests/NEWS&lt;/code&gt; and &lt;code&gt;tests/README&lt;/code&gt; let&amp;rsquo;s try to run the tests. As we learned earlier, by default the test suite will pick up first &lt;code&gt;make&lt;/code&gt; from path so it will default to default make of OSX system which is on my machine:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+make -v
+GNU Make 3.81
+Copyright (C) 2006  Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+This program built for i386-apple-darwin11.3.0
+&lt;/pre&gt;
 &lt;p&gt;If you ever wondered why default &lt;code&gt;make&lt;/code&gt; on OS X is so old, you are in good company - see &lt;a href=&#34;https://www.quora.com/What-is-the-reason-for-some-of-the-Linux-tools-on-OS-X-being-so-old-Is-this-related-to-GPL-licensing&#34;&gt;What is the reason for some of the Linux tools on OS X being so old? Is this related to GPL licensing?&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;To run tests:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ cd tests/
+$ # The following has to be done otherwise script will complain with:
+$ # &#34;Can&#39;t locate config-flags.pm in @INC...&#34;
+$ cp config-flags.pm.in config-flags.pm
+$ ./run_make_tests
+...
+output with lots of errors and finally:
+212 Tests in 66 Categories Failed (See .diff* files in work dir for details) :-(
+&lt;/pre&gt;
 &lt;p&gt;We see here that oldness of default Make on OS X does cost 212 failing tests. I assume that the reason why most of these failing tests are failing is not a regression in core functionality of Make but rather because of new features were added to GNU Make since 2006.&lt;/p&gt;
 &lt;p&gt;To understand how that is different for latest Make let&amp;rsquo;s build it from source and run tests against it.&lt;/p&gt;
 &lt;h3 id=&#34;running-tests-against-latest-make-built-from-source&#34;&gt;Running tests against latest Make built from source&lt;/h3&gt;
 &lt;p&gt;Let&amp;rsquo;s get back from &lt;code&gt;tests&lt;/code&gt; directory one level up to the root directory of source tree. Inspired by the instructions in INSTALL and after some additional googling we need to run &lt;code&gt;autoreconf&lt;/code&gt; so that it creates proper &lt;code&gt;configure&lt;/code&gt; script for us:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ pwd # /Users/Stanislaw/Projects/GNUMake
+$ brew install automake
+$ # gettext is needed by autoreconf to locate gettext,
+$ # be careful with force linking it on your system.
+$ brew install gettext
+$ brew link gettext --force
+$ autoreconf # creates &#39;configure&#39; script
+&lt;/pre&gt;
 &lt;p&gt;Then we want to run this newly created script with &lt;code&gt;--prefix&lt;/code&gt; parameter so that it will not install make to the &lt;code&gt;/usr/local/bin&lt;/code&gt; directory but rather to &lt;code&gt;./Build&lt;/code&gt; directory (to not conflict with OSX&amp;rsquo;s Make which we don&amp;rsquo;t want within the scope of this post).&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ ./configure --prefix=$(pwd)/Build
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;At this point if you run &lt;code&gt;make&lt;/code&gt; the very first time you will likely see errors about some localization files missing:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+Making all in doc
+Updating ./version.texi
+make[2]: *** No rule to make target `fdl.texi&#39;, needed by `make.info&#39;.  Stop.
+make[1]: *** [all-recursive] Error 1
+make: *** [all] Error 2
+&lt;/pre&gt;
 &lt;p&gt;To fix that you have to first run (solution found at &lt;a href=&#34;http://gnu-make.2324884.n4.nabble.com/NLS-related-failure-when-building-make-from-CVS-tp2157p2158.html&#34;&gt;GNU Make forums&lt;/a&gt;):&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;make update
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Everything should work fine since then, finally we run:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ make &amp;&amp; make install
+...
+  /usr/bin/install -c make &#39;/Users/Stanislaw/Projects/Make/GNUMake/Build/bin&#39;
+...
+$ ./Build/bin/make --version
+GNU Make 4.2
+Built for x86_64-apple-darwin15.3.0
+Copyright (C) 1988-2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+&lt;/pre&gt;
 &lt;p&gt;Which is 2006&amp;rsquo;s Make 3.81 that has just been used to build 2016&amp;rsquo;s Make 4.2!&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s run the tests!&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ cd tests
+$ ./run_make_tests -make ../Build/bin/make
+&lt;/pre&gt;
 &lt;p&gt;The results are quite pleasant to look at - &lt;strong&gt;GNU Make built from latest source code on Mac OS X machine, passes all of its tests&lt;/strong&gt;:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;581 Tests in 118 Categories Complete ... No Failures :-)
 &lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;test-case-template&#34;&gt;Test case template&lt;/h3&gt;
@@ -180,8 +278,53 @@ if (&amp;amp;compare_output($answer,&amp;amp;get_logfile(1))) {
 &lt;/code&gt;&lt;/pre&gt;
 &lt;h4 id=&#34;test-case-example-2-phony-targets&#34;&gt;Test case example #2: PHONY targets&lt;/h4&gt;
 &lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/targets/PHONY&lt;/code&gt;.&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+#                                                                    -*-perl-*-
+
+$description = &#34;The following tests the use of a PHONY target.  It makes\n&#34;
+              .&#34;sure that the rules under a target get executed even if\n&#34;
+              .&#34;a filename of the same name of the target exists in the\n&#34;
+              .&#34;directory.\n&#34;;
+
+$details = &#34;This makefile in this test declares the target clean to be a \n&#34;
+          .&#34;PHONY target.  We then create a file named \&#34;clean\&#34; in the \n&#34;
+          .&#34;directory.  Although this file exists, the rule under the target\n&#34;
+          .&#34;clean should still execute because of it&#39;s phony status.&#34;;
+
+$example = &#34;EXAMPLE_FILE&#34;;
+
+open(MAKEFILE,&#34;&gt; $makefile&#34;);
+
+# The Contents of the MAKEFILE ...
+
+print MAKEFILE &#34;.PHONY : clean \n&#34;;
+print MAKEFILE &#34;all: \n&#34;;
+print MAKEFILE &#34;\t\@echo This makefile did not clean the dir ... good\n&#34;;
+print MAKEFILE &#34;clean: \n&#34;;
+print MAKEFILE &#34;\t$delete_command $example clean\n&#34;;
+
+# END of Contents of MAKEFILE
+
+close(MAKEFILE);
+
+&amp;touch($example);
+
+# Create a file named &#34;clean&#34;.  This is the same name as the target clean
+# and tricks the target into thinking that it is up to date.  (Unless you
+# use the .PHONY target.
+&amp;touch(&#34;clean&#34;);
+
+$answer = &#34;$delete_command $example clean\n&#34;;
+&amp;run_make_with_options($makefile,&#34;clean&#34;,&amp;get_logfile);
+
+if (-f $example) {
+  $test_passed = 0;
+}
+
+&amp;compare_output($answer,&amp;get_logfile(1));
+
+1;
+&lt;/pre&gt;
 &lt;h4 id=&#34;test-case-example-3---warn-undefined-variables-option&#34;&gt;Test case example #3: &amp;ndash;warn-undefined-variables option&lt;/h4&gt;
 &lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/options/warn-undefined-variables&lt;/code&gt;.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-

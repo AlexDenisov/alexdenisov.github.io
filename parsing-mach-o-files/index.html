@@ -101,7 +101,7 @@
           <div>
             <p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
 For more information consider reading official documentation and header files provided by operating system.</p>
-<!-- raw HTML omitted -->
+<!-- more -->
 <h2 id="what-is-mach-o-file">What is Mach-O file</h2>
 <p>Brief description taken from <a href="https://en.wikipedia.org/wiki/Mach-O">Wikipedia</a>:</p>
 <blockquote>
@@ -117,15 +117,30 @@ For more information consider reading official documentation and header files pr
 <li>Data - usually the biggest part of object file. It contains code and data, such as symbol tables, dynamic symbol tables and so on.</li>
 </ol>
 <p>Here is a simplified graphical representation:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/parse-mach-o-files/macho_header.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;" /></p>
 <p>There are two types of object files on OS X: Mach-O files and Universal Binaries, also so-called Fat files. The difference between them: Mach-O file contains object code for one architecture (i386, x86_64, arm64, etc.) while Fat binaries might contain several object files, hence contain object code for different architectures (i386 and x86_64, arm and arm64, etc.)</p>
 <p>The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/parse-mach-o-files/fat_header.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;" /></p>
 <h2 id="parse-mach-o-file">Parse Mach-O file</h2>
 <p>OS X doesn’t provide us with any <code>libmacho</code> or something similar, the only thing we have here - a set of C structures defined under <code>/usr/include/mach-o/*</code>, hence we need to implement parsing on our own. It might be tricky, but it’s not that hard.</p>
 <h3 id="memory-representation">Memory Representation</h3>
 <p>Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/parse-mach-o-files/sample_macho.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;" /></p>
 <p>The only structures we need to represent the file:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> mach_header {
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">uint32_t</span>      magic;
@@ -151,7 +166,12 @@ For more information consider reading official documentation and header files pr
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">uint32_t</span>  flags;
 </span></span><span style="display:flex;"><span>};
 </span></span></code></pre></div><p>Here is how memory mapping looks like:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/parse-mach-o-files/macho_memory_layout.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>If you want to read particular info from a file, you just need a correct data structure and an offset.</p>
 <h3 id="parsing">Parsing</h3>
 <p>Let&rsquo;s write a program that&rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.</p>
@@ -832,6 +852,8 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       
       
       
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -844,11 +866,11 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       
       
       
-      
-      
       <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
+      
+      
       
       
       
@@ -858,10 +880,8 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       
       
       
-      
-      
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       

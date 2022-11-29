@@ -183,11 +183,38 @@
 <h2 id="some-numbers">Some numbers</h2>
 <p>These are just some numbers mined from the <code>libLLVMCore.a</code>.</p>
 <h4 id="how-many">How many</h4>
-<!-- raw HTML omitted -->
+<table class="table">
+  <tr><td>Number of functions</td> <td>71 019</td></tr>
+  <tr><td>Number of basic blocks</td> <td>172 621</td></tr>
+  <tr><td>Number of instructions</td> <td>1 212 322</td></tr>
+  <tr><td>Number of types</td> <td>122 220</td></tr>
+</table>
 <h4 id="top-10-instructions">Top 10 instructions:</h4>
-<!-- raw HTML omitted -->
+<table class="table">
+  <tr><td>call</td> <td>290 495</td></tr>
+  <tr><td>load</td> <td>214 769</td></tr>
+  <tr><td>store</td> <td>167 640</td></tr>
+  <tr><td>alloca</td> <td>154 922</td></tr>
+  <tr><td>br</td> <td>96 848</td></tr>
+  <tr><td>getelementptr</td> <td>78 622</td></tr>
+  <tr><td>ret</td> <td>67 729</td></tr>
+  <tr><td>bitcast</td> <td>62 760</td></tr>
+  <tr><td>icmp</td> <td>20 624</td></tr>
+  <tr><td>phi</td> <td>9 716</td></tr>
+</table>
 <h4 id="top-10-biggest-functions">Top 10 biggest functions:</h4>
-<!-- raw HTML omitted -->
+<table class="table">
+  <tr><td>llvm::UpgradeIntrinsicCall(llvm::CallInst*, llvm::Function*)</td> <td>14033</td></tr>
+  <tr><td>llvm::Intrinsic::getAttributes(llvm::LLVMContext&, unsigned int)</td> <td>8420</td></tr>
+  <tr><td>ShouldUpgradeX86Intrinsic(llvm::Function*, llvm::StringRef)</td> <td>3635</td></tr>
+  <tr><td>llvm::LLVMContextImpl::~LLVMContextImpl()</td> <td>2181</td></tr>
+  <tr><td>UpgradeIntrinsicFunction1(llvm::Function*, llvm::Function*&)</td> <td>2006</td></tr>
+  <tr><td>(anonymous namespace)::Verifier::visitIntrinsicCall(unsigned int, llvm::CallBase&)</td> <td>1887</td></tr>
+  <tr><td>(anonymous namespace)::AssemblyWriter::printInstruction(llvm::Instruction const&)</td> <td>1869</td></tr>
+  <tr><td>llvm::ConstantFoldBinaryInstruction(unsigned int, llvm::Constant*, llvm::Constant*)</td> <td>1244</td></tr>
+  <tr><td>upgradeAVX512MaskToSelect(llvm::StringRef, llvm::IRBuilder<llvm::ConstantFolder, llvm::IRBuilderDefaultInserter>&, llvm::CallInst&, llvm::Value*&)</td> <td>1073</td></tr>
+  <tr><td>llvm::ConstantFoldGetElementPtr(llvm::Type*, llvm::Constant*, bool, llvm::Optional<unsigned int>, llvm::ArrayRef<llvm::Value*>)</td> <td>1055</td></tr>
+</table>
 <h2 id="resources">Resources</h2>
 <p>Here are some links if you want to learn more about Gremlin Queries and what&rsquo;s possible:</p>
 <ul>
@@ -652,13 +679,13 @@
       
       
       
+      
+      
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
-      
-      
-      
-      
       
       
       
@@ -672,11 +699,11 @@
       
       
       
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
-      
-      
       
       
       

@@ -123,7 +123,13 @@ These tests are located in &lsquo;unittests&rsquo; directory.</p>
 <p>They can be run using <code>make</code>:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make check-llvm-unit
 </span></span></code></pre></div><p>Showing this beautiful output:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/sut_llvm/unit_tests.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Unit tests" /></p>
 <p>As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.</p>
 <p>Unit Tests are written using <a href="https://github.com/google/googletest">Google Test</a> framework.
 Here is an example of a simple test:</p>
@@ -151,7 +157,13 @@ It is the largest group of tests used in LLVM. It is 10 times bigger than Unit T
 It takes about 4 minutes to run on my machine using 4 threads.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make check-llvm
 </span></span></code></pre></div><p>The output is pretty similar to one above:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/sut_llvm/regression_tests.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Regression tests" /></p>
 <p>Regression Tests (unlike Unit Tests) are using custom tools such as <a href="http://llvm.org/docs/CommandGuide/lit.html">lit (LLVM Integrated Tester)</a> and <a href="http://llvm.org/docs/CommandGuide/FileCheck.html">FileCheck</a>.
 Let&rsquo;s look at simple test to illustrate how it works:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-llvm" data-lang="llvm"><span style="display:flex;"><span><span style="color:#75715e">; RUN: %lli %s | FileCheck %s
@@ -710,10 +722,6 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       
       
       
-      
-      
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -721,6 +729,16 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       
       
       
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
       
       
       
@@ -732,12 +750,6 @@ There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run 
       
       <li>
         <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
-      </li>
-      
-      
-      
-      <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
       

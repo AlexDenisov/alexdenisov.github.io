@@ -103,7 +103,7 @@
 <p>So you’re working on your Cocoa/CocoaTouch app and find yourself having to write tests for your network layer. You’re using the NSURLSession API and now you have to take asynchrony into account while TDDing around. You don’t want your specs making network calls, so you go for a tool like <a href="https://github.com/luisobo/Nocilla">Nocilla</a> and <a href="https://github.com/AliSoftware/OHHTTPStubs">OHHTTPStubs</a>.</p>
 <p>While these tools are really great, whether you know it or not, they throw you into the nondeterministic world of NSRunLoop-related shared and unmanaged state. That is, your tests may pass for most of the time, but fail randomly once in a while, leaving you with no easy way to find out why. Put more simply: <strong>asynchronous tests are unreliable</strong>.</p>
 <h3 id="getting-rid-of-asynchrony">Getting rid of asynchrony</h3>
-<!-- raw HTML omitted -->
+<!-- more -->
 <p>To make those tests reliable we need to get rid of asynchrony. There are a few frameworks that simplify this task, like: <a href="http://ocmock.org">OCMock</a>, <a href="https://github.com/jonreid/OCMockito">OCMockito</a> or <a href="https://github.com/pivotal/cedar">Cedar</a>.</p>
 <p>As big fan of ObjC++, I’ll go with Cedar, but any one of the above can get the job done.</p>
 <p>Let’s first consider the components of a system under test:</p>
@@ -724,8 +724,6 @@
       
       
       
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
@@ -733,13 +731,15 @@
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
       
       
       
+      
+      
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       

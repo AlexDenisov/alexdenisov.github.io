@@ -20,7 +20,7 @@
         <guid>https://lowlevelbits.org/parsing-mach-o-files/</guid>
         <description>&lt;p&gt;This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
 For more information consider reading official documentation and header files provided by operating system.&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;!-- more --&gt;
 &lt;h2 id=&#34;what-is-mach-o-file&#34;&gt;What is Mach-O file&lt;/h2&gt;
 &lt;p&gt;Brief description taken from &lt;a href=&#34;https://en.wikipedia.org/wiki/Mach-O&#34;&gt;Wikipedia&lt;/a&gt;:&lt;/p&gt;
 &lt;blockquote&gt;
@@ -36,15 +36,30 @@ For more information consider reading official documentation and header files pr
 &lt;li&gt;Data - usually the biggest part of object file. It contains code and data, such as symbol tables, dynamic symbol tables and so on.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;Here is a simplified graphical representation:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/macho_header.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;There are two types of object files on OS X: Mach-O files and Universal Binaries, also so-called Fat files. The difference between them: Mach-O file contains object code for one architecture (i386, x86_64, arm64, etc.) while Fat binaries might contain several object files, hence contain object code for different architectures (i386 and x86_64, arm and arm64, etc.)&lt;/p&gt;
 &lt;p&gt;The structure of a Fat file is pretty straightforward: fat header followed by Mach-O files:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/fat_header.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;h2 id=&#34;parse-mach-o-file&#34;&gt;Parse Mach-O file&lt;/h2&gt;
 &lt;p&gt;OS X doesn’t provide us with any &lt;code&gt;libmacho&lt;/code&gt; or something similar, the only thing we have here - a set of C structures defined under &lt;code&gt;/usr/include/mach-o/*&lt;/code&gt;, hence we need to implement parsing on our own. It might be tricky, but it’s not that hard.&lt;/p&gt;
 &lt;h3 id=&#34;memory-representation&#34;&gt;Memory Representation&lt;/h3&gt;
 &lt;p&gt;Before we start with parsing let’s look at detailed representation of a Mach-O file. For simplicity the following object file is a Mach-O file (not a fat file) for i386 with just two data entries that are segments.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/sample_macho.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The only structures we need to represent the file:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; mach_header {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;      magic;
@@ -70,7 +85,12 @@ For more information consider reading official documentation and header files pr
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;uint32_t&lt;/span&gt;  flags;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;};
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here is how memory mapping looks like:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/parse-mach-o-files/macho_memory_layout.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;If you want to read particular info from a file, you just need a correct data structure and an offset.&lt;/p&gt;
 &lt;h3 id=&#34;parsing&#34;&gt;Parsing&lt;/h3&gt;
 &lt;p&gt;Let&amp;rsquo;s write a program that&amp;rsquo;ll read mach-o or fat file and print names of each segment and an arch for which it was built.&lt;/p&gt;

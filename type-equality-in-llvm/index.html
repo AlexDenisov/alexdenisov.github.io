@@ -249,7 +249,12 @@ The tree is constructed in the depth-first order, here are the same examples as 
 <li>fgagfaa</li>
 </ul>
 <p>Here is a more comprehensive example:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-type-equality/tree-automata.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>The arrows show the depth-first order.</p>
 <p>We can map our type equivalence problem on the ranked alphabet/tree automaton concepts.</p>
 <h3 id="type-equality">Type Equality</h3>
@@ -273,7 +278,12 @@ Examples of types represented as a tree:</p>
 </ul>
 <p><em>Note: the values in <code>S</code> are the number of elements (3), struct ID (<code>S0</code>), and all its contained types defined recursively.</em></p>
 <p>Same types, but represented graphically:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-type-equality/tree-automata-types.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <h3 id="structural-equality">Structural Equality</h3>
 <p>Above, I mentioned the <code>struct ID</code>. We need it to define the structural equality for recursive types.
 Consider the following example:</p>
@@ -287,7 +297,12 @@ By our definition of equality the following holds:</p>
 </span></span><span style="display:flex;"><span>root <span style="color:#f92672">!=</span> list
 </span></span></code></pre></div><p>The reasoning is simple: the <code>list</code> and <code>node</code> has the same layout and the same structure (recursive), while <code>root</code> has another structure.</p>
 <p>Here is a graphical representation to highlight the idea. If we discard the struct titles, then it&rsquo;s clear the first two are equal while the third one is distinct.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-type-equality/recursive-structs.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>To take the structure into account and to make the equality hold, we do not use the names of the structures, but before building the tree, we assign them symbolic names or IDs.
 So both the <code>list</code> and <code>node</code> encoded as the following: <code>S(2, S0, P(S(2, S0, x, x), I(32))</code> where <code>S0</code> is the struct ID. To terminate the recursion we do not re-emit types for the structure that has already been emitted, but we do emit symbols <code>x</code> instead (otherwise we won&rsquo;t respect the arity of the struct).</p>
 <p>The <code>root</code> is defined as follows <code>S(2, S0, P(S(2, S1, P(S(2, S1, x, x), I(32), I(32))), I(32))</code> please note the nestedness and <code>S0</code> and <code>S1</code> struct IDs.</p>
@@ -768,8 +783,6 @@ It is then easy to get a hash of such vector and add some memoization for better
       
       
       
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -785,13 +798,15 @@ It is then easy to get a hash of such vector and add some memoization for better
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       
       
+      
+      
       <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
       

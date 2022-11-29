@@ -112,7 +112,7 @@ Our toolchain does not provide good solution for this problem, so we have to imp
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># ...</span>
 </span></span></code></pre></div><p>I wish I can use the same approach in my daily iOS development.</p>
 <p>Fortunately, I can!</p>
-<!-- raw HTML omitted -->
+<!-- more -->
 <p><strong>TL;DR;</strong></p>
 <p>Checkout project <a href="https://github.com/AlexDenisov/xcconf">xcconf</a> and <code>Sample/Sample.xcodeproj</code></p>
 <h3 id="commonly-used-mechanisms">Commonly used mechanisms</h3>
@@ -168,7 +168,13 @@ Still you have to perform way too many actions for such a simple task.</p>
 </span></span><span style="display:flex;"><span>make install
 </span></span></code></pre></div><p>Integration into project looks weird, but don&rsquo;t worry, that&rsquo;s ok :)</p>
 <p>First of all create YAML file, e.g,: <code>config.yaml</code></p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/yaml-based-configuration/new_file.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="New file" /></p>
 <p>Put there initial configuration:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">principalClass</span>: <span style="color:#ae81ff">Config</span>
 </span></span><span style="display:flex;"><span>
@@ -182,11 +188,23 @@ Still you have to perform way too many actions for such a simple task.</p>
 </span></span><span style="display:flex;"><span>- (NSString <span style="color:#f92672">*</span>)<span style="color:#a6e22e">color</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">@end</span>
 </span></span></code></pre></div><p>Let&rsquo;s now compile our config, go to <code>Build Phases</code> -&gt; <code>Compile Sources</code> -&gt; <code>+</code> and add <code>config.yaml</code></p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/yaml-based-configuration/compile_yaml.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Compile YAML" /></p>
 <p>Obviously Xcode doesn&rsquo;t have YAML compiler, but we can provide our own. Open <code>Build Rules</code>, add new one that matches files with pattern <code>*.yaml</code> and run shell command <code>/usr/local/bin/xcconf</code>.
 Also, we need to specify output file, otherwise it won&rsquo;t work:
 <code>$(DERIVED_FILE_DIR)/xcconf.m</code>. Make sure that output file has extension <code>.m</code>, so that Xcode can compile it and provide implementation for the <code>principalClass</code>.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/yaml-based-configuration/xcconf.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="xcconf" /></p>
 <p>Now we&rsquo;re ready to use it:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objectivec" data-lang="objectivec"><span style="display:flex;"><span><span style="color:#75715e">#import &#34;Config.h&#34;
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
@@ -198,7 +216,13 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>Build&amp;Run:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/yaml-based-configuration/output.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="output" /></p>
 <h3 id="summary">Summary</h3>
 <p>The project is very young, I did start one day ago, so it can have (it definitely has) some problems and might be improved.</p>
 <p>I&rsquo;d really appreciate any feedback.</p>
@@ -672,6 +696,12 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
       
       
       
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
       
       
       <li>
@@ -682,12 +712,6 @@ Also, we need to specify output file, otherwise it won&rsquo;t work:
       
       <li>
         <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
-      </li>
-      
-      
-      
-      <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       

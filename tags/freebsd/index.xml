@@ -31,7 +31,12 @@ Timer &lt;code&gt;sleep&lt;/code&gt;s for some time, while the worker does its j
 Watchdog is waiting for either of those to finish. If timer finishes first,
 then the worker is timed out. And vice versa.&lt;/p&gt;
 &lt;p&gt;Here is an illustration of this idea:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/timeouts/worker_timer_horizontal.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;
+width: 80%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;It looks very straightforward, but there are few more details when it comes to the implementation. Let&amp;rsquo;s
 look at them (full code listing is available &lt;a href=&#34;https://github.com/AlexDenisov/articles/blob/04f74fff494b7288d3e68f48c60a106753782d48/timeouts/timers.c&#34;&gt;online&lt;/a&gt;).&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;work_t)(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;);
@@ -100,14 +105,43 @@ To do that a program manipulates one of the three timers provided by an
 operating system: real, virtual, and profiling.&lt;/p&gt;
 &lt;p&gt;But which one to pick? Look at the following illustration.
 For simplicity, let&amp;rsquo;s assume that each &amp;lsquo;brick&amp;rsquo; takes one second to run.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/timeouts/timers.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;
+margin-top: 20px;
+margin-bottom: 20px;
+width: 80%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Here, two processes are being run. The first one (green) does some work for a second. Then it makes a system call that takes another second. At this point, OS decides to preempt it with another (blue) process. It also does some job in the user space for a second, and then switches to the kernel space by making some heavy system call. After two seconds in the kernel, the blue process terminates. OS runs the green process for one more second, and it also terminates.&lt;/p&gt;
 &lt;p&gt;In total, it took 6 seconds to run both processes: 3 seconds for each of them.&lt;/p&gt;
 &lt;p&gt;However, according to different timers the time will be slightly different:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table width=&#34;60%&#34; style=&#34;margin-top: 20px; margin-bottom: 20px;&#34;&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Timer&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;Green&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;Blue&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;real&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;6 seconds&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3 seconds&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;virtual&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;2 seconds&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;1 second&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;profiling&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3 seconds&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3 seconds&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 &lt;p&gt;Real timer, &lt;code&gt;ITIMER_REAL&lt;/code&gt;, counts total time, you can see it as a real clock.
 Virtual timer, &lt;code&gt;ITIMER_VIRTUAL&lt;/code&gt;,
 counts only time spent in the user space. And the profiling timer, &lt;code&gt;ITIMER_PROF&lt;/code&gt;,
@@ -263,7 +297,13 @@ Fortunately, it is very easy:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;when it’s done you may request report:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kyua report
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34;
+alt=&#34;Test report&#34; /&gt;&lt;/p&gt;
 &lt;h4 id=&#34;toolchain&#34;&gt;Toolchain&lt;/h4&gt;
 &lt;p&gt;&lt;code&gt;Kyuafile&lt;/code&gt; specifies which tests to run. It also can include other &lt;code&gt;Kyuafile&lt;/code&gt;s. Here is an example:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;include(&amp;#39;lib/Kyuafile&amp;#39;)

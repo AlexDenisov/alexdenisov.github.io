@@ -253,13 +253,19 @@ You can add a bunch of <code>#ifdef</code>s to the source code. This is how Klee
 </ol>
 <p>As soon as it finds the right folder, it will include it in the build process. So far we used only <code>&lt;number&gt;.x.x</code>, but the idea is that we can provide a particular library for any version of LLVM if we need to.
 Here is how two header files look like:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-lessons-learned/llvm-compat.png"
+style=" display: block;
+margin-left: 0;
+margin-right: auto;" /></p>
 <p>Then, in the source code we simply use the compatibility layer instead of bunch of <code>ifdef</code>s:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">auto</span> module <span style="color:#f92672">=</span> llvm_compat<span style="color:#f92672">::</span>parseBitcode(buffer.getMemBufferRef(),
 </span></span><span style="display:flex;"><span>                                        context);
 </span></span></code></pre></div><h3 id="sources-vs-binaries">Sources VS Binaries</h3>
 <p>So far I only covered builds against precompiled binary versions of LLVM. However, there are reasons you should also build against the source code. Look at the table:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-lessons-learned/sources-binaries.png"
+style=" display: block;
+margin-left: 0;
+margin-right: auto;" /></p>
 <p>Build time against precompiled versions is much faster, but you give up the ability to debug the LLVM itself which is needed when you hit some bug or some weird behavior.
 Another significant drawback: asserts. They are disabled in the release builds you get from the <a href="http://releases.llvm.org">http://releases.llvm.org</a>.
 In fact, we did violate some of the LLVM constraints but didn&rsquo;t realize it until somebody tried to build Mull against the source code.</p>
@@ -309,7 +315,10 @@ In fact, we did violate some of the LLVM constraints but didn&rsquo;t realize it
 <p>Any LLVM-based tool is an excellent example of the fair parallelization: if you have 20 tasks and 4 cores, then you can run 5 tasks per each core and them merge the results.
 However, LLVM is not very friendly when it comes to the parallelization: lots of classes are not thread-safe.</p>
 <p>Let&rsquo;s consider this picture:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-lessons-learned/LLVM-parallelization.png"
+style=" display: block;
+margin-left: 0;
+margin-right: auto;" /></p>
 <p>There are three phases: loading, analysis, and transformation:</p>
 <ol>
 <li>We load two modules(#1, #2) within the Thread 1, and the third module (#3) within the Thread 2. What&rsquo;s important is that each thread should have its own <code>LLVMContext</code>!</li>
@@ -321,7 +330,10 @@ However, LLVM is not very friendly when it comes to the parallelization: lots of
 <p>Also, LLVM&rsquo;s <code>PassManager</code>s are not (yet?) parallelization-friendly.</p>
 <p>My advice here is to start with separate analysis &amp; transformation phases. It&rsquo;s easier to implement and easier to test. You can wrap these phases into LLVM pass later if needed.</p>
 <p>And of course, you should always measure the performance. Here is one of our measurements:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/llvm-lessons-learned/analysis-transform.png"
+style=" display: block;
+margin-left: 0;
+margin-right: auto;" /></p>
 <p>You may get the opposite results.</p>
 <h3 id="getting-bitcode">Getting Bitcode</h3>
 <p>Once per 2-3 months, there is a question on the mailing lists: &ldquo;How do I compile my program to bitcode?&rdquo; Clearly, there is a demand for that.</p>
@@ -893,16 +905,16 @@ Here is the whole release script:</p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
-      
-      
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
+      
+      
       
       
       

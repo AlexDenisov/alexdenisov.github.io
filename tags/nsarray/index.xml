@@ -27,7 +27,7 @@
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;!-- more --&gt;
 &lt;h3 id=&#34;problem&#34;&gt;Problem&lt;/h3&gt;
 &lt;p&gt;When I run the program I got a crash:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
@@ -60,7 +60,12 @@
 &lt;p&gt;Happy hacking!&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;UPD&lt;/strong&gt;&lt;/p&gt;
 &lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 </description>
       </item>
       

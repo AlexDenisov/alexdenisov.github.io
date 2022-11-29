@@ -112,7 +112,12 @@ Timer <code>sleep</code>s for some time, while the worker does its job.
 Watchdog is waiting for either of those to finish. If timer finishes first,
 then the worker is timed out. And vice versa.</p>
 <p>Here is an illustration of this idea:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/timeouts/worker_timer_horizontal.png"
+style=" display: block;
+margin-left: 0;
+margin-right: auto;
+width: 80%;
+height: auto;" /></p>
 <p>It looks very straightforward, but there are few more details when it comes to the implementation. Let&rsquo;s
 look at them (full code listing is available <a href="https://github.com/AlexDenisov/articles/blob/04f74fff494b7288d3e68f48c60a106753782d48/timeouts/timers.c">online</a>).</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">void</span> (<span style="color:#f92672">*</span>work_t)(<span style="color:#66d9ef">void</span>);
@@ -181,14 +186,43 @@ To do that a program manipulates one of the three timers provided by an
 operating system: real, virtual, and profiling.</p>
 <p>But which one to pick? Look at the following illustration.
 For simplicity, let&rsquo;s assume that each &lsquo;brick&rsquo; takes one second to run.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/timeouts/timers.png"
+style=" display: block;
+margin-left: 0;
+margin-right: auto;
+margin-top: 20px;
+margin-bottom: 20px;
+width: 80%;
+height: auto;" /></p>
 <p>Here, two processes are being run. The first one (green) does some work for a second. Then it makes a system call that takes another second. At this point, OS decides to preempt it with another (blue) process. It also does some job in the user space for a second, and then switches to the kernel space by making some heavy system call. After two seconds in the kernel, the blue process terminates. OS runs the green process for one more second, and it also terminates.</p>
 <p>In total, it took 6 seconds to run both processes: 3 seconds for each of them.</p>
 <p>However, according to different timers the time will be slightly different:</p>
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
-<!-- raw HTML omitted -->
+<table width="60%" style="margin-top: 20px; margin-bottom: 20px;">
+<thead>
+<tr>
+<th>Timer</th>
+<th align="center">Green</th>
+<th align="center">Blue</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>real</td>
+<td align="center">6 seconds</td>
+<td align="center">3 seconds</td>
+</tr>
+<tr>
+<td>virtual</td>
+<td align="center">2 seconds</td>
+<td align="center">1 second</td>
+</tr>
+<tr>
+<td>profiling</td>
+<td align="center">3 seconds</td>
+<td align="center">3 seconds</td>
+</tr>
+</tbody>
+</table>
 <p>Real timer, <code>ITIMER_REAL</code>, counts total time, you can see it as a real clock.
 Virtual timer, <code>ITIMER_VIRTUAL</code>,
 counts only time spent in the user space. And the profiling timer, <code>ITIMER_PROF</code>,
@@ -759,13 +793,13 @@ at the moment.</p>
       
       
       
-      
-      
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
+      
+      
+      
+      
       
       
       
@@ -779,8 +813,6 @@ at the moment.</p>
       
       
       
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
@@ -790,6 +822,8 @@ at the moment.</p>
       <li>
         <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
+      
+      
       
       
       

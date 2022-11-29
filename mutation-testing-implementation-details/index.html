@@ -242,7 +242,7 @@ Another place is <code>findMutationPoints</code>. Currently, our approach here i
 Using this information we can ask the system to not look for mutation points farther than two hops from a test.
 By using these two filters, you can significantly improve feedback time.</p>
 <p>Another trick we did: we have an option called &lsquo;Dry Run.&rsquo; In this mode, the system does whatever it normally does, except that it doesn&rsquo;t apply any mutations and it doesn&rsquo;t run the mutants. Instead, it reports each mutation result status as DryRun, including its distance from a test and estimated duration as it&rsquo;s timeout. Using this information you could decide which distance is optimal for this very particular project. We also found it useful to run as a first on an unknown project, just to get understanding what kind of a beast we are working with.</p>
-<p><!-- raw HTML omitted -->UPD:<!-- raw HTML omitted --> re: static analysis:</p>
+<p><b id="re-static-analysis">UPD:</b> re: static analysis:</p>
 <p>We decided to go this way because it felt like a good solution. However, it turned out that we cannot build the call graph reliably: a function (caller) instead of calling another function (callee) directly could pass a pointer to the callee to some other function, which would then call the callee indirectly via a pointer.
 Another example: polymorphism. Just recently we found that we cannot find a call to a polymorphic function. However, we did not try to solve this problem yet.</p>
 <p>It is very likely that we would need to switch to another solution.</p>
@@ -720,13 +720,13 @@ program without restarting potentially long running process.</p>
       
       
       
+      
+      
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
-      
-      
-      
-      
       
       
       
@@ -740,11 +740,11 @@ program without restarting potentially long running process.</p>
       
       
       
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
+      
+      
       
       
       

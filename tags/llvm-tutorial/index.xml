@@ -318,13 +318,19 @@ You can add a bunch of &lt;code&gt;#ifdef&lt;/code&gt;s to the source code. This
 &lt;/ol&gt;
 &lt;p&gt;As soon as it finds the right folder, it will include it in the build process. So far we used only &lt;code&gt;&amp;lt;number&amp;gt;.x.x&lt;/code&gt;, but the idea is that we can provide a particular library for any version of LLVM if we need to.
 Here is how two header files look like:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/llvm-compat.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Then, in the source code we simply use the compatibility layer instead of bunch of &lt;code&gt;ifdef&lt;/code&gt;s:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;auto&lt;/span&gt; module &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; llvm_compat&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;parseBitcode(buffer.getMemBufferRef(),
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        context);
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;sources-vs-binaries&#34;&gt;Sources VS Binaries&lt;/h3&gt;
 &lt;p&gt;So far I only covered builds against precompiled binary versions of LLVM. However, there are reasons you should also build against the source code. Look at the table:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/sources-binaries.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Build time against precompiled versions is much faster, but you give up the ability to debug the LLVM itself which is needed when you hit some bug or some weird behavior.
 Another significant drawback: asserts. They are disabled in the release builds you get from the &lt;a href=&#34;http://releases.llvm.org&#34;&gt;http://releases.llvm.org&lt;/a&gt;.
 In fact, we did violate some of the LLVM constraints but didn&amp;rsquo;t realize it until somebody tried to build Mull against the source code.&lt;/p&gt;
@@ -374,7 +380,10 @@ In fact, we did violate some of the LLVM constraints but didn&amp;rsquo;t realiz
 &lt;p&gt;Any LLVM-based tool is an excellent example of the fair parallelization: if you have 20 tasks and 4 cores, then you can run 5 tasks per each core and them merge the results.
 However, LLVM is not very friendly when it comes to the parallelization: lots of classes are not thread-safe.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s consider this picture:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/LLVM-parallelization.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;There are three phases: loading, analysis, and transformation:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;We load two modules(#1, #2) within the Thread 1, and the third module (#3) within the Thread 2. What&amp;rsquo;s important is that each thread should have its own &lt;code&gt;LLVMContext&lt;/code&gt;!&lt;/li&gt;
@@ -386,7 +395,10 @@ However, LLVM is not very friendly when it comes to the parallelization: lots of
 &lt;p&gt;Also, LLVM&amp;rsquo;s &lt;code&gt;PassManager&lt;/code&gt;s are not (yet?) parallelization-friendly.&lt;/p&gt;
 &lt;p&gt;My advice here is to start with separate analysis &amp;amp; transformation phases. It&amp;rsquo;s easier to implement and easier to test. You can wrap these phases into LLVM pass later if needed.&lt;/p&gt;
 &lt;p&gt;And of course, you should always measure the performance. Here is one of our measurements:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/analysis-transform.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;You may get the opposite results.&lt;/p&gt;
 &lt;h3 id=&#34;getting-bitcode&#34;&gt;Getting Bitcode&lt;/h3&gt;
 &lt;p&gt;Once per 2-3 months, there is a question on the mailing lists: &amp;ldquo;How do I compile my program to bitcode?&amp;rdquo; Clearly, there is a demand for that.&lt;/p&gt;

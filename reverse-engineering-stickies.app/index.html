@@ -102,73 +102,153 @@
             <p>Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.</p>
 <p>However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.</p>
 <p>I decided to fix that. Here is the result:</p>
-<p><!-- raw HTML omitted --></p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/before_after.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;" /></p>
+<p><img src="/img/reverse-engineering-stickies/colors.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;" /></p>
 <p>The explanation is following.</p>
 <h3 id="reversing-ui">Reversing UI</h3>
 <p>The task becomes easy since the six colors are hardcoded in the binary. I just need to find where exactly and change the values to ones I like more.</p>
 <p>I don&rsquo;t know where to start, but I have an idea.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/menu_before.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 30%;
+height: auto;" /></p>
 <p>The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&rsquo;s used. Maybe then I will get another hint.</p>
 <p>Localizations are stored within the app&rsquo;s bundle, at <code>Contents/Resources</code> folder. I am particularly interested in <code>Contents/Resources/English.lproj/Localizable.strings</code>. By default, strings are Binary Plists. One can use <code>plutil</code> to convert them into human-readable XML:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
 </span></span></code></pre></div><p>The <code>Localizable.strings</code> contains many things, but colors are not there.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/localizable_strings.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>It looks like the menu was created using Interface Builder.</p>
 <p>Indeed, there is a menu and a view for a sticky note as well:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/ls_nibs.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
 </span></span></code></pre></div><p>Unlikely that I can find something useful inside, but let&rsquo;s see.
 The <code>MainMenu</code> contains 20k lines. Also, it is quite cryptic:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/main_menu_nib.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;" /></p>
 <p>The best thing one can do is to try find something. For instance look for a color name:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/main_menu_nib_color.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;" /></p>
 <p>If I replace &ldquo;Blue&rdquo; with &ldquo;Blur&rdquo; and restart the app, then I see the change:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/menu_color_name_changed.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 30%;
+height: auto;" /></p>
 <p>Ok, I can modify menu entries. It doesn&rsquo;t help me to achieve the initial goal, but at least I know where to look at if I ever decide to change a menu.</p>
 <h3 id="reversing-code">Reversing Code</h3>
 <p>My attempt to find traces from UI has failed.
 What&rsquo;s left? The binary itself!</p>
 <p>I usually use <a href="https://sourceforge.net/projects/machoview/">MachOView</a> if I need to look into a binary. Let&rsquo;s see if I can find a method related to the colors.</p>
 <p>Search for &ldquo;blue&rdquo; shows one hit <code>colorWithDeviceRed:green:blue:alpha:</code> that comes from AppKit&rsquo;s <code>NSColor</code> class. Search for &ldquo;yellow&rdquo; and other colors gives no results.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/machoview.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>It feels like a dead end.</p>
 <p>Instead of searching for other words hoping that I will find something useful I can ask <a href="https://github.com/nygard/class-dump">class-dump</a> for help.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>class-dump Contents/MacOS/Stickies &gt; Stickies.h
 </span></span></code></pre></div><p>Shallow look at <code>Stickies.h</code> shows that class <code>StickiesWindow</code> has a method <code>setColorByIndex:</code>.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/stickies_window.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;" /></p>
 <p>Perfect. It looks like this method receives an index of a color from the menu.</p>
 <p>Let&rsquo;s explore the program in the wild.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/lldb_no_location.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>Hm, what does it mean? Why can&rsquo;t LLDB find the symbol?
 Eventually, I left the questions open.</p>
 <p>Then I decided to look at the binary through the excellent <a href="https://www.hopperapp.com">Hopper app</a>.</p>
 <p>The Hopper app has a beautiful feature: pseudo-code mode.</p>
 <p>It (almost) clearly shows what happens inside of <code>setColorByIndex:</code> method:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/hopper_pseudo_code.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p><code>r14</code> contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.</p>
 <p>What is important here: three consecutive values starting at <code>0x10000c790</code> moved to <code>xmm_</code> registers. I&rsquo;m not 100% sure, but I&rsquo;d assume that they are used to pass parameters into <code>colorWithDeviceRed:green:blue:alpha:</code>.</p>
 <p>The method accepts color components as <code>double</code>s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a <code>double</code>.</p>
 <p>It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.</p>
 <p>Let&rsquo;s use lldb to confirm the hypothesis.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/lldb_color_values.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>So, I found the following address/value pairs:</p>
 <pre tabindex="0"><code>0x10000c790 : 0.99607800000000002 (or 254)
 0x10000c798 : 0.95686199999999999 (or 244)
 0x10000c7a0 : 0.61176399999999997 (or 156)
 </code></pre><p>I&rsquo;m pretty sure I&rsquo;m done here, but one more check, just to make sure there is no mistake.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/color_picker.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>Perfect! Now I need to patch the binary and change the values.</p>
 <h3 id="patching-the-binary">Patching The Binary</h3>
 <p>Now I know where the colors reside in code. I need to find them in the binary.
 The address of a first color component is 0x10000c790. To find its on-disk address I need to subtract a base address from it.
 The base address can be obtained via LLDB as well.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/lldb_base_address.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>Little math:</p>
 <pre tabindex="0"><code>0x10000c790 - 0x0000000100000000 = 0xc790
 </code></pre><p>Now I can use xxd with -s (<code>--seek</code>) and -l (<code>--length</code>) parameters to get exactly 8 bytes at a given address.</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/xxd_color_value.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>In this case, these bytes are: <code>9a7b 48f8 dedf ef3f</code>. Guess what I would see if I write 0.99607800000000002 into a file? Exactly, I&rsquo;d see <code>9a7b 48f8 dedf ef3f</code> there.</p>
 <p>Now I can pick value I want to use and start writing them one by one starting at <code>0xc790</code>. But I have a better idea.</p>
 <p>Let&rsquo;s recall and rewrite a pseudo-code from Hopper:</p>
@@ -220,7 +300,12 @@ I don&rsquo;t know how the source code looked initially, but I can represent it 
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
 </span></span></code></pre></div><p>I know that four colors are used, but I don&rsquo;t yet know what they are used for.
 Patching them one by one gives the following result:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/colored_window.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 80%;
+height: auto;" /></p>
 <p>I can now rename field name to be more descriptive.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>  color background_color;
@@ -245,7 +330,12 @@ Patching them one by one gives the following result:</p>
 </span></span><span style="display:flex;"><span>  rewind(binary);
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>After running this code, I see a much better Sticky Note!</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/reverse-engineering-stickies/blue_sticky.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;" /></p>
 <h3 id="summary">Summary</h3>
 <p>Reverse Engineering can be not as straightforward and easy as I described
 above. Indeed, I didn&rsquo;t describe some &lsquo;wrong&rsquo; paths I went through during this
@@ -730,6 +820,8 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       
       
       
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -740,13 +832,11 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       
       
       
-      
-      
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
+      
+      
       
       
       

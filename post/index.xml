@@ -448,11 +448,38 @@ So let&amp;rsquo;s look at how to use &lt;code&gt;llvm2cpg&lt;/code&gt; with Joe
 &lt;h2 id=&#34;some-numbers&#34;&gt;Some numbers&lt;/h2&gt;
 &lt;p&gt;These are just some numbers mined from the &lt;code&gt;libLLVMCore.a&lt;/code&gt;.&lt;/p&gt;
 &lt;h4 id=&#34;how-many&#34;&gt;How many&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table class=&#34;table&#34;&gt;
+  &lt;tr&gt;&lt;td&gt;Number of functions&lt;/td&gt; &lt;td&gt;71 019&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Number of basic blocks&lt;/td&gt; &lt;td&gt;172 621&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Number of instructions&lt;/td&gt; &lt;td&gt;1 212 322&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;Number of types&lt;/td&gt; &lt;td&gt;122 220&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
 &lt;h4 id=&#34;top-10-instructions&#34;&gt;Top 10 instructions:&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table class=&#34;table&#34;&gt;
+  &lt;tr&gt;&lt;td&gt;call&lt;/td&gt; &lt;td&gt;290 495&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;load&lt;/td&gt; &lt;td&gt;214 769&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;store&lt;/td&gt; &lt;td&gt;167 640&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;alloca&lt;/td&gt; &lt;td&gt;154 922&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;br&lt;/td&gt; &lt;td&gt;96 848&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;getelementptr&lt;/td&gt; &lt;td&gt;78 622&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;ret&lt;/td&gt; &lt;td&gt;67 729&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;bitcast&lt;/td&gt; &lt;td&gt;62 760&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;icmp&lt;/td&gt; &lt;td&gt;20 624&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;phi&lt;/td&gt; &lt;td&gt;9 716&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
 &lt;h4 id=&#34;top-10-biggest-functions&#34;&gt;Top 10 biggest functions:&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table class=&#34;table&#34;&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::UpgradeIntrinsicCall(llvm::CallInst*, llvm::Function*)&lt;/td&gt; &lt;td&gt;14033&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::Intrinsic::getAttributes(llvm::LLVMContext&amp;, unsigned int)&lt;/td&gt; &lt;td&gt;8420&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;ShouldUpgradeX86Intrinsic(llvm::Function*, llvm::StringRef)&lt;/td&gt; &lt;td&gt;3635&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::LLVMContextImpl::~LLVMContextImpl()&lt;/td&gt; &lt;td&gt;2181&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;UpgradeIntrinsicFunction1(llvm::Function*, llvm::Function*&amp;)&lt;/td&gt; &lt;td&gt;2006&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;(anonymous namespace)::Verifier::visitIntrinsicCall(unsigned int, llvm::CallBase&amp;)&lt;/td&gt; &lt;td&gt;1887&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;(anonymous namespace)::AssemblyWriter::printInstruction(llvm::Instruction const&amp;)&lt;/td&gt; &lt;td&gt;1869&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::ConstantFoldBinaryInstruction(unsigned int, llvm::Constant*, llvm::Constant*)&lt;/td&gt; &lt;td&gt;1244&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;upgradeAVX512MaskToSelect(llvm::StringRef, llvm::IRBuilder&lt;llvm::ConstantFolder, llvm::IRBuilderDefaultInserter&gt;&amp;, llvm::CallInst&amp;, llvm::Value*&amp;)&lt;/td&gt; &lt;td&gt;1073&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;td&gt;llvm::ConstantFoldGetElementPtr(llvm::Type*, llvm::Constant*, bool, llvm::Optional&lt;unsigned int&gt;, llvm::ArrayRef&lt;llvm::Value*&gt;)&lt;/td&gt; &lt;td&gt;1055&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;
 &lt;h2 id=&#34;resources&#34;&gt;Resources&lt;/h2&gt;
 &lt;p&gt;Here are some links if you want to learn more about Gremlin Queries and what&amp;rsquo;s possible:&lt;/p&gt;
 &lt;ul&gt;
@@ -625,7 +652,12 @@ The tree is constructed in the depth-first order, here are the same examples as 
 &lt;li&gt;fgagfaa&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Here is a more comprehensive example:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/tree-automata.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The arrows show the depth-first order.&lt;/p&gt;
 &lt;p&gt;We can map our type equivalence problem on the ranked alphabet/tree automaton concepts.&lt;/p&gt;
 &lt;h3 id=&#34;type-equality&#34;&gt;Type Equality&lt;/h3&gt;
@@ -649,7 +681,12 @@ Examples of types represented as a tree:&lt;/p&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;em&gt;Note: the values in &lt;code&gt;S&lt;/code&gt; are the number of elements (3), struct ID (&lt;code&gt;S0&lt;/code&gt;), and all its contained types defined recursively.&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;Same types, but represented graphically:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/tree-automata-types.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;h3 id=&#34;structural-equality&#34;&gt;Structural Equality&lt;/h3&gt;
 &lt;p&gt;Above, I mentioned the &lt;code&gt;struct ID&lt;/code&gt;. We need it to define the structural equality for recursive types.
 Consider the following example:&lt;/p&gt;
@@ -663,7 +700,12 @@ By our definition of equality the following holds:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; list
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The reasoning is simple: the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; has the same layout and the same structure (recursive), while &lt;code&gt;root&lt;/code&gt; has another structure.&lt;/p&gt;
 &lt;p&gt;Here is a graphical representation to highlight the idea. If we discard the struct titles, then it&amp;rsquo;s clear the first two are equal while the third one is distinct.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/recursive-structs.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;To take the structure into account and to make the equality hold, we do not use the names of the structures, but before building the tree, we assign them symbolic names or IDs.
 So both the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; encoded as the following: &lt;code&gt;S(2, S0, P(S(2, S0, x, x), I(32))&lt;/code&gt; where &lt;code&gt;S0&lt;/code&gt; is the struct ID. To terminate the recursion we do not re-emit types for the structure that has already been emitted, but we do emit symbols &lt;code&gt;x&lt;/code&gt; instead (otherwise we won&amp;rsquo;t respect the arity of the struct).&lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;root&lt;/code&gt; is defined as follows &lt;code&gt;S(2, S0, P(S(2, S1, P(S(2, S1, x, x), I(32), I(32))), I(32))&lt;/code&gt; please note the nestedness and &lt;code&gt;S0&lt;/code&gt; and &lt;code&gt;S1&lt;/code&gt; struct IDs.&lt;/p&gt;
@@ -864,13 +906,19 @@ You can add a bunch of &lt;code&gt;#ifdef&lt;/code&gt;s to the source code. This
 &lt;/ol&gt;
 &lt;p&gt;As soon as it finds the right folder, it will include it in the build process. So far we used only &lt;code&gt;&amp;lt;number&amp;gt;.x.x&lt;/code&gt;, but the idea is that we can provide a particular library for any version of LLVM if we need to.
 Here is how two header files look like:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/llvm-compat.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Then, in the source code we simply use the compatibility layer instead of bunch of &lt;code&gt;ifdef&lt;/code&gt;s:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;auto&lt;/span&gt; module &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; llvm_compat&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;parseBitcode(buffer.getMemBufferRef(),
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                        context);
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;h3 id=&#34;sources-vs-binaries&#34;&gt;Sources VS Binaries&lt;/h3&gt;
 &lt;p&gt;So far I only covered builds against precompiled binary versions of LLVM. However, there are reasons you should also build against the source code. Look at the table:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/sources-binaries.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Build time against precompiled versions is much faster, but you give up the ability to debug the LLVM itself which is needed when you hit some bug or some weird behavior.
 Another significant drawback: asserts. They are disabled in the release builds you get from the &lt;a href=&#34;http://releases.llvm.org&#34;&gt;http://releases.llvm.org&lt;/a&gt;.
 In fact, we did violate some of the LLVM constraints but didn&amp;rsquo;t realize it until somebody tried to build Mull against the source code.&lt;/p&gt;
@@ -920,7 +968,10 @@ In fact, we did violate some of the LLVM constraints but didn&amp;rsquo;t realiz
 &lt;p&gt;Any LLVM-based tool is an excellent example of the fair parallelization: if you have 20 tasks and 4 cores, then you can run 5 tasks per each core and them merge the results.
 However, LLVM is not very friendly when it comes to the parallelization: lots of classes are not thread-safe.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s consider this picture:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/LLVM-parallelization.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;There are three phases: loading, analysis, and transformation:&lt;/p&gt;
 &lt;ol&gt;
 &lt;li&gt;We load two modules(#1, #2) within the Thread 1, and the third module (#3) within the Thread 2. What&amp;rsquo;s important is that each thread should have its own &lt;code&gt;LLVMContext&lt;/code&gt;!&lt;/li&gt;
@@ -932,7 +983,10 @@ However, LLVM is not very friendly when it comes to the parallelization: lots of
 &lt;p&gt;Also, LLVM&amp;rsquo;s &lt;code&gt;PassManager&lt;/code&gt;s are not (yet?) parallelization-friendly.&lt;/p&gt;
 &lt;p&gt;My advice here is to start with separate analysis &amp;amp; transformation phases. It&amp;rsquo;s easier to implement and easier to test. You can wrap these phases into LLVM pass later if needed.&lt;/p&gt;
 &lt;p&gt;And of course, you should always measure the performance. Here is one of our measurements:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-lessons-learned/analysis-transform.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;You may get the opposite results.&lt;/p&gt;
 &lt;h3 id=&#34;getting-bitcode&#34;&gt;Getting Bitcode&lt;/h3&gt;
 &lt;p&gt;Once per 2-3 months, there is a question on the mailing lists: &amp;ldquo;How do I compile my program to bitcode?&amp;rdquo; Clearly, there is a demand for that.&lt;/p&gt;
@@ -1062,7 +1116,9 @@ generator&lt;/em&gt;.
 Basically, you can see it as a compiler that compiles CMake scripts into
 Makefiles. Or several other build systems including &lt;a href=&#34;https://ninja-build.org&#34;&gt;Ninja&lt;/a&gt;
 and Xcode, Eclipse, and Visual Studio projects.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bottom-up-cmake/cmake-compiler.png&#34;
+style=&#34;width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The typical workflow is as follows: you create a &lt;code&gt;CMakeLists.txt&lt;/code&gt; (can be
 empty), you generate the build system, you build something. Here is the code:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; touch CMakeLists.txt
@@ -1442,7 +1498,12 @@ Timer &lt;code&gt;sleep&lt;/code&gt;s for some time, while the worker does its j
 Watchdog is waiting for either of those to finish. If timer finishes first,
 then the worker is timed out. And vice versa.&lt;/p&gt;
 &lt;p&gt;Here is an illustration of this idea:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/timeouts/worker_timer_horizontal.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;
+width: 80%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;It looks very straightforward, but there are few more details when it comes to the implementation. Let&amp;rsquo;s
 look at them (full code listing is available &lt;a href=&#34;https://github.com/AlexDenisov/articles/blob/04f74fff494b7288d3e68f48c60a106753782d48/timeouts/timers.c&#34;&gt;online&lt;/a&gt;).&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;void&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;work_t)(&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt;);
@@ -1511,14 +1572,43 @@ To do that a program manipulates one of the three timers provided by an
 operating system: real, virtual, and profiling.&lt;/p&gt;
 &lt;p&gt;But which one to pick? Look at the following illustration.
 For simplicity, let&amp;rsquo;s assume that each &amp;lsquo;brick&amp;rsquo; takes one second to run.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/timeouts/timers.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;
+margin-top: 20px;
+margin-bottom: 20px;
+width: 80%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Here, two processes are being run. The first one (green) does some work for a second. Then it makes a system call that takes another second. At this point, OS decides to preempt it with another (blue) process. It also does some job in the user space for a second, and then switches to the kernel space by making some heavy system call. After two seconds in the kernel, the blue process terminates. OS runs the green process for one more second, and it also terminates.&lt;/p&gt;
 &lt;p&gt;In total, it took 6 seconds to run both processes: 3 seconds for each of them.&lt;/p&gt;
 &lt;p&gt;However, according to different timers the time will be slightly different:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;table width=&#34;60%&#34; style=&#34;margin-top: 20px; margin-bottom: 20px;&#34;&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th&gt;Timer&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;Green&lt;/th&gt;
+&lt;th align=&#34;center&#34;&gt;Blue&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td&gt;real&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;6 seconds&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3 seconds&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;virtual&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;2 seconds&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;1 second&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td&gt;profiling&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3 seconds&lt;/td&gt;
+&lt;td align=&#34;center&#34;&gt;3 seconds&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
 &lt;p&gt;Real timer, &lt;code&gt;ITIMER_REAL&lt;/code&gt;, counts total time, you can see it as a real clock.
 Virtual timer, &lt;code&gt;ITIMER_VIRTUAL&lt;/code&gt;,
 counts only time spent in the user space. And the profiling timer, &lt;code&gt;ITIMER_PROF&lt;/code&gt;,
@@ -1790,7 +1880,7 @@ Another place is &lt;code&gt;findMutationPoints&lt;/code&gt;. Currently, our app
 Using this information we can ask the system to not look for mutation points farther than two hops from a test.
 By using these two filters, you can significantly improve feedback time.&lt;/p&gt;
 &lt;p&gt;Another trick we did: we have an option called &amp;lsquo;Dry Run.&amp;rsquo; In this mode, the system does whatever it normally does, except that it doesn&amp;rsquo;t apply any mutations and it doesn&amp;rsquo;t run the mutants. Instead, it reports each mutation result status as DryRun, including its distance from a test and estimated duration as it&amp;rsquo;s timeout. Using this information you could decide which distance is optimal for this very particular project. We also found it useful to run as a first on an unknown project, just to get understanding what kind of a beast we are working with.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;UPD:&lt;!-- raw HTML omitted --&gt; re: static analysis:&lt;/p&gt;
+&lt;p&gt;&lt;b id=&#34;re-static-analysis&#34;&gt;UPD:&lt;/b&gt; re: static analysis:&lt;/p&gt;
 &lt;p&gt;We decided to go this way because it felt like a good solution. However, it turned out that we cannot build the call graph reliably: a function (caller) instead of calling another function (callee) directly could pass a pointer to the callee to some other function, which would then call the callee indirectly via a pointer.
 Another example: polymorphism. Just recently we found that we cannot find a call to a polymorphic function. However, we did not try to solve this problem yet.&lt;/p&gt;
 &lt;p&gt;It is very likely that we would need to switch to another solution.&lt;/p&gt;
@@ -1829,73 +1919,153 @@ program without restarting potentially long running process.&lt;/p&gt;
         <description>&lt;p&gt;Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.&lt;/p&gt;
 &lt;p&gt;However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.&lt;/p&gt;
 &lt;p&gt;I decided to fix that. Here is the result:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/before_after.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/colors.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The explanation is following.&lt;/p&gt;
 &lt;h3 id=&#34;reversing-ui&#34;&gt;Reversing UI&lt;/h3&gt;
 &lt;p&gt;The task becomes easy since the six colors are hardcoded in the binary. I just need to find where exactly and change the values to ones I like more.&lt;/p&gt;
 &lt;p&gt;I don&amp;rsquo;t know where to start, but I have an idea.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/menu_before.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 30%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&amp;rsquo;s used. Maybe then I will get another hint.&lt;/p&gt;
 &lt;p&gt;Localizations are stored within the app&amp;rsquo;s bundle, at &lt;code&gt;Contents/Resources&lt;/code&gt; folder. I am particularly interested in &lt;code&gt;Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;. By default, strings are Binary Plists. One can use &lt;code&gt;plutil&lt;/code&gt; to convert them into human-readable XML:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;Localizable.strings&lt;/code&gt; contains many things, but colors are not there.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/localizable_strings.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;It looks like the menu was created using Interface Builder.&lt;/p&gt;
 &lt;p&gt;Indeed, there is a menu and a view for a sticky note as well:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/ls_nibs.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Unlikely that I can find something useful inside, but let&amp;rsquo;s see.
 The &lt;code&gt;MainMenu&lt;/code&gt; contains 20k lines. Also, it is quite cryptic:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/main_menu_nib.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The best thing one can do is to try find something. For instance look for a color name:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/main_menu_nib_color.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;If I replace &amp;ldquo;Blue&amp;rdquo; with &amp;ldquo;Blur&amp;rdquo; and restart the app, then I see the change:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/menu_color_name_changed.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 30%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Ok, I can modify menu entries. It doesn&amp;rsquo;t help me to achieve the initial goal, but at least I know where to look at if I ever decide to change a menu.&lt;/p&gt;
 &lt;h3 id=&#34;reversing-code&#34;&gt;Reversing Code&lt;/h3&gt;
 &lt;p&gt;My attempt to find traces from UI has failed.
 What&amp;rsquo;s left? The binary itself!&lt;/p&gt;
 &lt;p&gt;I usually use &lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt; if I need to look into a binary. Let&amp;rsquo;s see if I can find a method related to the colors.&lt;/p&gt;
 &lt;p&gt;Search for &amp;ldquo;blue&amp;rdquo; shows one hit &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt; that comes from AppKit&amp;rsquo;s &lt;code&gt;NSColor&lt;/code&gt; class. Search for &amp;ldquo;yellow&amp;rdquo; and other colors gives no results.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/machoview.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;It feels like a dead end.&lt;/p&gt;
 &lt;p&gt;Instead of searching for other words hoping that I will find something useful I can ask &lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt; for help.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Shallow look at &lt;code&gt;Stickies.h&lt;/code&gt; shows that class &lt;code&gt;StickiesWindow&lt;/code&gt; has a method &lt;code&gt;setColorByIndex:&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/stickies_window.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Perfect. It looks like this method receives an index of a color from the menu.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s explore the program in the wild.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/lldb_no_location.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Hm, what does it mean? Why can&amp;rsquo;t LLDB find the symbol?
 Eventually, I left the questions open.&lt;/p&gt;
 &lt;p&gt;Then I decided to look at the binary through the excellent &lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;The Hopper app has a beautiful feature: pseudo-code mode.&lt;/p&gt;
 &lt;p&gt;It (almost) clearly shows what happens inside of &lt;code&gt;setColorByIndex:&lt;/code&gt; method:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/hopper_pseudo_code.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;&lt;code&gt;r14&lt;/code&gt; contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.&lt;/p&gt;
 &lt;p&gt;What is important here: three consecutive values starting at &lt;code&gt;0x10000c790&lt;/code&gt; moved to &lt;code&gt;xmm_&lt;/code&gt; registers. I&amp;rsquo;m not 100% sure, but I&amp;rsquo;d assume that they are used to pass parameters into &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;The method accepts color components as &lt;code&gt;double&lt;/code&gt;s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a &lt;code&gt;double&lt;/code&gt;.&lt;/p&gt;
 &lt;p&gt;It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s use lldb to confirm the hypothesis.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/lldb_color_values.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;So, I found the following address/value pairs:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 : 0.99607800000000002 (or 254)
 0x10000c798 : 0.95686199999999999 (or 244)
 0x10000c7a0 : 0.61176399999999997 (or 156)
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I&amp;rsquo;m pretty sure I&amp;rsquo;m done here, but one more check, just to make sure there is no mistake.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/color_picker.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Perfect! Now I need to patch the binary and change the values.&lt;/p&gt;
 &lt;h3 id=&#34;patching-the-binary&#34;&gt;Patching The Binary&lt;/h3&gt;
 &lt;p&gt;Now I know where the colors reside in code. I need to find them in the binary.
 The address of a first color component is 0x10000c790. To find its on-disk address I need to subtract a base address from it.
 The base address can be obtained via LLDB as well.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/lldb_base_address.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Little math:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 - 0x0000000100000000 = 0xc790
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now I can use xxd with -s (&lt;code&gt;--seek&lt;/code&gt;) and -l (&lt;code&gt;--length&lt;/code&gt;) parameters to get exactly 8 bytes at a given address.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/xxd_color_value.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;In this case, these bytes are: &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt;. Guess what I would see if I write 0.99607800000000002 into a file? Exactly, I&amp;rsquo;d see &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt; there.&lt;/p&gt;
 &lt;p&gt;Now I can pick value I want to use and start writing them one by one starting at &lt;code&gt;0xc790&lt;/code&gt;. But I have a better idea.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s recall and rewrite a pseudo-code from Hopper:&lt;/p&gt;
@@ -1947,7 +2117,12 @@ I don&amp;rsquo;t know how the source code looked initially, but I can represent
 &lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;};
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I know that four colors are used, but I don&amp;rsquo;t yet know what they are used for.
 Patching them one by one gives the following result:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/colored_window.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 80%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;I can now rename field name to be more descriptive.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color background_color;
@@ -1972,7 +2147,12 @@ Patching them one by one gives the following result:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rewind(binary);
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After running this code, I see a much better Sticky Note!&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/blue_sticky.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 60%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
 &lt;p&gt;Reverse Engineering can be not as straightforward and easy as I described
 above. Indeed, I didn&amp;rsquo;t describe some &amp;lsquo;wrong&amp;rsquo; paths I went through during this
@@ -2139,57 +2319,155 @@ We show how some widespread false beliefs about these guarantees can be exploite
 &lt;p&gt;&lt;a href=&#34;http://savannah.gnu.org/git/?group=make&#34;&gt;Git Source Code Manager: Git Repository&lt;/a&gt;&lt;/p&gt;
 &lt;/blockquote&gt;
 &lt;p&gt;To get Make&amp;rsquo;s sources:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+git clone git://git.savannah.gnu.org/make.git GNUMake
+cd make
+&lt;/pre&gt;
 &lt;h3 id=&#34;good-news-make-has-tests&#34;&gt;Good news: Make has tests&lt;/h3&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ ls -l tests/
+total 376
+-rw-r--r--   1 Stanislaw  staff  35147 May 27 20:54 COPYING
+-rw-r--r--   1 Stanislaw  staff  48828 May 27 20:54 ChangeLog.1
+-rw-r--r--   1 Stanislaw  staff   6765 May 27 20:54 NEWS
+-rw-r--r--   1 Stanislaw  staff   4677 May 27 20:54 README
+-rw-r--r--   1 Stanislaw  staff    470 May 27 20:54 config-flags.pm.in
+-rwxr-xr-x   1 Stanislaw  staff   1705 May 27 20:54 config_flags_pm.com
+-rw-r--r--   1 Stanislaw  staff    359 May 27 20:54 guile.supp
+-rwxr-xr-x   1 Stanislaw  staff   1424 May 27 20:54 mkshadow
+-rwxr-xr-x   1 Stanislaw  staff     36 May 27 20:54 run_make_tests
+-rwxr-xr-x   1 Stanislaw  staff   8330 May 27 20:54 run_make_tests.com
+-rw-r--r--   1 Stanislaw  staff  14179 May 27 20:54 run_make_tests.pl
+drwxr-xr-x  10 Stanislaw  staff    340 May 27 20:54 scripts
+-rw-r--r--   1 Stanislaw  staff  40197 May 27 20:54 test_driver.pl
+&lt;/pre&gt;
 &lt;p&gt;The actual tests are located in &lt;code&gt;tests/scripts&lt;/code&gt; directory:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ ls -l tests/scripts
+total 8
+drwxr-xr-x  40 Stanislaw  staff  1360 Jun  2 21:47 features
+drwxr-xr-x  31 Stanislaw  staff  1054 May 27 20:54 functions
+drwxr-xr-x  10 Stanislaw  staff   340 May 27 20:54 misc
+drwxr-xr-x  18 Stanislaw  staff   612 May 29 10:22 options
+drwxr-xr-x  12 Stanislaw  staff   408 Jun 10 20:42 targets
+-rw-r--r--   1 Stanislaw  staff  1015 May 27 20:54 test_template
+drwxr-xr-x  22 Stanislaw  staff   748 May 27 20:54 variables
+drwxr-xr-x   3 Stanislaw  staff   102 May 27 20:54 vms
+&lt;/pre&gt;
 &lt;p&gt;The following are interesting notes I found before running the tests.&lt;/p&gt;
 &lt;h4 id=&#34;the-oldest-update-in-news-file-dates-back-to-1992&#34;&gt;The oldest update in NEWS file dates back to 1992&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+Changes from 0.1 to 0.2 (5-4-92):
+
+README corrected to require perl 4.019, not 4.010.
+
+-make_path replaces -old.
+
+errors_in_commands test updated for change in format introduced in
+make 3.62.6.
+
+test_driver_core now uses a better way of figuring what OS it is
+running on (thanks to meyering@cs.utexas.edu (Jim Meyering) for
+suggesting this, as well as discovering the hard way that the old
+way (testing for /mnt) fails on his machine).
+
+Some new tests were added.
+&lt;/pre&gt;
 &lt;p&gt;This means that &lt;strong&gt;tests in Make were introduced as early as of 1992!&lt;/strong&gt; which is a very good sign given some other tools are likely to not have a good coverage even in present days as described in another article of this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd&#34;&gt;System Under Test: FreeBSD&lt;/a&gt; (see Conclusion there).&lt;/p&gt;
 &lt;h4 id=&#34;the-test-suite-requires-perl-and-can-be-run-on-unix-windows-and-dos-systems&#34;&gt;The test suite requires Perl and can be run on UNIX, Windows and DOS systems&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+To run the test suite on a UNIX system, use &#34;perl ./run_make_tests&#34;
+(or just &#34;./run_make_tests&#34; if you have a perl on your PATH).
+
+To run the test suite on Windows NT or DOS systems, use
+&#34;perl.exe ./run_make-tests.pl&#34;.
+&lt;/pre&gt;
 &lt;h4 id=&#34;the-test-suite-is-run-against-make-executable&#34;&gt;The test suite is run against Make executable&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+By default, the test engine picks up the first executable called &#34;make&#34;
+that it finds in your path.  You may use the -make_path option (i.e.,
+&#34;perl run_make_tests -make_path /usr/local/src/make-3.78/make&#34;) if
+you want to run a particular copy.  This now works correctly with
+relative paths and when make is called something other than &#34;make&#34; (like
+&#34;gmake&#34;).
+&lt;/pre&gt;
 &lt;p&gt;This observation leads us to conclusion that these &lt;strong&gt;GNU Make&amp;rsquo;s tests are actually integration tests&lt;/strong&gt; - it is the final &lt;code&gt;make&lt;/code&gt; executable that is tested, not its parts like they would be with unit testing (depending on terminology this kind of testing of a final product can also be called functional or acceptance testing).&lt;/p&gt;
 &lt;h4 id=&#34;build-artefacts&#34;&gt;Build artefacts&lt;/h4&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+A directory named &#34;work&#34; will be created when the tests are run which
+will contain any makefiles and &#34;diff&#34; files of tests that fail so that
+you may look at them afterward to see the output of make and the
+expected result.
+&lt;/pre&gt;
 &lt;h3 id=&#34;running-tests-against-default-osx-make&#34;&gt;Running tests against default OSX Make&lt;/h3&gt;
 &lt;p&gt;Having read both documents: &lt;code&gt;tests/NEWS&lt;/code&gt; and &lt;code&gt;tests/README&lt;/code&gt; let&amp;rsquo;s try to run the tests. As we learned earlier, by default the test suite will pick up first &lt;code&gt;make&lt;/code&gt; from path so it will default to default make of OSX system which is on my machine:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+make -v
+GNU Make 3.81
+Copyright (C) 2006  Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+This program built for i386-apple-darwin11.3.0
+&lt;/pre&gt;
 &lt;p&gt;If you ever wondered why default &lt;code&gt;make&lt;/code&gt; on OS X is so old, you are in good company - see &lt;a href=&#34;https://www.quora.com/What-is-the-reason-for-some-of-the-Linux-tools-on-OS-X-being-so-old-Is-this-related-to-GPL-licensing&#34;&gt;What is the reason for some of the Linux tools on OS X being so old? Is this related to GPL licensing?&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;To run tests:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ cd tests/
+$ # The following has to be done otherwise script will complain with:
+$ # &#34;Can&#39;t locate config-flags.pm in @INC...&#34;
+$ cp config-flags.pm.in config-flags.pm
+$ ./run_make_tests
+...
+output with lots of errors and finally:
+212 Tests in 66 Categories Failed (See .diff* files in work dir for details) :-(
+&lt;/pre&gt;
 &lt;p&gt;We see here that oldness of default Make on OS X does cost 212 failing tests. I assume that the reason why most of these failing tests are failing is not a regression in core functionality of Make but rather because of new features were added to GNU Make since 2006.&lt;/p&gt;
 &lt;p&gt;To understand how that is different for latest Make let&amp;rsquo;s build it from source and run tests against it.&lt;/p&gt;
 &lt;h3 id=&#34;running-tests-against-latest-make-built-from-source&#34;&gt;Running tests against latest Make built from source&lt;/h3&gt;
 &lt;p&gt;Let&amp;rsquo;s get back from &lt;code&gt;tests&lt;/code&gt; directory one level up to the root directory of source tree. Inspired by the instructions in INSTALL and after some additional googling we need to run &lt;code&gt;autoreconf&lt;/code&gt; so that it creates proper &lt;code&gt;configure&lt;/code&gt; script for us:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ pwd # /Users/Stanislaw/Projects/GNUMake
+$ brew install automake
+$ # gettext is needed by autoreconf to locate gettext,
+$ # be careful with force linking it on your system.
+$ brew install gettext
+$ brew link gettext --force
+$ autoreconf # creates &#39;configure&#39; script
+&lt;/pre&gt;
 &lt;p&gt;Then we want to run this newly created script with &lt;code&gt;--prefix&lt;/code&gt; parameter so that it will not install make to the &lt;code&gt;/usr/local/bin&lt;/code&gt; directory but rather to &lt;code&gt;./Build&lt;/code&gt; directory (to not conflict with OSX&amp;rsquo;s Make which we don&amp;rsquo;t want within the scope of this post).&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ ./configure --prefix=$(pwd)/Build
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;At this point if you run &lt;code&gt;make&lt;/code&gt; the very first time you will likely see errors about some localization files missing:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+Making all in doc
+Updating ./version.texi
+make[2]: *** No rule to make target `fdl.texi&#39;, needed by `make.info&#39;.  Stop.
+make[1]: *** [all-recursive] Error 1
+make: *** [all] Error 2
+&lt;/pre&gt;
 &lt;p&gt;To fix that you have to first run (solution found at &lt;a href=&#34;http://gnu-make.2324884.n4.nabble.com/NLS-related-failure-when-building-make-from-CVS-tp2157p2158.html&#34;&gt;GNU Make forums&lt;/a&gt;):&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;make update
 &lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Everything should work fine since then, finally we run:&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ make &amp;&amp; make install
+...
+  /usr/bin/install -c make &#39;/Users/Stanislaw/Projects/Make/GNUMake/Build/bin&#39;
+...
+$ ./Build/bin/make --version
+GNU Make 4.2
+Built for x86_64-apple-darwin15.3.0
+Copyright (C) 1988-2016 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+&lt;/pre&gt;
 &lt;p&gt;Which is 2006&amp;rsquo;s Make 3.81 that has just been used to build 2016&amp;rsquo;s Make 4.2!&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s run the tests!&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+$ cd tests
+$ ./run_make_tests -make ../Build/bin/make
+&lt;/pre&gt;
 &lt;p&gt;The results are quite pleasant to look at - &lt;strong&gt;GNU Make built from latest source code on Mac OS X machine, passes all of its tests&lt;/strong&gt;:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;581 Tests in 118 Categories Complete ... No Failures :-)
 &lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;test-case-template&#34;&gt;Test case template&lt;/h3&gt;
@@ -2283,8 +2561,53 @@ if (&amp;amp;compare_output($answer,&amp;amp;get_logfile(1))) {
 &lt;/code&gt;&lt;/pre&gt;
 &lt;h4 id=&#34;test-case-example-2-phony-targets&#34;&gt;Test case example #2: PHONY targets&lt;/h4&gt;
 &lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/targets/PHONY&lt;/code&gt;.&lt;/p&gt;
-&lt;!-- raw HTML omitted --&gt;
-&lt;!-- raw HTML omitted --&gt;
+&lt;pre&gt;
+#                                                                    -*-perl-*-
+
+$description = &#34;The following tests the use of a PHONY target.  It makes\n&#34;
+              .&#34;sure that the rules under a target get executed even if\n&#34;
+              .&#34;a filename of the same name of the target exists in the\n&#34;
+              .&#34;directory.\n&#34;;
+
+$details = &#34;This makefile in this test declares the target clean to be a \n&#34;
+          .&#34;PHONY target.  We then create a file named \&#34;clean\&#34; in the \n&#34;
+          .&#34;directory.  Although this file exists, the rule under the target\n&#34;
+          .&#34;clean should still execute because of it&#39;s phony status.&#34;;
+
+$example = &#34;EXAMPLE_FILE&#34;;
+
+open(MAKEFILE,&#34;&gt; $makefile&#34;);
+
+# The Contents of the MAKEFILE ...
+
+print MAKEFILE &#34;.PHONY : clean \n&#34;;
+print MAKEFILE &#34;all: \n&#34;;
+print MAKEFILE &#34;\t\@echo This makefile did not clean the dir ... good\n&#34;;
+print MAKEFILE &#34;clean: \n&#34;;
+print MAKEFILE &#34;\t$delete_command $example clean\n&#34;;
+
+# END of Contents of MAKEFILE
+
+close(MAKEFILE);
+
+&amp;touch($example);
+
+# Create a file named &#34;clean&#34;.  This is the same name as the target clean
+# and tricks the target into thinking that it is up to date.  (Unless you
+# use the .PHONY target.
+&amp;touch(&#34;clean&#34;);
+
+$answer = &#34;$delete_command $example clean\n&#34;;
+&amp;run_make_with_options($makefile,&#34;clean&#34;,&amp;get_logfile);
+
+if (-f $example) {
+  $test_passed = 0;
+}
+
+&amp;compare_output($answer,&amp;get_logfile(1));
+
+1;
+&lt;/pre&gt;
 &lt;h4 id=&#34;test-case-example-3---warn-undefined-variables-option&#34;&gt;Test case example #3: &amp;ndash;warn-undefined-variables option&lt;/h4&gt;
 &lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/options/warn-undefined-variables&lt;/code&gt;.&lt;/p&gt;
 &lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
@@ -2611,7 +2934,13 @@ Fortunately, it is very easy:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;when it’s done you may request report:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;kyua report
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;which shows brief information for all non-succeeded test and a summary, such as this one:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_freebsd/test_report.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34;
+alt=&#34;Test report&#34; /&gt;&lt;/p&gt;
 &lt;h4 id=&#34;toolchain&#34;&gt;Toolchain&lt;/h4&gt;
 &lt;p&gt;&lt;code&gt;Kyuafile&lt;/code&gt; specifies which tests to run. It also can include other &lt;code&gt;Kyuafile&lt;/code&gt;s. Here is an example:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;include(&amp;#39;lib/Kyuafile&amp;#39;)
@@ -2721,7 +3050,13 @@ These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
 &lt;p&gt;They can be run using &lt;code&gt;make&lt;/code&gt;:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make check-llvm-unit
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Showing this beautiful output:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34;
+alt=&#34;Unit tests&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.&lt;/p&gt;
 &lt;p&gt;Unit Tests are written using &lt;a href=&#34;https://github.com/google/googletest&#34;&gt;Google Test&lt;/a&gt; framework.
 Here is an example of a simple test:&lt;/p&gt;
@@ -2749,7 +3084,13 @@ It is the largest group of tests used in LLVM. It is 10 times bigger than Unit T
 It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make check-llvm
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34;
+alt=&#34;Regression tests&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;Regression Tests (unlike Unit Tests) are using custom tools such as &lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;lit (LLVM Integrated Tester)&lt;/a&gt; and &lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;.
 Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; RUN: %lli %s | FileCheck %s

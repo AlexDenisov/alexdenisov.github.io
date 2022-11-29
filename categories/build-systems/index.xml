@@ -39,7 +39,9 @@ generator&lt;/em&gt;.
 Basically, you can see it as a compiler that compiles CMake scripts into
 Makefiles. Or several other build systems including &lt;a href=&#34;https://ninja-build.org&#34;&gt;Ninja&lt;/a&gt;
 and Xcode, Eclipse, and Visual Studio projects.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/bottom-up-cmake/cmake-compiler.png&#34;
+style=&#34;width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The typical workflow is as follows: you create a &lt;code&gt;CMakeLists.txt&lt;/code&gt; (can be
 empty), you generate the build system, you build something. Here is the code:&lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&amp;gt; touch CMakeLists.txt

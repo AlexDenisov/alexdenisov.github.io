@@ -106,7 +106,7 @@ The following topics are covered:</p>
 <li>setting up IDE/compiling</li>
 <li>debugging</li>
 </ul>
-<!-- raw HTML omitted -->
+<!-- more -->
 <p><em>The article doesn&rsquo;t cover basics of compiler construction. If you&rsquo;re looking for a theory take a look at Summary section at the bottom of the page.</em></p>
 <h3 id="getting-sources">Getting sources</h3>
 <p>Clang (and other projects from LLVM suite) uses SVN as a main version control system, but also provides a git mirror. Alternatively, you can use unofficial git mirror from Github, which updates every hour.</p>
@@ -159,7 +159,13 @@ The following topics are covered:</p>
 </figure>
 
 <p>you’ll see a huge list of available targets, you don’t need most of them so feel free to hide &lsquo;useless&rsquo; ones by unchecking &lsquo;Show&rsquo; flag:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/getting-started-with-clang/schemes.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Schemes" /></p>
 <p>If we just build and run clang, then it’ll do nothing, let’s add some parameters, for instance, print version.</p>
 <p>Select <code>Edit scheme</code>:</p>
 <figure><img src="/img/getting-started-with-clang/edit_scheme.png"
@@ -167,10 +173,22 @@ The following topics are covered:</p>
 </figure>
 
 <p>and add <code>-v</code> to the <code>Arguments passed on launch</code>:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/getting-started-with-clang/version_arguments.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Version arguments" /></p>
 <p>That’s pretty much it, just hit <code>Cmd + R</code> and it’ll build clang and run built binary with a specified parameter.</p>
 <p>When build done (it also takes a while) and program executed you’ll see the clang version in the Xcode output window</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/getting-started-with-clang/clang_version.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Clang version" /></p>
 <h3 id="debugging">Debugging</h3>
 <p>Clang is a big project therefore debugging without a decent GUI tool is not an easy task. Fortunately, we have Xcode.</p>
 <p>In this example we’re going to debug a parser and semantic analysis phase of clang.</p>
@@ -179,15 +197,33 @@ The following topics are covered:</p>
 </span></span><span style="display:flex;"><span>     <span style="color:#66d9ef">return</span> a <span style="color:#f92672">+</span> b;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>and specify the file as an argument for a clang binary, with additional parameters:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/getting-started-with-clang/debug_arguments.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Debug arguments" /></p>
 <p><code>clang</code> executable itself is just a driver, which determines what to do next with all received parameters. By default it calls &lsquo;clang compiler’ and passes the parameters, but it calls it as a separate process, so it’s hard to debug in a traditional way. By specifying <code>-cc1</code> option it calls compiler directly, in the same process.</p>
 <p>Since we aren’t going to compile the source, but only make semantic analysis, we can add <code>-fsyntax-only</code> argument.</p>
 <p>Let’s start debugging.</p>
 <p>Find a <code>ParseExpr.cpp</code>, set a breakpoint at the <code>ParseExpression</code> method:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/getting-started-with-clang/breakpoint.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Breakpoint" /></p>
 <p>and run. When program reach this breakpoint you can retrieve some useful information.</p>
 <p>Most of LLVM&rsquo; classes have method <code>dump</code> which prints all valuable information about an object. You can easily access it by evaluating LLDB command <code>expression</code> (or simply <code>expr</code>):</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/getting-started-with-clang/dump.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;"
+alt="Dump" /></p>
 <p>Here you see an AST representation of the addition expression from a <code>sum</code> method: <code>a + b</code>.</p>
 <h3 id="summary">Summary</h3>
 <p>As you can see this article is not a comprehensive guide, but only a very small instruction set, which might be helpful if you just started playing with compiler internals and want to try to touch them.</p>
@@ -653,10 +689,6 @@ The following topics are covered:</p>
       
       
       
-      
-      
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -667,8 +699,14 @@ The following topics are covered:</p>
       
       
       
+      
+      
+      
+      
+      
+      
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
       
@@ -680,10 +718,8 @@ The following topics are covered:</p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
-      
-      
       
       
       

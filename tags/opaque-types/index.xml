@@ -168,7 +168,12 @@ The tree is constructed in the depth-first order, here are the same examples as 
 &lt;li&gt;fgagfaa&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;Here is a more comprehensive example:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/tree-automata.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;The arrows show the depth-first order.&lt;/p&gt;
 &lt;p&gt;We can map our type equivalence problem on the ranked alphabet/tree automaton concepts.&lt;/p&gt;
 &lt;h3 id=&#34;type-equality&#34;&gt;Type Equality&lt;/h3&gt;
@@ -192,7 +197,12 @@ Examples of types represented as a tree:&lt;/p&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;em&gt;Note: the values in &lt;code&gt;S&lt;/code&gt; are the number of elements (3), struct ID (&lt;code&gt;S0&lt;/code&gt;), and all its contained types defined recursively.&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;Same types, but represented graphically:&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/tree-automata-types.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;h3 id=&#34;structural-equality&#34;&gt;Structural Equality&lt;/h3&gt;
 &lt;p&gt;Above, I mentioned the &lt;code&gt;struct ID&lt;/code&gt;. We need it to define the structural equality for recursive types.
 Consider the following example:&lt;/p&gt;
@@ -206,7 +216,12 @@ By our definition of equality the following holds:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;root &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; list
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The reasoning is simple: the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; has the same layout and the same structure (recursive), while &lt;code&gt;root&lt;/code&gt; has another structure.&lt;/p&gt;
 &lt;p&gt;Here is a graphical representation to highlight the idea. If we discard the struct titles, then it&amp;rsquo;s clear the first two are equal while the third one is distinct.&lt;/p&gt;
-&lt;p&gt;&lt;!-- raw HTML omitted --&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/llvm-type-equality/recursive-structs.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;p&gt;To take the structure into account and to make the equality hold, we do not use the names of the structures, but before building the tree, we assign them symbolic names or IDs.
 So both the &lt;code&gt;list&lt;/code&gt; and &lt;code&gt;node&lt;/code&gt; encoded as the following: &lt;code&gt;S(2, S0, P(S(2, S0, x, x), I(32))&lt;/code&gt; where &lt;code&gt;S0&lt;/code&gt; is the struct ID. To terminate the recursion we do not re-emit types for the structure that has already been emitted, but we do emit symbols &lt;code&gt;x&lt;/code&gt; instead (otherwise we won&amp;rsquo;t respect the arity of the struct).&lt;/p&gt;
 &lt;p&gt;The &lt;code&gt;root&lt;/code&gt; is defined as follows &lt;code&gt;S(2, S0, P(S(2, S1, P(S(2, S1, x, x), I(32), I(32))), I(32))&lt;/code&gt; please note the nestedness and &lt;code&gt;S0&lt;/code&gt; and &lt;code&gt;S1&lt;/code&gt; struct IDs.&lt;/p&gt;

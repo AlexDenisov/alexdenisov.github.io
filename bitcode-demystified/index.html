@@ -115,20 +115,35 @@
 <p><em>You can find more details here: <a href="https://www.objc.io/issues/6-build-tools/compiler/">The Compiler</a>.</em></p>
 <p>In the modern world these phases are split into two parts: <strong><code>compiler frontend</code></strong> (<code>lexer</code>, <code>parser</code>, <code>semantic analysis</code>, <code>code generation</code>) and <strong><code>compiler backend</code></strong> (<code>optimization</code>, <code>asm printer</code>, <code>assembler</code>, <code>linker</code>). This separation makes much sense for both language designers and hardware manufacturers. If you want to create a new programming language you &lsquo;just&rsquo; need to implement a frontend, and you get all available optimizations and support of different CPUs for free. On the other hand, if you created a new chip, you &lsquo;just&rsquo; need to extend the backend and you get all the available languages (frontends) support for your CPU.</p>
 <p>Below you can see a picture that illustrates compilation process using Clang and LLVM:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/bitcode-demystified/compilation_process.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>This picture clearly demonstrates how communication between frontend and backend is done using IR, LLVM <a href="http://llvm.org/docs/LangRef.html">has it is own</a> format, that can be encoded using LLVM bitstream file format - <a href="http://llvm.org/docs/BitCodeFormat.html">Bitcode</a>.</p>
 <p>Just to recall it explicitly - <strong>Bitcode is a bitstream representation of LLVM IR</strong>.</p>
 <h2 id="what-problems-apples-bitcode-aims-to-solve">What problems Apple&rsquo;s Bitcode aims to solve?</h2>
 <p>Again, we need to dive a bit deeper and look at how an OS runs programs. This description is not precise and is given just to illustrate the process. For more details I can recommend reading this article: <a href="http://0xfe.blogspot.de/2006/03/how-os-x-executes-applications.html">How OS X Executes Applications</a>.</p>
 <p>OS X and iOS can run on different CPUs (<code>i386</code>, <code>x86_64</code>, <code>arm</code>, <code>arm64</code>, etc.), if you want to run a program on any OS X/iOS setup, then the program should contain object code for each platform. Here is how a binary might look like:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/bitcode-demystified/macho_file.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 40%;
+height: auto;" /></p>
 <p>When you run a program, OS reads the &lsquo;Table Of Contents&rsquo; and looks for a slice corresponding to the OS CPU.
 For instance, if you run operating system on <code>x86_64</code>, then OS will load object code for <code>x86_64</code> into a memory and run the program.</p>
 <p>What&rsquo;s happening with other slices? Nothing, they just waste your disk space.</p>
 <p>This is the problem Apple wants to solve: currently, all the apps on the AppStore contain object code for <code>arm</code> and <code>arm64</code> CPUs. Moreover, third-party proprietary libraries or frameworks contain object code for <code>i386</code>, <code>x86_64</code>, <code>arm</code> and <code>arm64</code>, so you can use them to test the app on a device or simulator. (Can you imagine how many copies of Google Analytics for <code>i386</code> you have in your pocket?)</p>
 <p><strong>UPD:</strong> I do not know why, but I was sure that final executable contains these slices as well (<code>i386</code>, <code>x86_64</code>, etc.), but it seems they are stripped during the build phase.</p>
 <p>Apple did not give us that many details about how the Bitcode and App Thinning works, so let me assume how it may look:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/bitcode-demystified/app_thinning.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>When you submit an app (including Bitcode) Apple&rsquo;s &lsquo;BlackBox&rsquo; recompiles it for each supported platform and drops any &lsquo;useless&rsquo; object code, so AppStore has a copy of the app for each CPU. When an end user wants to install the app - she installs the only version for the particular processor, without any unused stuff.</p>
 <p><strong>Bitcode might save up to 50% of disk space per program.</strong></p>
 <p><strong>UPD:</strong> Of course, I do not take in count resources, it is just about binary itself. For instance, an app I am working on currently has size ~40 megabytes (including assets, xibs. fonts), a size of a binary itself is ~16 megabytes. I checked sizes of each slice: ~7MB for armv7 and 9MB for arm64, if we crop just one of them, it will decrease the size of the app by ~20%.</p>
@@ -162,7 +177,12 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 </span></span></code></pre></div><p>What can we see here? It is a bit more verbose than original C code, but it is still much more readable than assembler. Malefactors will be much happier to work with this representation, than with disassembled version of a binary (and they do not even have to pay for tools such Hopper or IDA).</p>
 <h3 id="how-could-malefactor-get-the-ir">How could malefactor get the IR?</h3>
 <p>iOS and OS X executables have their own format - Mach-O (read <a href="http://lowlevelbits.org/parse-mach-o-files/">Parsing Mach-O files</a> for more details). Mach-O file contains several segments such as Read-Only Data, Code, Symbol Table, etc. One of those sections contain <a href="https://en.wikipedia.org/wiki/Xar_%28archiver%29">xar</a> archive with Bitcode:</p>
-<p><!-- raw HTML omitted --></p>
+<p><img src="/img/bitcode-demystified/bitcode_storage.png"
+style=" display: block;
+margin-left: auto;
+margin-right: auto;
+width: 100%;
+height: auto;" /></p>
 <p>It is really easy to retrieve it automatically, here I wrote a simple C program that does just that: <a href="https://github.com/AlexDenisov/bitcode_retriever">bitcode_retriever</a>. The workflow is pretty straightforward. Let&rsquo;s assume that <code>some_binary</code> is a Mach-O file that contains object code for two CPUs (<code>arm</code> and <code>x86_64</code>), and each object code is built using two source files:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>$ bitcode_retriever some_binary
 </span></span><span style="display:flex;"><span>arm.xar
@@ -175,7 +195,7 @@ For instance, if you run operating system on <code>x86_64</code>, then OS will l
 </span></span></code></pre></div><p>Bitcode does not store any information about original filenames but uses numbers instead (<code>1</code>, <code>2</code>, <code>3</code>, etc.).
 Also, probably you do not have <code>llvm-dis</code> installed/built on your machine, but you can easily obtain it, see this article for more details: <a href="http://lowlevelbits.org/getting-started-with-llvm-slash-clang-on-os-x/">Getting Started with Clang/LLVM on OS X</a>.</p>
 <p>Another potential issue (can&rsquo;t confirm it) - Bitcode thingie works only for iOS 9, so if you submit your app to the AppStore and it includes Bitcode, then malefactor can get the whole IR from your app using iOS 7/8 and jailbroken device.</p>
-<p>I know only one way to secure the IR - <!-- raw HTML omitted -->obfuscation<!-- raw HTML omitted -->. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.</p>
+<p>I know only one way to secure the IR - <a href="https://en.wikipedia.org/wiki/Obfuscation_(software)" >obfuscation</a>. This task is not trivial itself, and it requires even much more efforts if you want to introduce this phase into your Xcode-Driven development flow.</p>
 <h2 id="summary">Summary</h2>
 <ul>
 <li>Bitcode is a bitstream file format for LLVM IR</li>
@@ -649,6 +669,8 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
       
       
       
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -656,6 +678,12 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
       
       
       
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
       
       
       
@@ -668,16 +696,8 @@ Also, probably you do not have <code>llvm-dis</code> installed/built on your mac
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
-      </li>
-      
-      
-      
-      <li>
         <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
-      
-      
       
       
       
