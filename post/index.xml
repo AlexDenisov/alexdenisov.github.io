@@ -7,8 +7,118 @@
     <language>en-us</language>
     <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
     <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
-    <lastBuildDate>Thu, 04 Nov 2021 20:30:00 +0100</lastBuildDate>
+    <lastBuildDate>Tue, 01 Nov 2022 00:00:00 +0100</lastBuildDate>
     <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 1: CRuby vs mRuby</title>
+        <link>https://lowlevelbits.org/compiling-ruby.-part-1-cruby-vs-mruby/</link>
+        <pubDate>Tue, 01 Nov 2022</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby.-part-1-cruby-vs-mruby/</guid>
+        <description>&lt;p&gt;This article is part of the (short) series &amp;ldquo;Compiling Ruby&amp;rdquo; in which I&amp;rsquo;m documenting my journey of building an ahead-of-time (AOT) compiler which is based on &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; and heavily utilizes &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; infrastructure.&lt;/p&gt;
+&lt;h3 id=&#34;ruby-and-its-many-virtual-machines&#34;&gt;Ruby and its many Virtual Machines&lt;/h3&gt;
+&lt;p&gt;The most widely used (&lt;em&gt;citation needed, yeah&lt;/em&gt;) Ruby implementation is CRuby also known as MRI (as in &amp;ldquo;&lt;a href=&#34;https://en.wikipedia.org/wiki/Yukihiro_Matsumoto&#34;&gt;Matz&lt;/a&gt;&amp;rsquo; Ruby Interpreter&amp;rdquo;). It is an interpreter which is built on top of a custom virtual machine (YARV).&lt;/p&gt;
+&lt;p&gt;Another widely used implementation is &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; (so-called &amp;ldquo;embedded&amp;rdquo; Ruby). It is also an interpreter, and it is also built on top of another custom VM (RiteVM).&lt;/p&gt;
+&lt;p&gt;YARV and RiteVM are rather lightweight virtual machines. That is, unlike full-fledged system or process level VMs (e.g. VirtualBox, JVM, CLR, etc.), they only provide a &amp;ldquo;computational device&amp;rdquo; - there is no resource control, no sandboxing, etc.&lt;/p&gt;
+&lt;h3 id=&#34;stack-vs-registers&#34;&gt;Stack vs Registers&lt;/h3&gt;
+&lt;p&gt;The &amp;ldquo;computational device&amp;rdquo; executes certain operations on certain data.
+The operations are encoded in a form of a &amp;ldquo;bytecode.&amp;rdquo; And the data is stored on a &amp;ldquo;virtual stack&amp;rdquo;. Though, the stack is accessed differently.&lt;/p&gt;
+&lt;p&gt;YARV accesses the stack implicitly (this is also known as a &amp;ldquo;stack-based VM&amp;rdquo;). RiteVM access the stack explicitly via registers (you got it, &amp;ldquo;register-based VM&amp;rdquo;).&lt;/p&gt;
+&lt;p&gt;To illustrate what&amp;rsquo;s the bytecode is and what&amp;rsquo;s the difference between YARV and RiteVM , consider the following (artificial) examples.&lt;/p&gt;
+&lt;p&gt;Stack-based bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;plus&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;print&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Register-based bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;plus&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;print&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The stack-based version uses the stack implicitly, while other version specifies the storage explicitly.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s &amp;ldquo;run&amp;rdquo; both examples to see it in action.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-1/stack-based-execution.png&#34;
+style=&#34; display: block;
+margin-left: auto;
+margin-right: auto;
+height: auto;&#34; /&gt;&lt;/p&gt;
+&lt;p&gt;register-based-execution.png&lt;/p&gt;
+&lt;p&gt;While the underlying machinery is very similar there are good reasons in picking one or the other form of a VM. Yet, these reasons are out of scope for this article. Please, consult elsewhere if you want to learn more.
+The topic of VMs is huge, but fascinating.&lt;/p&gt;
+&lt;h3 id=&#34;dispatch-loop&#34;&gt;Dispatch loop&lt;/h3&gt;
+&lt;p&gt;Let&amp;rsquo;s consider how the VM works and how it deals with the bytecode.
+Both YARV and RiteVM use so-called &amp;ldquo;dispatch loop&amp;rdquo; which is effectively a for-loop + a huge &lt;code&gt;switch&lt;/code&gt;-statement. Typical pseudocode looks like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Iterate through each opcode in the bytecode stream
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (opcode in bytecode) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;switch&lt;/span&gt; (opcode) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;// Take a corresponding action for each separate opcode
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_CODE_1: &lt;span style=&#34;color:#75715e&#34;&gt;/* do something */&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_CODE_2: &lt;span style=&#34;color:#75715e&#34;&gt;/* do something */&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;	&lt;span style=&#34;color:#75715e&#34;&gt;// ... more opcodes
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;	&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_CODE_N: &lt;span style=&#34;color:#75715e&#34;&gt;/* do something */&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And then the bodies for the actual opcodes may look as follows.
+Stack-based VM:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;Example program:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  load 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  load 32
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  plus
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  print
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_LOAD:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; pool[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#75715e&#34;&gt;// pool is some abstract additional storage
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  stack.push(val)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PLUS:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  lhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stack.pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stack.pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; lhs &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; rhs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  stack.push(res)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PRINT:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stack.pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  print(val)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And the register-based version for completeness:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;Example program:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  load R1 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  load R2 32
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  plus R1 R1 R2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  print R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// md is some additional opcode metadata
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_LOAD:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  registers[md.reg1] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; pool[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PLUS:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  lhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; registers[md.reg1]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; registers[md.reg2]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; lhs &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; rhs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  registers[md.reg1] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; res
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PRINT:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; registers[md.reg1]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  print(val)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In this case, if we know the values behind &lt;code&gt;pool[0]&lt;/code&gt; and the actual values of &lt;code&gt;md.regN&lt;/code&gt;, then we compile the example program to something like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  load R1 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  load R2 32
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  plus R1 R1 R2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  print R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;R1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;R2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;R1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; R1 &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; R2
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;print(R1)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and avoid the whole dispatch loop, but I digress :)&lt;/p&gt;
+&lt;p&gt;All the previous examples are vastly simplified and only serve as a high-level overview.
+Now, let&amp;rsquo;s get to the metal and take a look at mRuby implementation.&lt;/p&gt;
+</description>
+      </item>
+      
+
     
 
       
@@ -3012,187 +3122,6 @@ get any answer so far.&lt;/p&gt;
 &lt;li&gt;&lt;a href=&#34;https://wiki.netbsd.org/kyua/&#34;&gt;Kyua: An introduction for NetBSD users&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://github.com/jmmv/kyua/wiki/About&#34;&gt;Kyua: project wiki&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Test_Anything_Protocol&#34;&gt;Test Anything Protocol&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-      </item>
-      
-
-    
-
-      
-        <item>
-        <title>System Under Test: LLVM</title>
-        <link>https://lowlevelbits.org/system-under-test-llvm/</link>
-        <pubDate>Thu, 24 Mar 2016</pubDate>
-        <author>alex@lowlevelbits.org (Alex Denisov)</author>
-        <guid>https://lowlevelbits.org/system-under-test-llvm/</guid>
-        <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/llvm&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
-&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test&#34;&gt;&amp;ldquo;System Under Test&amp;rdquo;&lt;/a&gt;. It provides an overview of the test suites that are used by LLVM project to maintain a quality of its libraries and tools on a high level.&lt;/p&gt;
-&lt;h3 id=&#34;what-is-llvm-about&#34;&gt;What is LLVM about?&lt;/h3&gt;
-&lt;p&gt;&lt;a href=&#34;http://llvm.org&#34;&gt;http://llvm.org&lt;/a&gt; says that&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;It is not that much I can add here besides one link:&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;http://aosabook.org/en/llvm.html&#34;&gt;The Architecture of Open Source Applications: LLVM&lt;/a&gt; by Chris Lattner.&lt;/p&gt;
-&lt;p&gt;which sheds light on compilers in general and LLVM particularly.&lt;/p&gt;
-&lt;p&gt;LLVM is rather an umbrella project than a single project. It consists of compiler, debugger, linker, assemblers for several CPUs and of the most important - its Core: back-end and middle-end.&lt;/p&gt;
-&lt;p&gt;In this article I refer to LLVM as a back-end + middle-end, rather than the whole umbrella (that would be too much for one post).&lt;/p&gt;
-&lt;h3 id=&#34;tests&#34;&gt;Tests&lt;/h3&gt;
-&lt;p&gt;LLVM is a huge project. Therefore it has quite a few groups of tests: unit tests, regression tests, performance tracking and fuzzing tests.
-Since the project is not trivial the tools used for testing are mostly written from scratch and are part of LLVM project.
-Though, I wish I could use some of them without having LLVM as their dependency.&lt;/p&gt;
-&lt;h4 id=&#34;unit-tests&#34;&gt;Unit Tests&lt;/h4&gt;
-&lt;p&gt;Amount of unit tests is pretty small comparing to regression tests.
-One reason behind that decision is that LLVM internals constantly change all the time. Supporting tests under such conditions is very time consuming.
-However there are still parts that do not change very often, that is they are good target for unit testing.
-These tests are located in &amp;lsquo;unittests&amp;rsquo; directory.&lt;/p&gt;
-&lt;p&gt;They can be run using &lt;code&gt;make&lt;/code&gt;:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make check-llvm-unit
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Showing this beautiful output:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/unit_tests.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34;
-alt=&#34;Unit tests&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;As you can see there are about 1,5k tests, and that leads to a pretty short execution time: ~30 seconds using 4 threads.&lt;/p&gt;
-&lt;p&gt;Unit Tests are written using &lt;a href=&#34;https://github.com/google/googletest&#34;&gt;Google Test&lt;/a&gt; framework.
-Here is an example of a simple test:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-cpp&#34; data-lang=&#34;cpp&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// unittests/Support/YAMLParserTest.cpp
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;TEST(YAMLParser, SameNodeIteratorOperatorNotEquals) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  SourceMgr SM;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  yaml&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;Stream Stream(&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;[&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;1&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;, &lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;2&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;\&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;]&amp;#34;&lt;/span&gt;, SM);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  yaml&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;SequenceNode &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;Node &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; dyn_cast&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;yaml&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;SequenceNode&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;(
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                              Stream.begin()&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;getRoot());
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;auto&lt;/span&gt; Begin &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Node&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;begin();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;auto&lt;/span&gt; End &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; Node&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;end();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  EXPECT_TRUE(Begin &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; End);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  EXPECT_FALSE(Begin &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; Begin);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  EXPECT_FALSE(End &lt;span style=&#34;color:#f92672&#34;&gt;!=&lt;/span&gt; End);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Pretty trivial.
-Let&amp;rsquo;s move forward and look at another, more interesting group of tests.&lt;/p&gt;
-&lt;h4 id=&#34;regression-tests&#34;&gt;Regression Tests&lt;/h4&gt;
-&lt;p&gt;The aim of this test suite is to verify the output of different tools, hence the internals can change separately from tests, making support less time-consuming.
-This test suite located in &lt;code&gt;test&lt;/code&gt; directory.
-It is the largest group of tests used in LLVM. It is 10 times bigger than Unit Tests: ~15k vs ~1,5k.
-It takes about 4 minutes to run on my machine using 4 threads.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;make check-llvm
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The output is pretty similar to one above:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/sut_llvm/regression_tests.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34;
-alt=&#34;Regression tests&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;Regression Tests (unlike Unit Tests) are using custom tools such as &lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;lit (LLVM Integrated Tester)&lt;/a&gt; and &lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;.
-Let&amp;rsquo;s look at simple test to illustrate how it works:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; RUN: %lli %s | FileCheck %s
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;@flt = &lt;span style=&#34;color:#66d9ef&#34;&gt;internal&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;global&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;12.0e+0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;@str = &lt;span style=&#34;color:#66d9ef&#34;&gt;internal&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;constant&lt;/span&gt; [&lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;] &lt;span style=&#34;color:#66d9ef&#34;&gt;c&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Double value: %f\0A\00&amp;#34;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;nocapture&lt;/span&gt;, ...) &lt;span style=&#34;color:#66d9ef&#34;&gt;nounwind&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;declare&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @fflush(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*) &lt;span style=&#34;color:#66d9ef&#34;&gt;nounwind&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;define&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @main() {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %flt = &lt;span style=&#34;color:#66d9ef&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt;* @flt
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %float2 = &lt;span style=&#34;color:#66d9ef&#34;&gt;frem&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; %flt, &lt;span style=&#34;color:#ae81ff&#34;&gt;5.0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %double1 = &lt;span style=&#34;color:#66d9ef&#34;&gt;fpext&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;float&lt;/span&gt; %float2 &lt;span style=&#34;color:#66d9ef&#34;&gt;to&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; (&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;*, ...) @printf(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;getelementptr&lt;/span&gt; ([&lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;], [&lt;span style=&#34;color:#ae81ff&#34;&gt;18&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;x&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;]* @str, &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;, &lt;span style=&#34;color:#66d9ef&#34;&gt;i64&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;), &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; %double1)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;call&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; @fflush(&lt;span style=&#34;color:#66d9ef&#34;&gt;i8&lt;/span&gt;* &lt;span style=&#34;color:#66d9ef&#34;&gt;null&lt;/span&gt;)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;ret&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;i32&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; CHECK: Double value: 2.0
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This test can be split into three parts:&lt;/p&gt;
-&lt;p&gt;Run command (the top line):&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; RUN: %lli %s | FileCheck %s
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Expectations (the bottom line):&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-llvm&#34; data-lang=&#34;llvm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;; CHECK: Double value: 2.0
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The rest (LLVM IR in the middle) is the body.&lt;/p&gt;
-&lt;p&gt;All tests in this suite have one or more &amp;lsquo;run&amp;rsquo; command.
-&lt;code&gt;lit&lt;/code&gt; uses set of rules to substitute the string into real runnable command. Substitutions are either built-in (such as &lt;code&gt;%s&lt;/code&gt;) or configurable (such as &lt;code&gt;%lli&lt;/code&gt;).
-&lt;code&gt;lit&lt;/code&gt; replaces &lt;code&gt;%s&lt;/code&gt; with the full path to a file under test, e.g.:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;~/llvm/test/ExecutionEngine/frem.ll
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Configurable substitutions however are taken from &lt;code&gt;lit.cfg&lt;/code&gt; file, which is basically a Python script.&lt;/p&gt;
-&lt;p&gt;For example, this config says that &lt;code&gt;%lli&lt;/code&gt; is to be replaced with &lt;code&gt;/usr/local/bin/lli&lt;/code&gt;&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;lli &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;/usr/local/bin/lli&amp;#39;&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;config&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;substitutions&lt;span style=&#34;color:#f92672&#34;&gt;.&lt;/span&gt;append( (&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#39;%lli&amp;#39;&lt;/span&gt;, lli ) )
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Having these parameters in place &lt;code&gt;lit&lt;/code&gt; will run the test using this command:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-sh&#34; data-lang=&#34;sh&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;/usr/local/bin/lli ~/llvm/test/ExecutionEngine/frem.ll | FileCheck ~/llvm/test/ExecutionEngine/frem.ll
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Which will interpret &lt;code&gt;frem.ll&lt;/code&gt; using LLVM Interpreter (&lt;code&gt;lli&lt;/code&gt;) and pass the output to the &lt;code&gt;FileCheck&lt;/code&gt;. &lt;code&gt;FileCheck&lt;/code&gt; in turn takes two arguments: filename with expectations and input that needs to be examined.&lt;/p&gt;
-&lt;p&gt;Summary of this example:&lt;/p&gt;
-&lt;p&gt;The test interprets the body (LLVM IR) from &lt;code&gt;~/llvm/test/ExecutionEngine/frem.ll&lt;/code&gt; using LLVM Interpreter (&lt;code&gt;%lli&lt;/code&gt; aka &lt;code&gt;/usr/local/bin/lli&lt;/code&gt;) and checks if the output of interpretation contains string &lt;code&gt;Double value: 2.0&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;Both &lt;code&gt;lit&lt;/code&gt; and &lt;code&gt;FileCheck&lt;/code&gt; have lots of useful options. Consider looking at documentation to learn more.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;&lt;strong&gt;upd 22.06.16:&lt;/strong&gt;&lt;/em&gt;
-As Daniel Dunbar &lt;a href=&#34;https://twitter.com/daniel_dunbar/status/745285660626452480&#34;&gt;mentioned&lt;/a&gt; it possible to use &lt;code&gt;lit&lt;/code&gt; without LLVM, simply by installing it using &lt;code&gt;pip&lt;/code&gt;: &lt;code&gt;pip install lit&lt;/code&gt;&lt;/p&gt;
-&lt;h4 id=&#34;performance-tracking&#34;&gt;Performance tracking&lt;/h4&gt;
-&lt;p&gt;Performance is one of the most important goals of any software. LLVM is not an exception.&lt;/p&gt;
-&lt;p&gt;Here LLVM also uses custom tool - &lt;a href=&#34;http://llvm.org/docs/lnt/intro.html&#34;&gt;LNT&lt;/a&gt;. This tool was initially written to be used inside LLVM, but its design allows it to be usable for performance testing of any other software.&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;http://llvm.org/docs/TestingGuide.html#test-suite-overview&#34;&gt;Performance tests suite&lt;/a&gt; is not a part of LLVM source tree. It has to be fetched separately. It is a set of programs that are compiled and executed to track performance changes.&lt;/p&gt;
-&lt;p&gt;Besides &lt;code&gt;LNT&lt;/code&gt; the test suite can be used within CMake as described in &lt;a href=&#34;http://llvm.org/docs/TestSuiteMakefileGuide.html&#34;&gt;LLVM test-suite Guide&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;At the moment of writing this article external test suite contains 485 test cases. It takes ~5 minutes to run them using &lt;code&gt;lit&lt;/code&gt;.&lt;/p&gt;
-&lt;h4 id=&#34;fuzz-testing&#34;&gt;Fuzz Testing&lt;/h4&gt;
-&lt;p&gt;Another powerful technique used to increase quality of LLVM is &lt;a href=&#34;https://en.wikipedia.org/wiki/Fuzz_testing&#34;&gt;Fuzz Testing&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;Here as well LLVM has its own tool called &lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html&#34;&gt;LibFuzzer&lt;/a&gt;.
-The tool is so great that it is also used by &lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html#trophies&#34;&gt;other software&lt;/a&gt; such as Python, PCRE, OpenSSL, SQLite, and other.&lt;/p&gt;
-&lt;p&gt;Here is an example of a fuzz test:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// tools/llvm-as-fuzzer/llvm-as-fuzzer.cpp
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;extern&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;C&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; LLVMFuzzerTestOneInput(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;uint8_t&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;Data, size_t Size) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// Allocate space for locals before setjmp so that memory can be collected
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// if parse exits prematurely (via longjmp).
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  StringRef Input((&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;char&lt;/span&gt; &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;)Data, Size);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// Note: We need to create a buffer to add a null terminator to the
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// end of the input string. The parser assumes that the string
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// parsed is always null terminated.
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  std&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;unique_ptr&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;MemoryBuffer&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; MemBuf &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; MemoryBuffer&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;getMemBufferCopy(Input);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  SMDiagnostic Err;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  LLVMContext &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;Context &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; getGlobalContext();
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  std&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;unique_ptr&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Module&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; M;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (setjmp(JmpBuf))
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// If reached, we have returned with non-zero status, so exit.
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// TODO(kschimpf) Write a main to do this initialization.
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;InstalledHandler) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    llvm&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;install_fatal_error_handler(&lt;span style=&#34;color:#f92672&#34;&gt;::&lt;/span&gt;MyFatalErrorHandler, nullptr);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    InstalledHandler &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; true;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  M &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; parseAssembly(MemBuf&lt;span style=&#34;color:#f92672&#34;&gt;-&amp;gt;&lt;/span&gt;getMemBufferRef(), Err, Context);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (&lt;span style=&#34;color:#f92672&#34;&gt;!&lt;/span&gt;M.get())
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  verifyModule(&lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;M.get());
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;code&gt;LibFuzzer&lt;/code&gt; generates huge amount of different inputs using &lt;a href=&#34;https://en.wikipedia.org/wiki/Genetic_programming&#34;&gt;Genetic programming&lt;/a&gt; and calls &lt;code&gt;LLVMFuzzerTestOneInput&lt;/code&gt; within each input.
-This test then tries to parse the input as an assembly. The parser should not crash.&lt;/p&gt;
-&lt;p&gt;At the moment there are two targets for fuzz testing within LLVM source tree: &lt;code&gt;llvm-as-fuzzer&lt;/code&gt; and &lt;code&gt;llvm-mc-fuzzer&lt;/code&gt;. They are located in &lt;code&gt;tools&lt;/code&gt; directory.&lt;/p&gt;
-&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
-&lt;p&gt;LLVM uses a few test suites for different needs.
-There are ~1,5k Unit Tests, ~15k Regression Tests. It takes ~4-5 minutes to run both tests in Debug mode on 2 y/o MacBook Pro using 4 threads.&lt;/p&gt;
-&lt;p&gt;LLVM uses Fuzzing Tests to prevent system from abnormal exit when erroneous input received.&lt;/p&gt;
-&lt;p&gt;LLVM has out-of-source-tree test-suite for performance tracking.&lt;/p&gt;
-&lt;p&gt;LLVM mostly uses custom tools for testing.&lt;/p&gt;
-&lt;h3 id=&#34;further-reading--additional-material&#34;&gt;Further Reading / Additional Material&lt;/h3&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/TestingGuide.html&#34;&gt;LLVM Testing Infrastructure Guide&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/CommandGuide/lit.html&#34;&gt;LLVM Integrated Tester&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;FileCheck&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/LibFuzzer.html&#34;&gt;LibFuzzer&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/TestSuiteMakefileGuide.html&#34;&gt;LLVM test-suite Guide&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://llvm.org/docs/lnt/quickstart.html&#34;&gt;LNT Quickstart Guide&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
       </item>
