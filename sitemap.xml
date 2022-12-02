@@ -3,37 +3,46 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://lowlevelbits.org/categories/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/categories/compilers/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/compiling-ruby.-part-1-cruby-vs-mruby/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <loc>https://lowlevelbits.org/compiling-ruby-part-1/</loc>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/dragonruby/</loc>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/firestorm/</loc>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/mruby/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/post/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/rite-vm/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/ruby/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/virtual-machines/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/yarv/</loc>
-    <lastmod>2022-11-30T00:48:21+01:00</lastmod>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/compiling-ruby-part-0/</loc>
+    <lastmod>2022-12-02T20:07:00+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/assembly/</loc>
     <lastmod>2021-11-04T20:43:46+01:00</lastmod>

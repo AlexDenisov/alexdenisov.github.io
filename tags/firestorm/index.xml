@@ -1,0 +1,234 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>firestorm on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/firestorm/</link>
+    <description>Recent content in firestorm on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Fri, 02 Dec 2022 20:00:00 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 1: Compilers vs. Interpreters</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-1/</link>
+        <pubDate>Fri, 02 Dec 2022</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-1/</guid>
+        <description>&lt;p&gt;This article is part of the series &amp;ldquo;Compiling Ruby,&amp;rdquo; in which I&amp;rsquo;m documenting my journey of building an ahead-of-time (AOT) compiler for &lt;a href=&#34;https://dragonruby.org&#34;&gt;DragonRuby&lt;/a&gt;, which is based on &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; and heavily utilizes &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; infrastructure.&lt;/p&gt;
+&lt;p&gt;Here is what you can expect from the series:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;Motivation&lt;/a&gt;: some background reading on what and why&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-1/&#34;&gt;Compilers vs Interpreters&lt;/a&gt;: a high level overview of the chosen approach&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;RiteVM (TDB): a high-level overview of the mRuby Virtual Machine&lt;/li&gt;
+&lt;li&gt;Exceptions (TBD): an overview of how mRuby implements exception handling&lt;/li&gt;
+&lt;li&gt;MLIR (TBD): covers what is &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; and how it fits into the whole picture&lt;/li&gt;
+&lt;li&gt;Garbage Collection (TBD): an overview of how mRuby manages memory&lt;/li&gt;
+&lt;li&gt;Fibers (TBD): what are fibers in Ruby, and how mRuby makes them work&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.&lt;/em&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;With the (hopefully) convincing &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;motivation&lt;/a&gt; out of the way, we can get to the technical details.&lt;/p&gt;
+&lt;h3 id=&#34;compiling-interpreter-interpreting-compiler&#34;&gt;Compiling Interpreter, Interpreting Compiler&lt;/h3&gt;
+&lt;p&gt;As mentioned in the motivation, I want to build an ahead-of-time compiler for Ruby. I want it to be compatible with the existing Ruby implementation to fit it naturally into the existing system.&lt;/p&gt;
+&lt;p&gt;So the first question I had to answer is - how do I even do it?&lt;/p&gt;
+&lt;h4 id=&#34;compilers-vs-interpreters&#34;&gt;Compilers vs. Interpreters&lt;/h4&gt;
+&lt;p&gt;The execution model of compiled and interpreted languages is slightly different:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;a compiler takes the source program and outputs another program that can be run on any other machine even when the compiler is not on that target machine&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;an interpreter also takes the source program as an input but does not output anything and runs the program right away&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Unlike the compiler, the interpreter must be present on the machine you want to run the program. To build the compiler, I have to somehow combine the interpreter with the program it runs.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s take a high-level schematic view of a typical compiler and interpreter.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-1/compiler-vs-interpreter.png&#34; alt=&#34;Execution model of an interpreted and compiled program&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The compiler is a straightforward one-way process: the source code is parsed, then the machine code is generated, and the executable is produced. The executable also depends on a runtime. The runtime can be either embedded into the executable or be an external entity, but usually both.&lt;/p&gt;
+&lt;p&gt;The interpreter is more complex in this regard. It contains everything in one place: parser, runtime, and a virtual machine. Also, note the two-way arrows &lt;code&gt;Parser &amp;lt;-&amp;gt; VM&lt;/code&gt; and &lt;code&gt;Runtime &amp;lt;-&amp;gt; VM.&lt;/code&gt; The reason is that Ruby is a dynamic language. During the regular program execution, a program can read more code from the disk or network and execute it, thus the interconnection between these components.&lt;/p&gt;
+&lt;h4 id=&#34;parser--vm--runtime&#34;&gt;Parser + VM + Runtime&lt;/h4&gt;
+&lt;p&gt;Arguably, the triple &lt;code&gt;VM&lt;/code&gt; + &lt;code&gt;Parser&lt;/code&gt; + &lt;code&gt;Runtime&lt;/code&gt; can be called &amp;ldquo;a runtime,&amp;rdquo; but I prefer to have some separation of concerns. Here is where I draw the boundaries:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Parser: only does the parsing of the source code and converts it into a form suitable for execution via the Virtual Machine (&amp;ldquo;bytecode&amp;rdquo;)&lt;/li&gt;
+&lt;li&gt;Virtual Machine: the primary &amp;ldquo;computational device,&amp;rdquo; it operates on the bytecode and actually &amp;ldquo;runs&amp;rdquo; the program&lt;/li&gt;
+&lt;li&gt;Runtime: machinery required by the parser and VM (e.g., VM state manipulation, resource management, etc.)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;A naïve approach to building the compiler is to tear the interpreter apart: replace VM and runtime with codegen and embed the runtime into the resulting executable. However, the runtime extraction won&amp;rsquo;t work due to the dynamism mentioned above - the resulting executable should be able to parse and run any arbitrary Ruby code.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Side note: an alternative approach is to build a JIT compiler and embed the whole compiler into the executable, but it adds more complexity than I am ready to deal with.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;In the end, the solution is simpler - the compiler and the final executable include the whole interpreter. So the final &amp;ldquo;compiling interpreter&amp;rdquo; (or &amp;ldquo;interpreting compiler&amp;rdquo;) looks like this:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-1/compiler.png&#34; alt=&#34;Compiling interpreter&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;ruby-and-its-many-virtual-machines&#34;&gt;Ruby and its many Virtual Machines&lt;/h3&gt;
+&lt;p&gt;Now it&amp;rsquo;s time to discuss the &lt;code&gt;Virtual Machine&lt;/code&gt; component.&lt;/p&gt;
+&lt;p&gt;The most widely used Ruby implementation is CRuby, also known as MRI (as in &amp;ldquo;&lt;a href=&#34;https://en.wikipedia.org/wiki/Yukihiro_Matsumoto&#34;&gt;Matz&lt;/a&gt;&amp;rsquo; Ruby Interpreter&amp;rdquo;). It is an interpreter built on top of a custom virtual machine (YARV).&lt;/p&gt;
+&lt;p&gt;Another widely used implementation is &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; (so-called &amp;ldquo;embedded&amp;rdquo; Ruby). It is also an interpreter and built on top of another custom VM (RiteVM).&lt;/p&gt;
+&lt;p&gt;YARV and RiteVM are rather lightweight virtual machines. Unlike full-fledged system or process-level VMs (e.g., VirtualBox, JVM, CLR, etc.), they only provide a &amp;ldquo;computational device&amp;rdquo; - there is no resource control, sandboxing, etc.&lt;/p&gt;
+&lt;h4 id=&#34;stack-vs-registers&#34;&gt;Stack vs. Registers&lt;/h4&gt;
+&lt;p&gt;The &amp;ldquo;computational device&amp;rdquo; executes certain operations on certain data.
+The operations are encoded in the form of a &amp;ldquo;bytecode.&amp;rdquo; And the data is stored on a &amp;ldquo;virtual stack&amp;rdquo;. Though, the stack is accessed differently.&lt;/p&gt;
+&lt;p&gt;YARV accesses the stack implicitly (this is also known as a &amp;ldquo;stack-based VM&amp;rdquo;). RiteVM accesses the stack explicitly via registers (you got it, &amp;ldquo;register-based VM&amp;rdquo;).&lt;/p&gt;
+&lt;p&gt;To illustrate the bytecode and the difference between YARV and RiteVM, consider the following artificial examples.&lt;/p&gt;
+&lt;p&gt;Stack-based bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;plus&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;print&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Register-based bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;load&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;plus&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;print&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The stack-based version uses the stack implicitly, while another version specifies the storage explicitly.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s &amp;ldquo;run&amp;rdquo; both examples to see them in action.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-1/vm-execution.png&#34; alt=&#34;Comparison of stack and register-based VMs&#34;&gt;&lt;/p&gt;
+&lt;p&gt;At every step, the VM does something according to the currently running instruction/opcode (underscored lines) and updates the virtual stack.&lt;/p&gt;
+&lt;p&gt;Stack-based VM only reads/writes data from/to the place where an arrow points to - this is the top of the virtual stack.&lt;/p&gt;
+&lt;p&gt;Register-based VM does the same but has random access to the virtual stack.&lt;/p&gt;
+&lt;p&gt;While the underlying machinery is very similar, there are good reasons for picking one or the other form of a VM. Yet, these reasons are out of the scope of this series. Please, consult elsewhere if you want to learn more.
+The topic of VMs is huge but fascinating.&lt;/p&gt;
+&lt;h4 id=&#34;dispatch-loop&#34;&gt;Dispatch loop&lt;/h4&gt;
+&lt;p&gt;Let&amp;rsquo;s consider how the VM works and deals with the bytecode.
+YARV and RiteVM use the so-called &amp;ldquo;dispatch loop,&amp;rdquo; which is effectively a for-loop + a huge &lt;code&gt;switch&lt;/code&gt;-statement. Typical pseudocode looks like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// Iterate through each opcode in the bytecode stream
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (opcode in bytecode) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;switch&lt;/span&gt; (opcode) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// Take a corresponding action for each separate opcode
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_CODE_1: &lt;span style=&#34;color:#75715e&#34;&gt;/* do something */&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_CODE_2: &lt;span style=&#34;color:#75715e&#34;&gt;/* do something */&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// ... more opcodes
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_CODE_N: &lt;span style=&#34;color:#75715e&#34;&gt;/* do something */&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And then, the bodies for the actual opcodes may look as follows.
+Stack-based VM:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;Example program:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; load 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; load 32
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; plus
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; print
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_LOAD:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; pool[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;] &lt;span style=&#34;color:#75715e&#34;&gt;// pool is some abstract additional storage
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  stack.push(val)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PLUS:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  lhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stack.pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stack.pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; lhs &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; rhs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  stack.push(res)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PRINT:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; stack.pop()
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  print(val)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And the register-based version for completeness:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;Example program:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; load R1 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; load R2 32
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; plus R1 R1 R2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; print R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// md is some additional opcode metadata
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_LOAD:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  registers[md.reg1] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; pool[&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PLUS:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  lhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; registers[md.reg1]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rhs &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; registers[md.reg2]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  res &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; lhs &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; rhs
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  registers[md.reg1] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; res
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;case&lt;/span&gt; OP_PRINT:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  val &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; registers[md.reg1]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  print(val)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;In this case, if we know the values behind &lt;code&gt;pool[0]&lt;/code&gt; and the actual values of &lt;code&gt;md.regN&lt;/code&gt;, then we compile the example program to something like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; load R1 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; load R2 32
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; plus R1 R1 R2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; print R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;R1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;R2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;R1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; R1 &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; R2
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;print(R1)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and avoid the whole dispatch loop, but I digress :)&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;In the following article, we will look into MRuby&amp;rsquo;s implementation and virtual machine in more detail.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss the next part!&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 0: Motivation</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-0/</link>
+        <pubDate>Fri, 02 Dec 2022</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-0/</guid>
+        <description>&lt;p&gt;This article is part of the series &amp;ldquo;Compiling Ruby,&amp;rdquo; in which I&amp;rsquo;m documenting my journey of building an ahead-of-time (AOT) compiler for &lt;a href=&#34;https://dragonruby.org&#34;&gt;DragonRuby&lt;/a&gt;, which is based on &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; and heavily utilizes &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; infrastructure.&lt;/p&gt;
+&lt;p&gt;Here is what you can expect from the series:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;Motivation&lt;/a&gt;: some background reading on what and why&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-1/&#34;&gt;Compilers vs Interpreters&lt;/a&gt;: a high level overview of the chosen approach&lt;/li&gt;
+&lt;li&gt;RiteVM (TDB): a high-level overview of the mRuby Virtual Machine&lt;/li&gt;
+&lt;li&gt;Exceptions (TBD): an overview of how mRuby implements exception handling&lt;/li&gt;
+&lt;li&gt;MLIR (TBD): covers what is &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; and how it fits into the whole picture&lt;/li&gt;
+&lt;li&gt;Garbage Collection (TBD): an overview of how mRuby manages memory&lt;/li&gt;
+&lt;li&gt;Fibers (TBD): what are fibers in Ruby, and how mRuby makes them work&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;&lt;em&gt;Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.&lt;/em&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;For the last couple of years, I&amp;rsquo;ve been working on a fun side project called &lt;a href=&#34;https://dragonruby.org/toolkit/game&#34;&gt;DragonRuby Game Toolkit&lt;/a&gt;, or GTK for short.&lt;/p&gt;
+&lt;p&gt;GTK is a professional-grade 2D game engine. Among the many incredible features:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;you can build games in Ruby&lt;/li&gt;
+&lt;li&gt;it targets many (like, many!) platforms (Windows, Linux, macOS, iOS, Android, WASM, Nintendo Switch, Xbox, PlayStation, Oculus VR, Steam Deck)&lt;/li&gt;
+&lt;li&gt;super lightweight (~3.5 megabytes)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://dragonruby.org/toolkit/game&#34;&gt;and many more really&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;GTK is built on top of a slightly customized mRuby runtime and allows you to write games purely in Ruby. It comes with all the batteries included, but if you need more in a specific case, you can always fall back to C via the C extensions mechanism.&lt;/p&gt;
+&lt;p&gt;From a user perspective, the end product (the game) looks like this:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-0/end-product.png&#34; alt=&#34;End Product&#34;&gt;&lt;/p&gt;
+&lt;p&gt;While the engine itself is pretty fast, what annoys me personally (from the aesthetic point of view) is that we cannot fully optimize the C extensions as they are compiled separately from the rest of the engine.&lt;/p&gt;
+&lt;p&gt;Looking at the picture, we have four components of the game:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the engine&amp;rsquo;s runtime (Ruby)&lt;/li&gt;
+&lt;li&gt;the engine&amp;rsquo;s runtime (C)&lt;/li&gt;
+&lt;li&gt;the game code (Ruby)&lt;/li&gt;
+&lt;li&gt;the game code (C)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Suppose we want to optimize all the C code together. In that case, we&amp;rsquo;d have to ship the runtime in some &amp;lsquo;common&amp;rsquo; denominator form (e.g., &lt;a href=&#34;https://lowlevelbits.org/bitcode-demystified/&#34;&gt;LLVM Bitcode&lt;/a&gt;), then compile the C extension into the same form, optimize it all together and then link into an executable.&lt;/p&gt;
+&lt;p&gt;This is doable, but while I was thinking about this problem I&amp;rsquo;ve found even bigger (and much more interesting) &amp;lsquo;problem&amp;rsquo; - what about all that Ruby code? Can we also compile it to some common form and then optimize it with the rest of the C code out there?&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-0/optimizations.png&#34; alt=&#34;Optimizations&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The answer is - definitely yes! We just need to build a compiler that would do that job.&lt;/p&gt;
+&lt;p&gt;At the time of writing, the compiler is far from being done, but it works reasonably well, and I can successfully compile and run more than half of the mRuby test suite.&lt;/p&gt;
+&lt;p&gt;As a sneak peek, here is an output from the test suite:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;/opt/DragonRuby/FireStorm/cmake-build-llvm-14-asan/tests/MrbTests/firestorm_mrbtest
+mrbtest - Embeddable Ruby Test
+
+............................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................................?.........................................................................................................................
+Skip: File.expand_path (with ENV)
+ Total: 934
+ OK: 933
+ KO: 0
+ Crash: 0
+Warning: 0
+ Skip: 1
+ Time: 0.45 seconds
+
+Process finished with exit code 0
+&lt;/code&gt;&lt;/pre&gt;&lt;hr&gt;
+&lt;p&gt;I hope this motivation gives you enough information on why someone would do what I am doing!&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s take a look at the approach I am taking to solve this problem - &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-1/&#34;&gt;Compilers vs. Interpreters&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>
