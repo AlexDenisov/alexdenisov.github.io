@@ -98,21 +98,112 @@
             </p>
           </div>
 
-          <div>
-            <p>This article is part of the series &ldquo;Compiling Ruby,&rdquo; in which I&rsquo;m documenting my journey of building an ahead-of-time (AOT) compiler for <a href="https://dragonruby.org">DragonRuby</a>, which is based on <a href="https://mruby.org">mRuby</a> and heavily utilizes <a href="https://mlir.llvm.org">MLIR</a> infrastructure.</p>
+          
+            
+            
+
+<p>
+    This article is part of the series "Compiling Ruby,"
+    in which I'm documenting my journey of building an ahead-of-time (AOT) compiler for 
+    <a href="https://dragonruby.org" target="_blank">DragonRuby</a>,
+    which is based on <a href="https://mruby.org" target="_blank">mruby</a>
+    and heavily utilizes <a href="https://mlir.llvm.org" target="_blank">MLIR</a> infrastructure.
+</p>
+
 <p>Here is what you can expect from the series:</p>
+
 <ul>
-<li><strong><a href="https://lowlevelbits.org/compiling-ruby-part-0">Motivation</a>: some background reading on what and why</strong></li>
-<li><a href="https://lowlevelbits.org/compiling-ruby-part-1/">Compilers vs Interpreters</a>: a high level overview of the chosen approach</li>
-<li>RiteVM (TDB): a high-level overview of the mRuby Virtual Machine</li>
-<li>Exceptions (TBD): an overview of how mRuby implements exception handling</li>
-<li>MLIR (TBD): covers what is <a href="https://mlir.llvm.org">MLIR</a> and how it fits into the whole picture</li>
-<li>Garbage Collection (TBD): an overview of how mRuby manages memory</li>
-<li>Fibers (TBD): what are fibers in Ruby, and how mRuby makes them work</li>
+
+  <li>
+  
+  
+  
+  
+    <b>
+  
+  
+    <a href="/compiling-ruby-part-0/">Motivation</a>: some background reading on what and why
+  
+  
+    </b>
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-1/">Compilers vs Interpreters</a>: a high level overview of the chosen approach
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-2/">RiteVM</a>: a high-level overview of the mruby Virtual Machine
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Exceptions (TBD): an overview of how mruby implements exception handling
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  MLIR (TBD): covers what is MLIR and how it fits into the whole picture
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Garbage Collection (TBD): an overview of how mruby manages memory
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Fibers (TBD): what are fibers in Ruby, and how mruby makes them work
+  
+  
+  </li>
+
 </ul>
-<p><em>Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.</em></p>
-<hr>
-<p>For the last couple of years, I&rsquo;ve been working on a fun side project called <a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit</a>, or GTK for short.</p>
+
+<i>Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.</i>
+
+<hr />
+          
+
+          <div>
+            <p>For the last couple of years, I&rsquo;ve been working on a fun side project called <a href="https://dragonruby.org/toolkit/game">DragonRuby Game Toolkit</a>, or GTK for short.</p>
 <p>GTK is a professional-grade 2D game engine. Among the many incredible features:</p>
 <ul>
 <li>you can build games in Ruby</li>
@@ -120,7 +211,7 @@
 <li>super lightweight (~3.5 megabytes)</li>
 <li><a href="https://dragonruby.org/toolkit/game">and many more really</a></li>
 </ul>
-<p>GTK is built on top of a slightly customized mRuby runtime and allows you to write games purely in Ruby. It comes with all the batteries included, but if you need more in a specific case, you can always fall back to C via the C extensions mechanism.</p>
+<p>GTK is built on top of a slightly customized mruby runtime and allows you to write games purely in Ruby. It comes with all the batteries included, but if you need more in a specific case, you can always fall back to C via the C extensions mechanism.</p>
 <p>From a user perspective, the end product (the game) looks like this:</p>
 <p><img src="/img/compiling-ruby-0/end-product.png" alt="End Product"></p>
 <p>While the engine itself is pretty fast, what annoys me personally (from the aesthetic point of view) is that we cannot fully optimize the C extensions as they are compiled separately from the rest of the engine.</p>
@@ -135,7 +226,7 @@
 <p>This is doable, but while I was thinking about this problem I&rsquo;ve found even bigger (and much more interesting) &lsquo;problem&rsquo; - what about all that Ruby code? Can we also compile it to some common form and then optimize it with the rest of the C code out there?</p>
 <p><img src="/img/compiling-ruby-0/optimizations.png" alt="Optimizations"></p>
 <p>The answer is - definitely yes! We just need to build a compiler that would do that job.</p>
-<p>At the time of writing, the compiler is far from being done, but it works reasonably well, and I can successfully compile and run more than half of the mRuby test suite.</p>
+<p>At the time of writing, the compiler is far from being done, but it works reasonably well, and I can successfully compile and run more than half of the mruby test suite.</p>
 <p>As a sneak peek, here is an output from the test suite:</p>
 <pre tabindex="0"><code>/opt/DragonRuby/FireStorm/cmake-build-llvm-14-asan/tests/MrbTests/firestorm_mrbtest
 mrbtest - Embeddable Ruby Test
@@ -161,8 +252,8 @@ Process finished with exit code 0
         <div>
           <hr />
           <p class="post-page-rfc">
-            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on <a
-              href="https://twitter.com/1101_debian">twitter</a> if you have questions!
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on
+            <a href="https://twitter.com/1101_debian">twitter</a> or <a href="https://mastodon.social/@AlexDenisov">Mastodon</a> if you have questions!
           </p>
 
           <hr />
@@ -188,6 +279,15 @@ Process finished with exit code 0
 
     
 
+    
+    
+    
+    
+
+    
+
+    
+    
     
     
     
@@ -644,15 +744,13 @@ Process finished with exit code 0
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
       
       
-      
-      
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
       
       
@@ -660,6 +758,8 @@ Process finished with exit code 0
       <li>
         <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
+      
+      
       
       
       
@@ -698,6 +798,12 @@ Process finished with exit code 0
       
       
       
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-2/"> Compiling Ruby. Part 2: RiteVM</a>
+      </li>
+      
+      
+      
       
       
       <li>
@@ -714,12 +820,6 @@ Process finished with exit code 0
       
       <li>
         <a href="https://lowlevelbits.org/llvm-meets-code-property-graphs/"> LLVM meets Code Property Graphs</a>
-      </li>
-      
-      
-      
-      <li>
-        <a href="https://lowlevelbits.org/exploring-llvm-bitcode-interactively/"> Exploring LLVM Bitcode interactively</a>
       </li>
       
       

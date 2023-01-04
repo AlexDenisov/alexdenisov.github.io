@@ -18,20 +18,7 @@
         <pubDate>Fri, 02 Dec 2022</pubDate>
         <author>alex@lowlevelbits.org (Alex Denisov)</author>
         <guid>https://lowlevelbits.org/compiling-ruby-part-1/</guid>
-        <description>&lt;p&gt;This article is part of the series &amp;ldquo;Compiling Ruby,&amp;rdquo; in which I&amp;rsquo;m documenting my journey of building an ahead-of-time (AOT) compiler for &lt;a href=&#34;https://dragonruby.org&#34;&gt;DragonRuby&lt;/a&gt;, which is based on &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; and heavily utilizes &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; infrastructure.&lt;/p&gt;
-&lt;p&gt;Here is what you can expect from the series:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;Motivation&lt;/a&gt;: some background reading on what and why&lt;/li&gt;
-&lt;li&gt;&lt;strong&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-1/&#34;&gt;Compilers vs Interpreters&lt;/a&gt;: a high level overview of the chosen approach&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;RiteVM (TDB): a high-level overview of the mRuby Virtual Machine&lt;/li&gt;
-&lt;li&gt;Exceptions (TBD): an overview of how mRuby implements exception handling&lt;/li&gt;
-&lt;li&gt;MLIR (TBD): covers what is &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; and how it fits into the whole picture&lt;/li&gt;
-&lt;li&gt;Garbage Collection (TBD): an overview of how mRuby manages memory&lt;/li&gt;
-&lt;li&gt;Fibers (TBD): what are fibers in Ruby, and how mRuby makes them work&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;em&gt;Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.&lt;/em&gt;&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;With the (hopefully) convincing &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;motivation&lt;/a&gt; out of the way, we can get to the technical details.&lt;/p&gt;
+        <description>&lt;p&gt;With the (hopefully) convincing &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;motivation&lt;/a&gt; out of the way, we can get to the technical details.&lt;/p&gt;
 &lt;h3 id=&#34;compiling-interpreter-interpreting-compiler&#34;&gt;Compiling Interpreter, Interpreting Compiler&lt;/h3&gt;
 &lt;p&gt;As mentioned in the motivation, I want to build an ahead-of-time compiler for Ruby. I want it to be compatible with the existing Ruby implementation to fit it naturally into the existing system.&lt;/p&gt;
 &lt;p&gt;So the first question I had to answer is - how do I even do it?&lt;/p&gt;
@@ -64,7 +51,7 @@
 &lt;h3 id=&#34;ruby-and-its-many-virtual-machines&#34;&gt;Ruby and its many Virtual Machines&lt;/h3&gt;
 &lt;p&gt;Now it&amp;rsquo;s time to discuss the &lt;code&gt;Virtual Machine&lt;/code&gt; component.&lt;/p&gt;
 &lt;p&gt;The most widely used Ruby implementation is CRuby, also known as MRI (as in &amp;ldquo;&lt;a href=&#34;https://en.wikipedia.org/wiki/Yukihiro_Matsumoto&#34;&gt;Matz&lt;/a&gt;&amp;rsquo; Ruby Interpreter&amp;rdquo;). It is an interpreter built on top of a custom virtual machine (YARV).&lt;/p&gt;
-&lt;p&gt;Another widely used implementation is &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; (so-called &amp;ldquo;embedded&amp;rdquo; Ruby). It is also an interpreter and built on top of another custom VM (RiteVM).&lt;/p&gt;
+&lt;p&gt;Another widely used implementation is &lt;a href=&#34;https://mruby.org&#34;&gt;mruby&lt;/a&gt; (so-called &amp;ldquo;embedded&amp;rdquo; Ruby). It is also an interpreter and built on top of another custom VM (RiteVM).&lt;/p&gt;
 &lt;p&gt;YARV and RiteVM are rather lightweight virtual machines. Unlike full-fledged system or process-level VMs (e.g., VirtualBox, JVM, CLR, etc.), they only provide a &amp;ldquo;computational device&amp;rdquo; - there is no resource control, sandboxing, etc.&lt;/p&gt;
 &lt;h4 id=&#34;stack-vs-registers&#34;&gt;Stack vs. Registers&lt;/h4&gt;
 &lt;p&gt;The &amp;ldquo;computational device&amp;rdquo; executes certain operations on certain data.
@@ -155,7 +142,143 @@ Stack-based VM:&lt;/p&gt;
 &lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;print(R1)
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and avoid the whole dispatch loop, but I digress :)&lt;/p&gt;
 &lt;hr&gt;
-&lt;p&gt;In the following article, we will look into MRuby&amp;rsquo;s implementation and virtual machine in more detail.&lt;/p&gt;
+&lt;p&gt;In the following article, we look into mruby&amp;rsquo;s implementation and virtual machine in more detail - &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-2/&#34;&gt;Compiling Ruby. Part 2: RiteVM&lt;/a&gt;.&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 2: RiteVM</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-2/</link>
+        <pubDate>Fri, 02 Dec 2022</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-2/</guid>
+        <description>&lt;p&gt;mruby (so-called &amp;ldquo;embedded&amp;rdquo; Ruby) is a relatively small Ruby implementation.&lt;/p&gt;
+&lt;p&gt;mruby is based on a register-based virtual machine. In the previous article, I mentioned the difference between stack- and register-based VMs, but what is a Virtual Machine?
+As obvious as it gets, a Virtual Machine is a piece of software that mimics specific behavior(s) of a Real Machine.&lt;/p&gt;
+&lt;p&gt;Depending on the kind of virtual machine, the capabilities may vary.
+A VM can mimic a typical computer&amp;rsquo;s complete behavior, allowing us to run any software we&amp;rsquo;d run on a regular machine (think VirtualBox or VMware).
+Or it can implement a behavior of an imaginary, artificial machine that doesn&amp;rsquo;t have a counterpart in the real physical world (think JVM or CLR).&lt;/p&gt;
+&lt;p&gt;The mruby RiteVM is of a latter kind. It defines a set of &amp;ldquo;CPU&amp;rdquo; operations and provides a runtime to run them. The operations are referred to as bytecode. The bytecode consists of an operation kind (opcode) and its corresponding metadata (registers, flags, etc.).&lt;/p&gt;
+&lt;h3 id=&#34;bytecode&#34;&gt;Bytecode&lt;/h3&gt;
+&lt;p&gt;Here is a tiny snippet of various RiteVM operations (coming from &lt;code&gt;mruby/ops.h&lt;/code&gt;):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OPCODE(NOP,   Z)  &lt;span style=&#34;color:#75715e&#34;&gt;/* no operation */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OPCODE(MOVE,  BB) &lt;span style=&#34;color:#75715e&#34;&gt;/* R(a) = R(b) */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OPCODE(ADD,   B)  &lt;span style=&#34;color:#75715e&#34;&gt;/* R(a) = R(a)+R(a+1) */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OPCODE(ENTER, W)  &lt;span style=&#34;color:#75715e&#34;&gt;/* arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1) */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OPCODE(JMP,   S)  &lt;span style=&#34;color:#75715e&#34;&gt;/* pc+=a */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;All the opcodes follow the same form:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;OPCODE(name, operands) &lt;span style=&#34;color:#75715e&#34;&gt;/* comment */&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;name&lt;/code&gt; is self-explanatory. The &lt;code&gt;comment&lt;/code&gt; describes (or hints at) an operation&amp;rsquo;s semantics.
+The &lt;code&gt;operands&lt;/code&gt; is a bit more tricky and is directly related to the bytecode encoding.&lt;/p&gt;
+&lt;p&gt;Each letter in the &lt;code&gt;operands&lt;/code&gt; describes the size of the operand. &lt;code&gt;Z&lt;/code&gt; means that the operand&amp;rsquo;s size is zero bytes (i.e., there is no operand).
+&lt;code&gt;B&lt;/code&gt;, &lt;code&gt;S&lt;/code&gt;, and &lt;code&gt;W&lt;/code&gt; all mean one operand, but their sizes are 1, 2, and 3 bytes, respectively.
+These definitions can be mixed and matched as needed, but in practice, only the following combinations are used (from &lt;code&gt;mruby/ops.h&lt;/code&gt;):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* operand types:
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; + BB: 8+8bit
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; + BBB: 8+8+8bit
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; + BS: 8+16bit
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt; + BSS: 8+16+16bit
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;as the operation may have up to three operands max.&lt;/p&gt;
+&lt;p&gt;The operands are called &lt;code&gt;a&lt;/code&gt;, &lt;code&gt;b&lt;/code&gt;, and &lt;code&gt;c&lt;/code&gt;. The following bytecode string will be decoded differently depending on the operand definition (the &lt;code&gt;42&lt;/code&gt; will be mapped to a corresponding opcode):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;BBB&lt;/code&gt; -&amp;gt; &lt;code&gt;a = 1, b = 2, c = 3&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B&lt;/code&gt; -&amp;gt; &lt;code&gt;a = 1, b = undefined, c = undefined&lt;/code&gt;, &lt;code&gt;2&lt;/code&gt; is treated as the next opcode&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;BS&lt;/code&gt; -&amp;gt; &lt;code&gt;a = 1, b = 2 &amp;lt;&amp;lt; 8 | 3, c = undefined&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;W&lt;/code&gt; -&amp;gt; &lt;code&gt;a = 1 &amp;lt;&amp;lt; 16 | 2 &amp;lt;&amp;lt; 8 | 3, b = undefined, c = undefined&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;and so on.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Now the comments from the snippet above make more sense:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;NOP&lt;/code&gt; does nothing with all its zero operands&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MOVE&lt;/code&gt; copies value from register &lt;code&gt;b&lt;/code&gt; to register &lt;code&gt;a&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ENTER&lt;/code&gt; maps the operand &lt;code&gt;a&lt;/code&gt; to the flags needed for its logic&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;JMP&lt;/code&gt; changes the program counter to point to a new location &lt;code&gt;b&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;With all this information, we now understand &lt;em&gt;what&lt;/em&gt; the operations do.
+The next question is &lt;em&gt;how&lt;/em&gt; do they do it?&lt;/p&gt;
+&lt;h3 id=&#34;bytecode-execution&#34;&gt;Bytecode Execution&lt;/h3&gt;
+&lt;p&gt;The bytecode doesn&amp;rsquo;t live in a vacuum. Each bytecode sequence is part of a method. Consider the following example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;(a, b)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; b
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;end&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;puts sum(&lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can look into its bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;mruby&lt;/span&gt; --&lt;span style=&#34;color:#66d9ef&#34;&gt;verbose&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;sum.rb&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;skipped&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;irep&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x600001390000&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nregs&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nlocals&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;pools&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;syms&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;reps&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ilen&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;25&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;file: &lt;span style=&#34;color:#a6e22e&#34;&gt;sum.rb&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;000&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;TCLASS&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;002&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;METHOD&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;I&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0x600001390050&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;005&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;DEF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; :&lt;span style=&#34;color:#66d9ef&#34;&gt;sum&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;008&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;011&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;014&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;SSEND&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; :&lt;span style=&#34;color:#66d9ef&#34;&gt;sum&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;n&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; (&lt;span style=&#34;color:#ae81ff&#34;&gt;0x02&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;018&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;SSEND&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; :&lt;span style=&#34;color:#66d9ef&#34;&gt;puts&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;n&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; (&lt;span style=&#34;color:#ae81ff&#34;&gt;0x01&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;022&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RETURN&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;024&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;STOP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;irep&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x600001390050&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nregs&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;7&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;nlocals&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;4&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;pools&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;syms&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;reps&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;ilen&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;14&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;local&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;variable&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;names&lt;/span&gt;:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; R1:&lt;span style=&#34;color:#a6e22e&#34;&gt;a&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; R2:&lt;span style=&#34;color:#a6e22e&#34;&gt;b&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; R3:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;&amp;amp;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;file: &lt;span style=&#34;color:#a6e22e&#34;&gt;sum.rb&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;1&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;000&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ENTER&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; (&lt;span style=&#34;color:#ae81ff&#34;&gt;0x80000&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;004&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MOVE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;; R1:a
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;007&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MOVE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R5&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;; R2:b
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;010&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ADD&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;2&lt;/span&gt; &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;012&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RETURN&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The bytecode sequence is part of the &lt;code&gt;mrb_irep&lt;/code&gt; struct, which is subsequently part of the &lt;code&gt;RProc&lt;/code&gt; struct, which corresponds to a Ruby method (procedure?) object.&lt;/p&gt;
+&lt;p&gt;The distinction is necessary as &lt;code&gt;RProc&lt;/code&gt; is a higher-level abstraction over an executable code, which might be either a RiteVM bytecode or a C function. Additionally, there is a distinction between a &lt;code&gt;lambda&lt;/code&gt;, a &lt;code&gt;block&lt;/code&gt;, and a &lt;code&gt;method&lt;/code&gt;. Yet, we will only focus on the bytecode parts and ignore all the lambda/block/method shenanigans.&lt;/p&gt;
+&lt;p&gt;In the &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-1/#ruby-and-its-many-virtual-machines&#34;&gt;previous article&lt;/a&gt;, I briefly described the dispatch loop and how a VM interacts with the virtual stack. The description is not precise but accurate and catches the essential details.&lt;/p&gt;
+&lt;p&gt;Execution of each &lt;code&gt;RProc&lt;/code&gt; requires a virtual stack to operate on the data, but it also requires some additional metadata. The &amp;ldquo;metadata&amp;rdquo; is part of the so-called &lt;code&gt;mrb_callinfo&lt;/code&gt; struct. This concept is known as &lt;code&gt;stack frame&lt;/code&gt; or &lt;code&gt;activation record&lt;/code&gt;.
+The virtual stack is stored separately but is part of the &lt;code&gt;mrb_callinfo&lt;/code&gt; (sort of).
+The virtual stack is essential as it is the only way to communicate between different operations and different &lt;code&gt;RProc&lt;/code&gt;s.&lt;/p&gt;
+&lt;p&gt;Here is what happens during bytecode execution:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;mrb_callinfo&lt;/code&gt; is created from an &lt;code&gt;RProc&lt;/code&gt; and is put onto the &amp;ldquo;call info&amp;rdquo; stack or simply a call stack. The new &lt;code&gt;mrb_callinfo&lt;/code&gt; points to a new location of the shared virtual stack (see the first picture below).&lt;/li&gt;
+&lt;li&gt;Each operation in &lt;code&gt;RProc&lt;/code&gt;&amp;rsquo;s &lt;code&gt;mrb_irep&lt;/code&gt; is executed in the context of the top &lt;code&gt;mrb_callinfo&lt;/code&gt; on the call stack. The virtual stack and state of the VM are updated accordingly.&lt;/li&gt;
+&lt;li&gt;When any &amp;ldquo;sendable&amp;rdquo; (&lt;code&gt;OP_SEND&lt;/code&gt;, &lt;code&gt;OP_SSEND&lt;/code&gt;, &lt;code&gt;OP_SENDBV&lt;/code&gt;, etc.) operation is encountered, we move to step 1.&lt;/li&gt;
+&lt;li&gt;When any &amp;ldquo;returnable&amp;rdquo; (&lt;code&gt;OP_RETURN&lt;/code&gt;, &lt;code&gt;OP_RETURN_BLK&lt;/code&gt;) operation is encountered, then the operand is put into the &amp;ldquo;return register&amp;rdquo; (for consumption by the caller), and the call stack is popped, effectively removing &lt;code&gt;mrb_callinfo&lt;/code&gt; created at step 1.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Here is how it looks in memory:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-2/bytecode-execution-high-level.png&#34; alt=&#34;Bytecode Execution Highlevel View&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;mrb_state&lt;/code&gt; (the state of the whole VM) has a stack of &lt;code&gt;mrb_context&lt;/code&gt;s (more on them in a later article). Each &lt;code&gt;mrb_context&lt;/code&gt; maintains the stack of &lt;code&gt;mrb_callinfo&lt;/code&gt; (the call stack). Each &lt;code&gt;mrb_context&lt;/code&gt; owns a virtual stack, which is shared among several &lt;code&gt;mrb_callinfo&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;This way, the caller prepares the stack for the callee.&lt;/p&gt;
+&lt;p&gt;As a reminder, here is the bytecode from the example above:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;top:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;TCLASS&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;METHOD&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;I&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0x600001390050&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;DEF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; :&lt;span style=&#34;color:#66d9ef&#34;&gt;sum&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;SSEND&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; :&lt;span style=&#34;color:#66d9ef&#34;&gt;sum&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;n&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt; (&lt;span style=&#34;color:#ae81ff&#34;&gt;0x02&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;SSEND&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; :&lt;span style=&#34;color:#66d9ef&#34;&gt;puts&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;n&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;=&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; (&lt;span style=&#34;color:#ae81ff&#34;&gt;0x01&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;RETURN&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;STOP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;sum:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ENTER&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;2&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;:&lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt; (&lt;span style=&#34;color:#ae81ff&#34;&gt;0x80000&lt;/span&gt;)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;MOVE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;; R1:a
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;MOVE&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R5&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;; R2:b
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;ADD&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R5&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;RETURN&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R4&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is how the shared stack looks from the perspective of both the top-level method &lt;code&gt;top&lt;/code&gt; and the method &lt;code&gt;sum&lt;/code&gt;: by the time the first &lt;code&gt;SSEND&lt;/code&gt; operand (&amp;ldquo;send to self&amp;rdquo;) is executed, all the values are ready for consumption by the callee.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-2/bytecode-execution.png&#34;
+style=&#34; display: block;
+margin-left: 0;
+margin-right: auto;
+width: 80%;
+height: auto;&#34; /&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Hopefully, now you better understand how RiteVM uses bytecode, and we are one step closer to the actual fun part - compilation!&lt;/p&gt;
+&lt;p&gt;The following article will examine MLIR and how it fits the whole compilation story.&lt;/p&gt;
 &lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss the next part!&lt;/a&gt;&lt;/p&gt;
 </description>
       </item>
@@ -170,20 +293,7 @@ Stack-based VM:&lt;/p&gt;
         <pubDate>Fri, 02 Dec 2022</pubDate>
         <author>alex@lowlevelbits.org (Alex Denisov)</author>
         <guid>https://lowlevelbits.org/compiling-ruby-part-0/</guid>
-        <description>&lt;p&gt;This article is part of the series &amp;ldquo;Compiling Ruby,&amp;rdquo; in which I&amp;rsquo;m documenting my journey of building an ahead-of-time (AOT) compiler for &lt;a href=&#34;https://dragonruby.org&#34;&gt;DragonRuby&lt;/a&gt;, which is based on &lt;a href=&#34;https://mruby.org&#34;&gt;mRuby&lt;/a&gt; and heavily utilizes &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; infrastructure.&lt;/p&gt;
-&lt;p&gt;Here is what you can expect from the series:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;strong&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-0&#34;&gt;Motivation&lt;/a&gt;: some background reading on what and why&lt;/strong&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-1/&#34;&gt;Compilers vs Interpreters&lt;/a&gt;: a high level overview of the chosen approach&lt;/li&gt;
-&lt;li&gt;RiteVM (TDB): a high-level overview of the mRuby Virtual Machine&lt;/li&gt;
-&lt;li&gt;Exceptions (TBD): an overview of how mRuby implements exception handling&lt;/li&gt;
-&lt;li&gt;MLIR (TBD): covers what is &lt;a href=&#34;https://mlir.llvm.org&#34;&gt;MLIR&lt;/a&gt; and how it fits into the whole picture&lt;/li&gt;
-&lt;li&gt;Garbage Collection (TBD): an overview of how mRuby manages memory&lt;/li&gt;
-&lt;li&gt;Fibers (TBD): what are fibers in Ruby, and how mRuby makes them work&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;&lt;em&gt;Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.&lt;/em&gt;&lt;/p&gt;
-&lt;hr&gt;
-&lt;p&gt;For the last couple of years, I&amp;rsquo;ve been working on a fun side project called &lt;a href=&#34;https://dragonruby.org/toolkit/game&#34;&gt;DragonRuby Game Toolkit&lt;/a&gt;, or GTK for short.&lt;/p&gt;
+        <description>&lt;p&gt;For the last couple of years, I&amp;rsquo;ve been working on a fun side project called &lt;a href=&#34;https://dragonruby.org/toolkit/game&#34;&gt;DragonRuby Game Toolkit&lt;/a&gt;, or GTK for short.&lt;/p&gt;
 &lt;p&gt;GTK is a professional-grade 2D game engine. Among the many incredible features:&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;you can build games in Ruby&lt;/li&gt;
@@ -191,7 +301,7 @@ Stack-based VM:&lt;/p&gt;
 &lt;li&gt;super lightweight (~3.5 megabytes)&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://dragonruby.org/toolkit/game&#34;&gt;and many more really&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;GTK is built on top of a slightly customized mRuby runtime and allows you to write games purely in Ruby. It comes with all the batteries included, but if you need more in a specific case, you can always fall back to C via the C extensions mechanism.&lt;/p&gt;
+&lt;p&gt;GTK is built on top of a slightly customized mruby runtime and allows you to write games purely in Ruby. It comes with all the batteries included, but if you need more in a specific case, you can always fall back to C via the C extensions mechanism.&lt;/p&gt;
 &lt;p&gt;From a user perspective, the end product (the game) looks like this:&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-0/end-product.png&#34; alt=&#34;End Product&#34;&gt;&lt;/p&gt;
 &lt;p&gt;While the engine itself is pretty fast, what annoys me personally (from the aesthetic point of view) is that we cannot fully optimize the C extensions as they are compiled separately from the rest of the engine.&lt;/p&gt;
@@ -206,7 +316,7 @@ Stack-based VM:&lt;/p&gt;
 &lt;p&gt;This is doable, but while I was thinking about this problem I&amp;rsquo;ve found even bigger (and much more interesting) &amp;lsquo;problem&amp;rsquo; - what about all that Ruby code? Can we also compile it to some common form and then optimize it with the rest of the C code out there?&lt;/p&gt;
 &lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-0/optimizations.png&#34; alt=&#34;Optimizations&#34;&gt;&lt;/p&gt;
 &lt;p&gt;The answer is - definitely yes! We just need to build a compiler that would do that job.&lt;/p&gt;
-&lt;p&gt;At the time of writing, the compiler is far from being done, but it works reasonably well, and I can successfully compile and run more than half of the mRuby test suite.&lt;/p&gt;
+&lt;p&gt;At the time of writing, the compiler is far from being done, but it works reasonably well, and I can successfully compile and run more than half of the mruby test suite.&lt;/p&gt;
 &lt;p&gt;As a sneak peek, here is an output from the test suite:&lt;/p&gt;
 &lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;/opt/DragonRuby/FireStorm/cmake-build-llvm-14-asan/tests/MrbTests/firestorm_mrbtest
 mrbtest - Embeddable Ruby Test
@@ -2886,234 +2996,6 @@ can impact future tests.&lt;/p&gt;
 &lt;li&gt;There is always space for contribution: more documentation is needed, tests should have better sandboxing to achieve parallelism and removability.&lt;/li&gt;
 &lt;/ol&gt;
 &lt;p&gt;So far we have Rust and Javascript programming languages, NeoVim editor and XTerm terminal emulator in our plans. Let us know what projects or tools you would like to see covered in this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test/&#34;&gt;System Under Test&lt;/a&gt;.&lt;/p&gt;
-</description>
-      </item>
-      
-
-    
-
-      
-        <item>
-        <title>LLVM-based Mutation Testing System. Request For Comments</title>
-        <link>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</link>
-        <pubDate>Thu, 14 Apr 2016</pubDate>
-        <author>alex@lowlevelbits.org (Alex Denisov)</author>
-        <guid>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</guid>
-        <description>&lt;p&gt;Several years ago I discovered very powerful technique - &lt;a href=&#34;https://en.wikipedia.org/wiki/Mutation_testing&#34;&gt;Mutation Testing&lt;/a&gt;.
-Since then I was (and still am) dreaming to have a tool which will do the job for languages like C, Objective-C and C++.&lt;/p&gt;
-&lt;p&gt;Now I have confidence in that it can be implemented using LLVM.&lt;/p&gt;
-&lt;p&gt;Outline for this article:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;overview of mutation testing&lt;/li&gt;
-&lt;li&gt;mutation testing system - proof of concept&lt;/li&gt;
-&lt;li&gt;thoughts on potential implementation of MT system using LLVM&lt;/li&gt;
-&lt;/ul&gt;
-&lt;h4 id=&#34;acknowledgements&#34;&gt;Acknowledgements&lt;/h4&gt;
-&lt;p&gt;I want to say &amp;rsquo;thanks&amp;rsquo; explicitly to &lt;a href=&#34;https://github.com/mbj&#34;&gt;Markus Schirp&lt;/a&gt; and &lt;a href=&#34;https://github.com/hcoles&#34;&gt;Henry Coles&lt;/a&gt; for their work on &lt;a href=&#34;https://github.com/mbj/mutant&#34;&gt;Mutant&lt;/a&gt; and &lt;a href=&#34;https://github.com/hcoles/pitest&#34;&gt;Pitest&lt;/a&gt; and hints they gave me several years ago.&lt;/p&gt;
-&lt;p&gt;Also, I want to say &amp;rsquo;thanks&amp;rsquo; to all the people involved into development of LLVM.&lt;/p&gt;
-&lt;h3 id=&#34;mutation-testing-in-a-nutshell&#34;&gt;Mutation Testing in a nutshell&lt;/h3&gt;
-&lt;p&gt;There is a strong belief that code coverage is a meaningful metric. That is incorrect.&lt;/p&gt;
-&lt;p&gt;Obviously, if code coverage is 0% then you have some problems. On the other hand having 100% code coverage means literally nothing.&lt;/p&gt;
-&lt;p&gt;Consider the following situation: you have a test case which covers implementation of a function &lt;code&gt;sum&lt;/code&gt;. You may assume that sum of two positive numbers will result in a positive number, which is greater than 0.&lt;/p&gt;
-&lt;p&gt;Here is the test:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;test_result &lt;span style=&#34;color:#a6e22e&#34;&gt;test_sum&lt;/span&gt;() {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; result &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; sum(&lt;span style=&#34;color:#ae81ff&#34;&gt;9&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;5&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (result &lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; success;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; fail;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Implementation of the &lt;code&gt;sum&lt;/code&gt; function is rather simple. But, since you missed your morning coffee you write a wrong operator there:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;sum&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; a, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; a &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; b;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;You run the tests - everything is working.&lt;/p&gt;
-&lt;p&gt;You check code coverage - oh wow, 100%.&lt;/p&gt;
-&lt;p&gt;You didn&amp;rsquo;t spot the problem because you trust your tests. And because you rely on code coverage. Neither of these is acceptable.&lt;/p&gt;
-&lt;p&gt;This situation raises very valid question - &lt;strong&gt;who tests the tests?&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;One of the answers is Mutation Testing.&lt;/p&gt;
-&lt;p&gt;The idea is that MT system generates lots of variations of a program under test (in this case function &lt;code&gt;sum&lt;/code&gt;) which are slightly different from original program. Then the system evaluates test against each mutant and check the result. If test failed, then mutant is killed, otherwise - it is survived.&lt;/p&gt;
-&lt;p&gt;Ideally all mutants should be killed. Only then you can claim that your tests are valid and correct.&lt;/p&gt;
-&lt;p&gt;Here is one potential mutation:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-diff&#34; data-lang=&#34;diff&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; int sum(int a, int b) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;-  return a * b;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;+  return a + b;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;&lt;/span&gt; }
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Multiplication was replaced by addition. In fact the implementation is correct now, but the test will not fail, since condition &lt;code&gt;sum(9, 5) &amp;gt; 0&lt;/code&gt; still holds.&lt;/p&gt;
-&lt;p&gt;This survived mutant should give a hint to developer that something is wrong.&lt;/p&gt;
-&lt;h3 id=&#34;proof-of-concept&#34;&gt;Proof of Concept&lt;/h3&gt;
-&lt;p&gt;&lt;strong&gt;I do claim that such a system can be built on top of LLVM using LLVM IR/bitcode, JIT and &lt;a href=&#34;https://lh6.googleusercontent.com/hY5_U3eO3lPP2fhwcZgCFHC9IpOomMR1YIXz4kDML1hpliTNmaZ5DLrTzyKq9RMAMIYwPocbSkzGiRSUrVzwpyHeSBxVDbR3MHK41bHiE7feidNeUOXqPrwfv1ZNb2tEWPR4msan&#34;&gt;ponies&lt;/a&gt;.&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;So far I have managed to create a proof of concept which obviously lacks tons of features and skips lots of real problems.&lt;/p&gt;
-&lt;p&gt;Code is available &lt;a href=&#34;https://github.com/AlexDenisov/mutation-testing-poc&#34;&gt;here&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;It is not intended to be runnable on your machine, since it uses &amp;lsquo;slightly forked&amp;rsquo; LLVM with couple of functions that were &amp;lsquo;missing&amp;rsquo;.&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;So far it does very little:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;loads LLVM IR from bitcode files into memory&lt;/li&gt;
-&lt;li&gt;finds first test function&lt;/li&gt;
-&lt;li&gt;finds a function (testee) used from test function&lt;/li&gt;
-&lt;li&gt;replaces first occurrence of &amp;lsquo;+&amp;rsquo; with &amp;lsquo;-&amp;rsquo;&lt;/li&gt;
-&lt;li&gt;prints diff (using libgit2) between original and mutated function&lt;/li&gt;
-&lt;li&gt;runs test against original function and mutated function&lt;/li&gt;
-&lt;li&gt;compares test results, assuming mutant is killed when results are different&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;I guess it doesn&amp;rsquo;t look impressive and mind-blowing.
-However, this proof of concept inspires me to start working on a real system, despite that it will take enormous amount of time since (almost) all this work I do in my spare time.&lt;/p&gt;
-&lt;h3 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h3&gt;
-&lt;p&gt;The next step actually is to start implementing the system that can be used in production.&lt;/p&gt;
-&lt;p&gt;Below you can see a high level overview of an algorithm I have in my head.
-It is a swift-like pseudocode. Please, follow the comments!&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-swift&#34; data-lang=&#34;swift&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Classes used within the algorithm
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Basic instruction, e.g. a + b */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Instruction&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Represents set of istructions in a single scope, e.g. if/else branch */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;BasicBlock&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; instructions : [Instruction]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Function is a function, that&amp;#39;s it */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Function&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; basicBlocks : [BasicBlock]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Representation of a source file */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Module&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; functions : [Function]
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Shows instruction that needs to be mutated */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;MutationPoint&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; instruction : Instruction
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; basicBlock : BasicBlock
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; function : Function
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; module : Module
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Algorithm
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/* Load all files into memory */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modules = loadProgramModules()
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Find all functions that represent test
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    &amp;#39;testFinder&amp;#39; is an abstraction intended to hide language/framework specific logic.
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    Example classes are &amp;#39;CPP_GTest_TestFinder&amp;#39;, &amp;#39;ObjC_XCTest_TestFinder&amp;#39;,
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    &amp;#39;ObjC_Cedar_TestFinder&amp;#39; and so on.
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;*/&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; tests = testFinder.findAllTests(modules)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; test &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; tests {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;      For each test we need to find a set of functions that can be mutated in some way
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;  */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; testeeFunctions = mutationFinder.findAllTesteeFunctions(test)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; testee &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; testeeFunctions {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        For each testee we do the following:
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Testee belongs to a module, we need to make two copies of this module:
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        one copy will contain only testee (moduleWithOriginal)
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        another one will contain all functions but testee (moduleWithoutTesteeFunction)
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Having this split we can mutate function inside of &amp;#39;moduleWithOriginal&amp;#39;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        without affecting and recompiling potentially big module
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithOriginal = copyOfModuleWithOnlyFunction(testee.module, testee)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithoutTesteeFunction = copyOfModuleWithoutFunction(testee.module, testee)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Now we can create JIT engine using all modules, excluding the module of testee.
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        In fact the latter one if replaced by &amp;#39;moduleWithoutTesteeFunction&amp;#39;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; modulesWithoutTesteeModule = modules.without(testee.module)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;var&lt;/span&gt; executionEngine = executionEngineWithModules(modulesWithoutTesteeModule)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    executionEngine.addModule(moduleWithoutTesteeFunction)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Having JIT engine in place we can run the test against original implementation of testee
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    executionEngine.addModule(moduleWithOriginal)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; originalResult = executionEngine.runTest(test)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    executionEngine.removeModule(moduleWithOriginal)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        Now we need to find all places where we can apply mutation
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;    */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationPoints = mutationFinder.findAllMutationPoints(functino)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; point &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; mutationPoints {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            And for each such place we are getting copy of &amp;#39;moduleWithOriginal&amp;#39;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            within applied mutation
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; moduleWithMutation = applyMutationOnModule(point, moduleWithOriginal)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            Now we run the test against the mutant
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        executionEngine.addModule(moduleWithMutation)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#66d9ef&#34;&gt;let&lt;/span&gt; mutationResult = executionEngine.runTest(test)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        executionEngine.removeModule(moduleWithMutation)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        &lt;span style=&#34;color:#75715e&#34;&gt;/*
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;            And finally compare results
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;        */&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;        analyzeResults(originalResult, mutationResult)
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;As you can see the starting point here is a bitcode, which means the system is language agnostic.&lt;/p&gt;
-&lt;p&gt;However this approach has it&amp;rsquo;s own drawbacks - bitcode should contain debug information so that IR can be mapped back to high level code, which is not always the case with heavily optimized code.&lt;/p&gt;
-&lt;p&gt;Being able to re-run test just by replacing a module with mutated function gives an ability to increase performance drastically. However, execution may interrupt because of signal (segfault, bad access, etc.) or it may go into an infiinte loop. To fix those problems there might be a need to run each mutant as a separate process.&lt;/p&gt;
-&lt;p&gt;Besides that there are quite a few open questions such as:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;how to get bitcode for each translation unit (source file) automatically&lt;/li&gt;
-&lt;li&gt;how to compare test results of original and mutated program for different testing frameworks&lt;/li&gt;
-&lt;li&gt;how to deal with tests that are touching OS resources such as file system, I/O, etc&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Obviously, there are many more questions and problems that I&amp;rsquo;m not aware of yet.&lt;/p&gt;
-&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
-&lt;p&gt;LLVM gives us an ability to build a powerful, language and framework agnostic system for Mutation Testing.&lt;/p&gt;
-&lt;p&gt;I want to use this ability to build this tool and to get as much fun as possible.&lt;/p&gt;
-&lt;p&gt;Besides motivating myself by making this public commitment, this blog post has two other goals:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;get comments from people who are heavily involved in LLVM and/or mutation testing systems development&lt;/li&gt;
-&lt;li&gt;to attract people who may be willing to join the project when I have something to show&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;If you have something to add or want to share your knowledge or concerns - please do it.&lt;/p&gt;
 </description>
       </item>
       
