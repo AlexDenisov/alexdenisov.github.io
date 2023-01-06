@@ -7,8 +7,438 @@
     <language>en-us</language>
     <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
     <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
-    <lastBuildDate>Wed, 04 Jan 2023 23:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 06 Jan 2023 02:00:00 +0100</lastBuildDate>
     <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 3: MLIR and compilation</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-3/</link>
+        <pubDate>Fri, 06 Jan 2023</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-3/</guid>
+        <description>&lt;p&gt;Now as we have a decent understanding of how RiteVM works, we can tackle the compilation.
+The question I had around two years ago - how do I even do this?&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;A note of warning: so far, this is the longest article on this blog. And I&amp;rsquo;m afraid the most cryptic one.&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The topics covered here:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;MLIR&lt;/li&gt;
+&lt;li&gt;Control-Flow Graphs (CFG)&lt;/li&gt;
+&lt;li&gt;Static Single Assignment (SSA)&lt;/li&gt;
+&lt;li&gt;Dataflow Analysis&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;compilation&#34;&gt;Compilation&lt;/h3&gt;
+&lt;p&gt;mruby is written in C, so the logic behind each opcode is implemented in C. To compile a Ruby program from bytecode, we can emit an equivalent C program that uses mruby C API.&lt;/p&gt;
+&lt;p&gt;Some opcodes have direct API counterparts, e.g., &lt;code&gt;OP_LOADI&lt;/code&gt; is equivalent to &lt;code&gt;mrb_value mrb_fixnum_value(mrb_int i);&lt;/code&gt;. Yet, most opcodes are inlined in the giant dispatch loop in &lt;code&gt;vm.c&lt;/code&gt;. However, we can extract these implementations into separate functions and call them from C.&lt;/p&gt;
+&lt;p&gt;Consider the following Ruby program:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-ruby&#34; data-lang=&#34;ruby&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;puts &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;and its bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADSELF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt;  &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_SEND&lt;/span&gt;     &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;  :&lt;span style=&#34;color:#66d9ef&#34;&gt;puts&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_RETURN&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_STOP&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;An equivalent C program looks like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mrb_state &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;mrb &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; mrb_open();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mrb_value receiver &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; fs_load_self();
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mrb_value number &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; mrb_fixnum_value(&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mrb_funcall(mrb, receiver, &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;puts&amp;#34;&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;number);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;mrb_close(mrb);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;em&gt;&lt;code&gt;fs_load_self&lt;/code&gt; is a custom runtime function as &lt;code&gt;OP_LOADSELF&lt;/code&gt; doesn&amp;rsquo;t have a C API counterpart.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;&lt;code&gt;OP_RETURN&lt;/code&gt; is ignored in this small example.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;To compile a Ruby program from its bytecode, we &amp;ldquo;just&amp;rdquo; need to generate the equivalent C program. In fact, this is what I did to start two years ago.
+It worked well and had some nice debugging capabilities - in the end, it&amp;rsquo;s just a C program.&lt;/p&gt;
+&lt;p&gt;Yet, at some point, the implementation became daunting. As I was generating a C program, it was pretty hard to do some custom analysis or optimizations on the C code. I started adding my auxiliary data structures (really, just arrays of hashmaps of hashmaps of pairs and tuples) before I generated the C code.&lt;/p&gt;
+&lt;p&gt;I realized I was about to invent my intermediate representation of questionable quality.&lt;/p&gt;
+&lt;p&gt;I needed a better solution.&lt;/p&gt;
+&lt;h3 id=&#34;mlir&#34;&gt;MLIR&lt;/h3&gt;
+&lt;p&gt;I remember watching the &lt;a href=&#34;https://www.youtube.com/watch?v=qzljG6DKgic&#34;&gt;MLIR talk&lt;/a&gt; by Tatiana Shpeisman and Chris Lattner live at EuroLLVM in Brussels. It went over my head back then, as there was a lot of talk about machine learning, tensors, heterogeneous accelerators, and some other dark magic.&lt;/p&gt;
+&lt;p&gt;Yet, I also remember some mentions of custom intermediate representations. So I decided to give it a try and dig into it more. It turned out to be great.&lt;/p&gt;
+&lt;p&gt;One of the key features of MLIR is the ability to define custom intermediate representations called &lt;em&gt;dialects&lt;/em&gt;. MLIR provides an infrastructure to mix and match different dialects and run analyses or transformations against them. Further, the dialects can be lowered to machine code (e.g., for CPU or GPU).&lt;/p&gt;
+&lt;p&gt;Here is a slide from my &lt;a href=&#34;https://www.youtube.com/watch?v=Cl5SgDxvZ8w&#34;&gt;LLVM Social talk&lt;/a&gt; to illustrate the idea:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-3/what-is-mlir.png&#34; alt=&#34;What is MLIR?&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;mlir-rite-dialect&#34;&gt;MLIR Rite Dialect&lt;/h3&gt;
+&lt;p&gt;I need to define a custom dialect to make MLIR work for my use case. I called it &amp;ldquo;Rite.&amp;rdquo; The dialect needs an operation of each RiteVM opcode and some RiteVM types.&lt;/p&gt;
+&lt;p&gt;Here is the minimum required to compile the code sample from above (&lt;code&gt;puts 42&lt;/code&gt;).&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Rite_Dialect&lt;/span&gt; : Dialect {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let name &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;rite&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let summary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;A one-to-one mapping from mruby RITE VM bytecode to MLIR&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let cppNamespace &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;rite&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;RiteType&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;string name&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; : TypeDef&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Rite_Dialect, name&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let summary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; name;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let mnemonic &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; name;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ValueType&lt;/span&gt; : RiteType&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;value&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;StateType&lt;/span&gt; : RiteType&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;state&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;class&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;Rite_Op&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;string mnemonic, list&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Trait&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; traits &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; []&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; :
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    Op&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;Rite_Dialect, mnemonic, traits&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; OPCODE(LOADSELF, B) &lt;span style=&#34;color:#f92672&#34;&gt;/*&lt;/span&gt; R(a) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; self &lt;span style=&#34;color:#f92672&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LoadSelfOp&lt;/span&gt; : Rite_Op&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_LOADSELF&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let summary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_LOADSELF&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let results &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (outs ValueType);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; OPCODE(LOADI, BB) &lt;span style=&#34;color:#f92672&#34;&gt;/*&lt;/span&gt; R(a) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; mrb_int(b) &lt;span style=&#34;color:#f92672&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;LoadIOp&lt;/span&gt; : Rite_Op&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_LOADI&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let summary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_LOADI&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let arguments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (ins SI64Attr:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;$&lt;/span&gt;value);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let results &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (outs ValueType);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; OPCODE(SEND, BBB) &lt;span style=&#34;color:#f92672&#34;&gt;/*&lt;/span&gt; R(a) &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; call(R(a),Syms(b),R(a&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;&lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;),&lt;span style=&#34;color:#f92672&#34;&gt;...&lt;/span&gt;,R(a&lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt;c)) &lt;span style=&#34;color:#f92672&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;SendOp&lt;/span&gt; : Rite_Op&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_SEND&amp;#34;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let summary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_SEND&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let arguments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (ins ValueType:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;$&lt;/span&gt;receiver, StringAttr:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;$&lt;/span&gt;symbol, UI32Attr:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;$&lt;/span&gt;argc, Variadic&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;ValueType&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt;:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;$&lt;/span&gt;argv);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let results &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (outs ValueType);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;//&lt;/span&gt; OPCODE(RETURN, B) &lt;span style=&#34;color:#f92672&#34;&gt;/*&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; R(a) (normal) &lt;span style=&#34;color:#f92672&#34;&gt;*/&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;ReturnOp&lt;/span&gt; : Rite_Op&lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_RETURN&amp;#34;&lt;/span&gt;, [Terminator]&lt;span style=&#34;color:#f92672&#34;&gt;&amp;gt;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let summary &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;OP_RETURN&amp;#34;&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let arguments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (ins ValueType:&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;$&lt;/span&gt;src);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  let results &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (outs ValueType);
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It defines the dialect, the types needed, and the operations.
+Some entities come from the MLIR&amp;rsquo;s predefined dialects (&lt;code&gt;StringAttr&lt;/code&gt;, &lt;code&gt;UI32Attr&lt;/code&gt;, &lt;code&gt;Variadic&amp;lt;...&amp;gt;&lt;/code&gt;, &lt;code&gt;Terminator&lt;/code&gt;). We define the rest.&lt;/p&gt;
+&lt;p&gt;Each operation may take zero or more arguments, but it also may produce zero or more results. Unlike a &amp;ldquo;typical&amp;rdquo; programming language, MLIR dialects define a graph (as &lt;code&gt;ins&lt;/code&gt; and &lt;code&gt;outs&lt;/code&gt; hint at). The dialects also have some other properties, but one step at a time.&lt;/p&gt;
+&lt;p&gt;With the dialect in place, I can generate an &amp;ldquo;MLIR program&amp;rdquo; which is roughly equivalent to the C program above:&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: I omit some details for brevity.&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;module &lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;@&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;test.rb&amp;#34;&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    %0 = rite.OP_LOADSELF() : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    %1 = rite.OP_LOADI() {value = &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; : si64} : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    %2 = rite.OP_SEND(%0, %1) {argc = &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; : ui32, symbol = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;puts&amp;#34;&lt;/span&gt;} : (!rite.value, !rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    %3 = rite.OP_RETURN(%2) : (!rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Here, I generated an MLIR module containing a function (&lt;code&gt;top&lt;/code&gt;) with four operations corresponding to each bytecode operation.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s take a detailed look at one operation:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;%2 = rite.OP_SEND(%0, %1) {argc = &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; : ui32, symbol = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;puts&amp;#34;&lt;/span&gt;} : (!rite.value, !rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This piece defines a value named &lt;code&gt;%2&lt;/code&gt;, which takes two other values (&lt;code&gt;%0&lt;/code&gt; and &lt;code&gt;%1&lt;/code&gt;). In MLIR, constants are defined as &amp;ldquo;attributes,&amp;rdquo; which are &lt;code&gt;argc = 1 : ui32&lt;/code&gt; and &lt;code&gt;symbol = &amp;quot;puts&amp;quot;&lt;/code&gt; in this case. What follows is the operation signature &lt;code&gt;(!rite.value, !rite.value) -&amp;gt; !rite.value&lt;/code&gt;. The operation returns &lt;code&gt;rite.value&lt;/code&gt; and takes several arguments: &lt;code&gt;%0&lt;/code&gt; is the receiver, and &lt;code&gt;%1&lt;/code&gt; is part of the &lt;code&gt;Variadic&amp;lt;ValueType&amp;gt;:$argv&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;MLIR takes the declarative dialect definition and generates C++ code out of it. The C++ code serves as a programmatic API to generate the MLIR module.&lt;/p&gt;
+&lt;p&gt;Once the module is generated, I can analyze and transform it. The next step is directly converting the Rite Dialect into LLVM Dialect and lowering it into LLVM IR.&lt;/p&gt;
+&lt;p&gt;From there on, I can emit an object file (machine code) and link it with mruby runtime.&lt;/p&gt;
+&lt;h3 id=&#34;static-single-assignment-ssa&#34;&gt;Static Single Assignment (SSA)&lt;/h3&gt;
+&lt;p&gt;In the previous article, I mentioned that the virtual stack is essential, yet here in both C and MLIR programs, I use &amp;ldquo;local variables&amp;rdquo; instead of the stack. What&amp;rsquo;s going on here?&lt;/p&gt;
+&lt;p&gt;The answer is simple - MLIR uses a Static Single-Assignment form for all its representations.&lt;/p&gt;
+&lt;p&gt;As a reminder, SSA means that each variable can only be defined once.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Pedantic note: the &amp;ldquo;variables&amp;rdquo; should be referred to as &amp;ldquo;values&amp;rdquo; as they cannot vary.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Here is an &amp;ldquo;invalid&amp;rdquo; SSA form:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;55&lt;/span&gt;; &lt;span style=&#34;color:#75715e&#34;&gt;// redefinition not allowed in SSA
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;print(x);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;And here is the same code in the SSA form:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; x1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;55&lt;/span&gt;; &lt;span style=&#34;color:#75715e&#34;&gt;// &amp;#34;redefinition&amp;#34; generates a new value
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;print(x1);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We must convert the registers into SSA values to satisfy the MLIR requirement to be in SSA form.&lt;/p&gt;
+&lt;p&gt;At first glance, the problem is trivial. We can maintain a map of definitions for each register at each point in time. For example, for the following bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADSELF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// #1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// #2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// #3
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt;    &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// #4
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_ADD&lt;/span&gt;      &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;// #5
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;OP_RETURN&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt;    &lt;span style=&#34;color:#75715e&#34;&gt;// #6
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The map changes as follows:&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;Step #1: { empty }
+Step #2: {
+  R1 defined by #1
+}
+Step #3: {
+  R1 defined by #1
+  R2 defined by #2
+}
+Step #4: {
+  R1 defined by #1
+  R2 defined by #2
+  R3 defined by #3
+}
+Step #5: {
+  R1 defined by #1
+  R2 defined by #2
+  R3 defined by #4 // R3 redefined at #4
+}
+Step #5: {
+  R1 defined by #1
+  R2 defined by #5 // OP_ADD stores the result in the first operand
+  R3 defined by #4
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;With this map, we know precisely where a register was defined when an operation uses the register.&lt;/p&gt;
+&lt;p&gt;So MLIR version will look like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// OP_LOADSELF R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;%0 = rite.OP_LOADSELF() : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// OP_LOADI    R2 10
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;%1 = rite.OP_LOADI() {value = &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt; : si64} : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// OP_LOADI    R3 20
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;%2 = rite.OP_LOADI() {value = &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt; : si64} : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// OP_LOADI    R3 30
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;%3 = rite.OP_LOADI() {value = &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt; : si64} : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// OP_ADD      R2 R3
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;%4 = rite.OP_ADD(%1, %3) : (!rite.value, !rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// OP_RETURN   R2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;%5 = rite.OP_RETURN(%4) : (!rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;em&gt;Side note: &lt;code&gt;%0&lt;/code&gt; and &lt;code&gt;%2&lt;/code&gt; are never used and can be eliminated (if &lt;code&gt;OP_LOADSELF&lt;/code&gt;/&lt;code&gt;OP_LOADI&lt;/code&gt; don&amp;rsquo;t have side effects).&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;This solution is pleasant until the code has branching such as &lt;code&gt;if&lt;/code&gt;/&lt;code&gt;else&lt;/code&gt;, loops, or exceptions.&lt;/p&gt;
+&lt;p&gt;Consider the following non-SSA example:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (something) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  x &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;print(x); &lt;span style=&#34;color:#75715e&#34;&gt;// Where x is defined?
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Classical SSA solves this problem with artificial &lt;code&gt;phi&lt;/code&gt;-nodes:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;10&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;if&lt;/span&gt; (something) {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  x2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} &lt;span style=&#34;color:#66d9ef&#34;&gt;else&lt;/span&gt; {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  x3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;x4 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; phi(x2, x3); &lt;span style=&#34;color:#75715e&#34;&gt;// Will magically resolve to the right x depending on where it comes from
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;print(x4);
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;MLIR approaches this differently and elegantly - via &amp;ldquo;block arguments.&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;But first, let&amp;rsquo;s talk about Control-Flow Graphs.&lt;/p&gt;
+&lt;h3 id=&#34;control-flow-graph-cfg&#34;&gt;Control-Flow Graph (CFG)&lt;/h3&gt;
+&lt;p&gt;A control-flow graph is a form of intermediate representation that maintains the program in the form of a graph where operations are connected to each other based on the execution (or control) flow.&lt;/p&gt;
+&lt;p&gt;Consider the following bytecode (the number on the left is an operation address):&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;001:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADT&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// puts &amp;#34;true&amp;#34; in R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;002:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;003:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_JMPIF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// jump to 006 if R1 contains &amp;#34;true&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                      &lt;span style=&#34;color:#75715e&#34;&gt;// otherwise implicitly falls through to 004
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;004:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;005:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_JMP&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt;       &lt;span style=&#34;color:#75715e&#34;&gt;// jump to 007 unconditionally
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;006:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;007:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_ADD&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt;     &lt;span style=&#34;color:#75715e&#34;&gt;// R3 may be either 20 or 30, depending on the branching
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The same program in the form of a graph:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-3/naive-cfg.png&#34; alt=&#34;CFG without basic blocks&#34;&gt;&lt;/p&gt;
+&lt;p&gt;This CFG can be further optimized: we can merge all the subsequent nodes unless the node has more than one incoming or more than one outgoing edge.&lt;/p&gt;
+&lt;p&gt;The merged nodes are called basic blocks:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-3/complete-cfg.png&#34; alt=&#34;CFG with basic blocks&#34;&gt;&lt;/p&gt;
+&lt;p&gt;Some more terms for completeness:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the &amp;ldquo;first&amp;rdquo; basic block where the execution of a function starts is called &amp;ldquo;entry.&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;similarly, the &amp;ldquo;last&amp;rdquo; basic block is called &amp;ldquo;exit.&amp;rdquo;&lt;/li&gt;
+&lt;li&gt;preceding (incoming, previous) basic blocks are called predecessors. The entry block doesn&amp;rsquo;t have predecessors.&lt;/li&gt;
+&lt;li&gt;succeeding (outgoing, next) basic blocks are called successors. Exit blocks don&amp;rsquo;t have successors.&lt;/li&gt;
+&lt;li&gt;the last operation in a basic block is called a terminator&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Based on the last picture:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;B1&lt;/code&gt;: entry block&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B4&lt;/code&gt;: single exit block. There could be several exit blocks, yet we can always add one &amp;ldquo;empty&amp;rdquo; block as a successor for the exit blocks to have only one exit block.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B1&lt;/code&gt;: predecessors: [], successors: [&lt;code&gt;B2&lt;/code&gt;, &lt;code&gt;B3&lt;/code&gt;], terminator: &lt;code&gt;OP_JMPIF&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B2&lt;/code&gt;: predecessors: [&lt;code&gt;B1&lt;/code&gt;], successors: [&lt;code&gt;B4&lt;/code&gt;], terminator: &lt;code&gt;OP_JMP&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B3&lt;/code&gt;: predecessors: [&lt;code&gt;B1&lt;/code&gt;], successors: [&lt;code&gt;B4&lt;/code&gt;], terminator: &lt;code&gt;OP_LOADI&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;B4&lt;/code&gt;: predecessors: [&lt;code&gt;B2&lt;/code&gt;, &lt;code&gt;B3&lt;/code&gt;], successors: [], terminator: &lt;code&gt;OP_ADD&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;cfgs-in-mlir&#34;&gt;CFGs in MLIR&lt;/h3&gt;
+&lt;p&gt;Now we can take a look at CFGs from the MLIR perspective. If you are familiar with CFGs in LLVM, then the important difference is that in MLIR, all the basic blocks may have arguments. Function arguments are, in fact, the block arguments from the entry block. For example, this is a more accurate representation of a function:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;() -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb0(%arg0: !rite.state, %arg1: !rite.value):
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %0 = rite.OP_LOADSELF() : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = rite.OP_LOADI() {value = &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; : si64} : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = rite.OP_SEND(%0, %1) {argc = &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt; : ui32, symbol = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;puts&amp;#34;&lt;/span&gt;} : (!rite.value, !rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %3 = rite.OP_RETURN(%2) : (!rite.value) -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;em&gt;Note, &lt;code&gt;^bbX&lt;/code&gt; represents the basic blocks.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;To convert the following bytecode:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;001:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADT&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;      &lt;span style=&#34;color:#75715e&#34;&gt;// puts &amp;#34;true&amp;#34; in R1
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;002:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;003:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_JMPIF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// jump to 006 if R1 contains &amp;#34;true&amp;#34;
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;                      &lt;span style=&#34;color:#75715e&#34;&gt;// otherwise implicitly falls through to 004
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;004:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;005:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_JMP&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt;       &lt;span style=&#34;color:#75715e&#34;&gt;// jump to 007 unconditionally
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;006:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;007:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_ADD&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt;     &lt;span style=&#34;color:#75715e&#34;&gt;// R3 may be either 20 or 30, depending on the branching
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;we need to take several steps:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;add an address attribute to all addressable operations (they could be jump targets)&lt;/li&gt;
+&lt;li&gt;add &amp;ldquo;targets&amp;rdquo; attribute to all the jumps, including implicit fallthrough jumps&lt;/li&gt;
+&lt;li&gt;add an explicit jump in place of the implicit jumps&lt;/li&gt;
+&lt;li&gt;add the successor blocks for all jump instructions&lt;/li&gt;
+&lt;li&gt;put all the operations in a single, entry basic block&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %0 = rite.PhonyValue() : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = rite.OP_LOADT() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;001&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = rite.OP_LOADI() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;002&lt;/span&gt;, value = &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rite.OP_JMPIF(%0)[^bb1, ^bb1] { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;003&lt;/span&gt;, targets = [&lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;004&lt;/span&gt;] }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %3 = rite.OP_LOADI() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;004&lt;/span&gt;, value = &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rite.OP_JMP()[^bb1] { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;005&lt;/span&gt;, targets = [&lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt;] }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %4 = rite.OP_LOADI() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;, value = &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rite.FallthroughJump()[^bb1]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %5 = rite.OP_ADD(%0, %0) { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb1:
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;&lt;em&gt;Note: I&amp;rsquo;m omitting some details from the textual representation for brevity.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Notice, here, I added a &amp;ldquo;phony value&amp;rdquo; as a placeholder for SSA values as we cannot yet construct the proper SSA. We will remove them in the next section.&lt;/p&gt;
+&lt;p&gt;Additionally, I added a phony basic block to serve as a placeholder successor for the jump targets.&lt;/p&gt;
+&lt;p&gt;Now, the last steps are:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;split the entry basic block by cutting it right before each jump target operation&lt;/li&gt;
+&lt;li&gt;rewire the jumps to point to the right target basic blocks&lt;/li&gt;
+&lt;li&gt;delete the phony basic block used as a placeholder&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The final CFG looks like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %0 = rite.PhonyValue() : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = rite.OP_LOADT() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;001&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = rite.OP_LOADI() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;002&lt;/span&gt;, value = &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rite.OP_JMPIF(%0)[^bb1, ^bb2] { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;003&lt;/span&gt;, targets = [&lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;004&lt;/span&gt;] }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb1: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %3 = rite.OP_LOADI() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;004&lt;/span&gt;, value = &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rite.OP_JMP()[^bb3] { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;005&lt;/span&gt;, targets = [&lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt;] }
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb2: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %4 = rite.OP_LOADI() { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;, value = &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  rite.FallthroughJump()[^bb3]
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb3: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb1, ^bb2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %5 = rite.OP_ADD(%0, %0) { address = &lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt; } : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;It corresponds to the last picture above, except that we now have an explicit &lt;code&gt;rite.FallthroughJump()&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;With the CFG in place, we can solve the SSA problem and eliminate the &lt;code&gt;rite.PhonyValue()&lt;/code&gt; placeholder.&lt;/p&gt;
+&lt;h3 id=&#34;ssa-in-mlir&#34;&gt;SSA in MLIR&lt;/h3&gt;
+&lt;p&gt;As a reminder, here is the CFG of the &amp;ldquo;problematic&amp;rdquo; program:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-3/complete-cfg.png&#34; alt=&#34;CFG with basic blocks&#34;&gt;&lt;/p&gt;
+&lt;p&gt;In the MLIR form, we no longer have registers from the virtual stack. We only have values such as &lt;code&gt;%2&lt;/code&gt;, &lt;code&gt;%3&lt;/code&gt;, &lt;code&gt;%4&lt;/code&gt;, and so on. The tricky part is the &lt;code&gt;007: OP_ADD R2 R3&lt;/code&gt; operation - where &lt;code&gt;R3&lt;/code&gt; is coming from? Is it &lt;code&gt;%3&lt;/code&gt; or &lt;code&gt;%4&lt;/code&gt;?&lt;/p&gt;
+&lt;p&gt;To answer this question, we can use &lt;a href=&#34;https://en.wikipedia.org/wiki/Data-flow_analysis&#34;&gt;Data-flow analysis&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Dataflow analysis is used to derive specific facts about the program. The analysis is an iterative process: first, collect the base facts for each basic block, then for each basic block, update the facts combining them with the facts from successors or predecessors. As the facts updated for a basic block may affect the facts from successors/predecessors, the process should run iteratively until no new facts are derived.&lt;/p&gt;
+&lt;p&gt;A critical requirement for the facts - they should be monotonic. Once the fact is known, it cannot &amp;ldquo;disappear.&amp;rdquo; This way, the iterative process eventually stops as, in the worst case, the analysis will derive &amp;ldquo;all&amp;rdquo; the facts about the program and won&amp;rsquo;t be able to derive any more.&lt;/p&gt;
+&lt;p&gt;My favorite resource about dataflow analysis is Adrian Sampson&amp;rsquo;s lectures on the subject - &lt;a href=&#34;https://www.cs.cornell.edu/courses/cs6120/2020fa/lesson/4/&#34;&gt;The Data Flow Framework&lt;/a&gt;. I highly recommend it.&lt;/p&gt;
+&lt;p&gt;In our case, the facts we need to derive are: which values/registers are required for each operation.&lt;/p&gt;
+&lt;p&gt;Here is an algorithm briefly:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;at every point in time, there is a map of the values defined so far&lt;/li&gt;
+&lt;li&gt;if an operation is using a value that is not defined, then this value is &lt;code&gt;required&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;the required values become the block arguments and must be coming from the predecessors&lt;/li&gt;
+&lt;li&gt;the terminators of the &amp;ldquo;required&amp;rdquo; predecessors now use the values required by the successors&lt;/li&gt;
+&lt;li&gt;at the next iteration, the block arguments define the previously required values&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The process runs iteratively until no new required values appear.&lt;/p&gt;
+&lt;p&gt;An important detail for the entry basic block is that, as it doesn&amp;rsquo;t have a predecessor, all the required values must come from the virtual stack.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s look a the example bytecode once again:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-asm&#34; data-lang=&#34;asm&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;001:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADT&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;002:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;003:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_JMPIF&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R1&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;006&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;004:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;005:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_JMP&lt;/span&gt;   &lt;span style=&#34;color:#ae81ff&#34;&gt;007&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;006:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_LOADI&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;007:&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;OP_ADD&lt;/span&gt;   &lt;span style=&#34;color:#66d9ef&#34;&gt;R2&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;R3&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is the initial state for the dataflow analysis. The comments above contain information about defined values for the given point in time. Comment on the side of each operation tells about the operation itself:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %0 = rite.PhonyValue() : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %1 = rite.OP_LOADT() : () -&amp;gt; !rite.value     &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R1], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R1]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %2 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R2], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R1, R2]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.OP_JMPIF(%0)[^bb1, ^bb2]                &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R1]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb1: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0                            // defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %3 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.OP_JMP()[^bb3]                          &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb2: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0                            // defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %4 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.FallthroughJump()[^bb3]                 &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb3: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb1, ^bb2                      // defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %5 = rite.OP_ADD(%0, %0) : () -&amp;gt; !rite.value &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R2], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The last operation uses values that are not defined. Therefore &lt;code&gt;R2&lt;/code&gt; and &lt;code&gt;R3&lt;/code&gt; are required and must come from the predecessors.&lt;/p&gt;
+&lt;p&gt;Update predecessors and rerun the analysis.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Note: I am using %RX_Y names to distinguish them from the original numerical value names. X is the register number, and Y is the basic block number.&lt;/em&gt;&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %0 = rite.PhonyValue() : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %1 = rite.OP_LOADT() : () -&amp;gt; !rite.value     &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R1], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R1]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %2 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R2], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R1, R2]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.OP_JMPIF(%0)[^bb1, ^bb2]                &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R1]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb1: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0                            // defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %3 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.OP_JMP(%0, %0)[^bb3]                    &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb2: &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0                            // defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %4 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.FallthroughJump(%0, %0)[^bb3]           &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb3(%R2_3, %R3_3): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb1, ^bb2        // defines: [R2, R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %5 = rite.OP_ADD(%0, %0) : () -&amp;gt; !rite.value &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R2], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Basic block &lt;code&gt;^bb3&lt;/code&gt; now has two block arguments.
+The terminators from its predecessors (&lt;code&gt;^bb1&lt;/code&gt; and &lt;code&gt;^bb2&lt;/code&gt;) now use an undefined value, &lt;code&gt;R2&lt;/code&gt;. &lt;code&gt;R2&lt;/code&gt; is now required. We must add it as a block argument and propagate it to the predecessors&amp;rsquo; terminators.&lt;/p&gt;
+&lt;p&gt;Rerun the analysis:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %0 = rite.PhonyValue() : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %1 = rite.OP_LOADT() : () -&amp;gt; !rite.value     &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R1], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R1]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %2 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R2], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R1, R2]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.OP_JMPIF(%0, %0, %0)[^bb1, ^bb2]        &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R1, R2, R2]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb1(%R2_1): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0                     // defines: [R2], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R2]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %3 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.OP_JMP(%0, %0)[^bb3]                    &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb2(%R2_2): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0                     // defines: [R2], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R2]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %4 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;) : () -&amp;gt; !rite.value   &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  rite.FallthroughJump(%0, %0)[^bb3]           &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb3(%R2_3, %R3_3): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb1, ^bb2        // defines: [R2, R3], uses: []
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  &lt;span style=&#34;color:#75715e&#34;&gt;// defined: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %5 = rite.OP_ADD(%0, %0) : () -&amp;gt; !rite.value &lt;span style=&#34;color:#75715e&#34;&gt;// defines: [R2], uses: [R2, R3]
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;We can run the analysis one more time, but it won&amp;rsquo;t change anything, so that would conclude the analysis, and we should have all the information we need to replace the phony value with the correct values.&lt;/p&gt;
+&lt;p&gt;Additionally, now we can replace our custom jump operations with the builtin ones from MLIR, so the final function looks like this:&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-mlir&#34; data-lang=&#34;mlir&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;func&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;@top&lt;/span&gt;(%arg0: !rite.state, %arg1: !rite.value) -&amp;gt; !rite.value {
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %1 = rite.OP_LOADT() : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  %2 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;42&lt;/span&gt;) : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  cond_br %1, ^bb1(%2), ^bb2(%2)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb1(%R2_1): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %3 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;20&lt;/span&gt;) : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  br ^bb3(%R2_1, %3)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb2(%R2_2): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb0
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %4 = rite.OP_LOADI(&lt;span style=&#34;color:#ae81ff&#34;&gt;30&lt;/span&gt;) : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  br ^bb3(%R2_2, %4)
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;^bb3(%R2_3, %R3_3): &lt;span style=&#34;color:#75715e&#34;&gt;// pred: ^bb1, ^bb2
+&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;  %5 = rite.OP_ADD(%R2_3, %R3_3) : () -&amp;gt; !rite.value
+&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now, onto drawing the rest of the fu**ing owl.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Thank you so much for reaching this far!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following articles will focus on documenting mruby&amp;rsquo;s implementation details.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss those details!&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
     
 
       
@@ -2618,384 +3048,6 @@ We show how some widespread false beliefs about these guarantees can be exploite
 &lt;p&gt;We give the results of our search for the worst cases for correct rounding of the major elementary functions in double precision floating-point arithmetic. These results allow the design of reasonably fast routines that will compute these functions with correct rounding, at least in some interval, for any of the four rounding modes specified by the IEEE-754 standard. They will also allow one to easily test libraries that are claimed to provide correctly rounded functions.&lt;/p&gt;
 &lt;h5 id=&#34;link-16&#34;&gt;Link:&lt;/h5&gt;
 &lt;p&gt;&lt;a href=&#34;http://perso.ens-lyon.fr/jean-michel.muller/TMDworstcases.pdf&#34;&gt;http://perso.ens-lyon.fr/jean-michel.muller/TMDworstcases.pdf&lt;/a&gt;&lt;/p&gt;
-</description>
-      </item>
-      
-
-    
-
-      
-        <item>
-        <title>System Under Test: GNU Make</title>
-        <link>https://lowlevelbits.org/system-under-test-gnu-make/</link>
-        <pubDate>Sun, 12 Jun 2016</pubDate>
-        <author>alex@lowlevelbits.org (Alex Denisov)</author>
-        <guid>https://lowlevelbits.org/system-under-test-gnu-make/</guid>
-        <description>&lt;p&gt;&lt;strong&gt;UPD:&lt;/strong&gt; The series of blog-posts &amp;ldquo;System Under Test&amp;rdquo; became a full-fledged project and has moved to its own &lt;a href=&#34;http://systemundertest.org&#34;&gt;domain&lt;/a&gt;. The most recent version of this article lives &lt;a href=&#34;http://systemundertest.org/gnu-make&#34;&gt;here&lt;/a&gt; now.&lt;/p&gt;
-&lt;p&gt;&lt;em&gt;Note: This is a guest post written by a good friend and colleague of mine &lt;a href=&#34;https://twitter.com/sbpankevich&#34;&gt;Stanislav Pankevich&lt;/a&gt;&lt;/em&gt;&lt;/p&gt;
-&lt;h3 id=&#34;introduction&#34;&gt;Introduction&lt;/h3&gt;
-&lt;p&gt;This article is part of series &lt;a href=&#34;http://lowlevelbits.org/system-under-test/&#34;&gt;System Under Test&lt;/a&gt;. It provides an overview of how GNU Make is tested.&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;Disclaimer:&lt;/strong&gt; the author of this post is not involved into a development of GNU Make project. All of the following is merely a high-level report about what a curious developer can see from looking at the GNU Make&amp;rsquo;s sources. The author didn&amp;rsquo;t go very deep into the topic, could overlook something etc. Having that said, we always appreciate feedback from our colleagues who have advanced experience with the projects we write about, especially from the developers and maintainers.&lt;/p&gt;
-&lt;h3 id=&#34;getting-gnu-makes-sources&#34;&gt;Getting GNU Make&amp;rsquo;s sources&lt;/h3&gt;
-&lt;p&gt;GNU Make&amp;rsquo;s source code is available from git repository and can be found 2 links away from the Make&amp;rsquo;s main home page: &lt;a href=&#34;https://www.gnu.org/software/make/&#34;&gt;GNU Make&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;Development&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;blockquote&gt;
-&lt;p&gt;For development sources, issue trackers, and other information, please see the Make project page at savannah.gnu.org.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;On &lt;a href=&#34;http://savannah.gnu.org/projects/make&#34;&gt;Make&amp;rsquo;s Savannah&amp;rsquo;s page&lt;/a&gt;:&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;a href=&#34;http://savannah.gnu.org/git/?group=make&#34;&gt;Git Source Code Manager: Git Repository&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;p&gt;To get Make&amp;rsquo;s sources:&lt;/p&gt;
-&lt;pre&gt;
-git clone git://git.savannah.gnu.org/make.git GNUMake
-cd make
-&lt;/pre&gt;
-&lt;h3 id=&#34;good-news-make-has-tests&#34;&gt;Good news: Make has tests&lt;/h3&gt;
-&lt;pre&gt;
-$ ls -l tests/
-total 376
--rw-r--r--   1 Stanislaw  staff  35147 May 27 20:54 COPYING
--rw-r--r--   1 Stanislaw  staff  48828 May 27 20:54 ChangeLog.1
--rw-r--r--   1 Stanislaw  staff   6765 May 27 20:54 NEWS
--rw-r--r--   1 Stanislaw  staff   4677 May 27 20:54 README
--rw-r--r--   1 Stanislaw  staff    470 May 27 20:54 config-flags.pm.in
--rwxr-xr-x   1 Stanislaw  staff   1705 May 27 20:54 config_flags_pm.com
--rw-r--r--   1 Stanislaw  staff    359 May 27 20:54 guile.supp
--rwxr-xr-x   1 Stanislaw  staff   1424 May 27 20:54 mkshadow
--rwxr-xr-x   1 Stanislaw  staff     36 May 27 20:54 run_make_tests
--rwxr-xr-x   1 Stanislaw  staff   8330 May 27 20:54 run_make_tests.com
--rw-r--r--   1 Stanislaw  staff  14179 May 27 20:54 run_make_tests.pl
-drwxr-xr-x  10 Stanislaw  staff    340 May 27 20:54 scripts
--rw-r--r--   1 Stanislaw  staff  40197 May 27 20:54 test_driver.pl
-&lt;/pre&gt;
-&lt;p&gt;The actual tests are located in &lt;code&gt;tests/scripts&lt;/code&gt; directory:&lt;/p&gt;
-&lt;pre&gt;
-$ ls -l tests/scripts
-total 8
-drwxr-xr-x  40 Stanislaw  staff  1360 Jun  2 21:47 features
-drwxr-xr-x  31 Stanislaw  staff  1054 May 27 20:54 functions
-drwxr-xr-x  10 Stanislaw  staff   340 May 27 20:54 misc
-drwxr-xr-x  18 Stanislaw  staff   612 May 29 10:22 options
-drwxr-xr-x  12 Stanislaw  staff   408 Jun 10 20:42 targets
--rw-r--r--   1 Stanislaw  staff  1015 May 27 20:54 test_template
-drwxr-xr-x  22 Stanislaw  staff   748 May 27 20:54 variables
-drwxr-xr-x   3 Stanislaw  staff   102 May 27 20:54 vms
-&lt;/pre&gt;
-&lt;p&gt;The following are interesting notes I found before running the tests.&lt;/p&gt;
-&lt;h4 id=&#34;the-oldest-update-in-news-file-dates-back-to-1992&#34;&gt;The oldest update in NEWS file dates back to 1992&lt;/h4&gt;
-&lt;pre&gt;
-Changes from 0.1 to 0.2 (5-4-92):
-
-README corrected to require perl 4.019, not 4.010.
-
--make_path replaces -old.
-
-errors_in_commands test updated for change in format introduced in
-make 3.62.6.
-
-test_driver_core now uses a better way of figuring what OS it is
-running on (thanks to meyering@cs.utexas.edu (Jim Meyering) for
-suggesting this, as well as discovering the hard way that the old
-way (testing for /mnt) fails on his machine).
-
-Some new tests were added.
-&lt;/pre&gt;
-&lt;p&gt;This means that &lt;strong&gt;tests in Make were introduced as early as of 1992!&lt;/strong&gt; which is a very good sign given some other tools are likely to not have a good coverage even in present days as described in another article of this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test-freebsd&#34;&gt;System Under Test: FreeBSD&lt;/a&gt; (see Conclusion there).&lt;/p&gt;
-&lt;h4 id=&#34;the-test-suite-requires-perl-and-can-be-run-on-unix-windows-and-dos-systems&#34;&gt;The test suite requires Perl and can be run on UNIX, Windows and DOS systems&lt;/h4&gt;
-&lt;pre&gt;
-To run the test suite on a UNIX system, use &#34;perl ./run_make_tests&#34;
-(or just &#34;./run_make_tests&#34; if you have a perl on your PATH).
-
-To run the test suite on Windows NT or DOS systems, use
-&#34;perl.exe ./run_make-tests.pl&#34;.
-&lt;/pre&gt;
-&lt;h4 id=&#34;the-test-suite-is-run-against-make-executable&#34;&gt;The test suite is run against Make executable&lt;/h4&gt;
-&lt;pre&gt;
-By default, the test engine picks up the first executable called &#34;make&#34;
-that it finds in your path.  You may use the -make_path option (i.e.,
-&#34;perl run_make_tests -make_path /usr/local/src/make-3.78/make&#34;) if
-you want to run a particular copy.  This now works correctly with
-relative paths and when make is called something other than &#34;make&#34; (like
-&#34;gmake&#34;).
-&lt;/pre&gt;
-&lt;p&gt;This observation leads us to conclusion that these &lt;strong&gt;GNU Make&amp;rsquo;s tests are actually integration tests&lt;/strong&gt; - it is the final &lt;code&gt;make&lt;/code&gt; executable that is tested, not its parts like they would be with unit testing (depending on terminology this kind of testing of a final product can also be called functional or acceptance testing).&lt;/p&gt;
-&lt;h4 id=&#34;build-artefacts&#34;&gt;Build artefacts&lt;/h4&gt;
-&lt;pre&gt;
-A directory named &#34;work&#34; will be created when the tests are run which
-will contain any makefiles and &#34;diff&#34; files of tests that fail so that
-you may look at them afterward to see the output of make and the
-expected result.
-&lt;/pre&gt;
-&lt;h3 id=&#34;running-tests-against-default-osx-make&#34;&gt;Running tests against default OSX Make&lt;/h3&gt;
-&lt;p&gt;Having read both documents: &lt;code&gt;tests/NEWS&lt;/code&gt; and &lt;code&gt;tests/README&lt;/code&gt; let&amp;rsquo;s try to run the tests. As we learned earlier, by default the test suite will pick up first &lt;code&gt;make&lt;/code&gt; from path so it will default to default make of OSX system which is on my machine:&lt;/p&gt;
-&lt;pre&gt;
-make -v
-GNU Make 3.81
-Copyright (C) 2006  Free Software Foundation, Inc.
-This is free software; see the source for copying conditions.
-There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
-PARTICULAR PURPOSE.
-
-This program built for i386-apple-darwin11.3.0
-&lt;/pre&gt;
-&lt;p&gt;If you ever wondered why default &lt;code&gt;make&lt;/code&gt; on OS X is so old, you are in good company - see &lt;a href=&#34;https://www.quora.com/What-is-the-reason-for-some-of-the-Linux-tools-on-OS-X-being-so-old-Is-this-related-to-GPL-licensing&#34;&gt;What is the reason for some of the Linux tools on OS X being so old? Is this related to GPL licensing?&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;To run tests:&lt;/p&gt;
-&lt;pre&gt;
-$ cd tests/
-$ # The following has to be done otherwise script will complain with:
-$ # &#34;Can&#39;t locate config-flags.pm in @INC...&#34;
-$ cp config-flags.pm.in config-flags.pm
-$ ./run_make_tests
-...
-output with lots of errors and finally:
-212 Tests in 66 Categories Failed (See .diff* files in work dir for details) :-(
-&lt;/pre&gt;
-&lt;p&gt;We see here that oldness of default Make on OS X does cost 212 failing tests. I assume that the reason why most of these failing tests are failing is not a regression in core functionality of Make but rather because of new features were added to GNU Make since 2006.&lt;/p&gt;
-&lt;p&gt;To understand how that is different for latest Make let&amp;rsquo;s build it from source and run tests against it.&lt;/p&gt;
-&lt;h3 id=&#34;running-tests-against-latest-make-built-from-source&#34;&gt;Running tests against latest Make built from source&lt;/h3&gt;
-&lt;p&gt;Let&amp;rsquo;s get back from &lt;code&gt;tests&lt;/code&gt; directory one level up to the root directory of source tree. Inspired by the instructions in INSTALL and after some additional googling we need to run &lt;code&gt;autoreconf&lt;/code&gt; so that it creates proper &lt;code&gt;configure&lt;/code&gt; script for us:&lt;/p&gt;
-&lt;pre&gt;
-$ pwd # /Users/Stanislaw/Projects/GNUMake
-$ brew install automake
-$ # gettext is needed by autoreconf to locate gettext,
-$ # be careful with force linking it on your system.
-$ brew install gettext
-$ brew link gettext --force
-$ autoreconf # creates &#39;configure&#39; script
-&lt;/pre&gt;
-&lt;p&gt;Then we want to run this newly created script with &lt;code&gt;--prefix&lt;/code&gt; parameter so that it will not install make to the &lt;code&gt;/usr/local/bin&lt;/code&gt; directory but rather to &lt;code&gt;./Build&lt;/code&gt; directory (to not conflict with OSX&amp;rsquo;s Make which we don&amp;rsquo;t want within the scope of this post).&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;$ ./configure --prefix=$(pwd)/Build
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;At this point if you run &lt;code&gt;make&lt;/code&gt; the very first time you will likely see errors about some localization files missing:&lt;/p&gt;
-&lt;pre&gt;
-Making all in doc
-Updating ./version.texi
-make[2]: *** No rule to make target `fdl.texi&#39;, needed by `make.info&#39;.  Stop.
-make[1]: *** [all-recursive] Error 1
-make: *** [all] Error 2
-&lt;/pre&gt;
-&lt;p&gt;To fix that you have to first run (solution found at &lt;a href=&#34;http://gnu-make.2324884.n4.nabble.com/NLS-related-failure-when-building-make-from-CVS-tp2157p2158.html&#34;&gt;GNU Make forums&lt;/a&gt;):&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;make update
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Everything should work fine since then, finally we run:&lt;/p&gt;
-&lt;pre&gt;
-$ make &amp;&amp; make install
-...
-  /usr/bin/install -c make &#39;/Users/Stanislaw/Projects/Make/GNUMake/Build/bin&#39;
-...
-$ ./Build/bin/make --version
-GNU Make 4.2
-Built for x86_64-apple-darwin15.3.0
-Copyright (C) 1988-2016 Free Software Foundation, Inc.
-License GPLv3+: GNU GPL version 3 or later &lt;http://gnu.org/licenses/gpl.html&gt;
-This is free software: you are free to change and redistribute it.
-There is NO WARRANTY, to the extent permitted by law.
-&lt;/pre&gt;
-&lt;p&gt;Which is 2006&amp;rsquo;s Make 3.81 that has just been used to build 2016&amp;rsquo;s Make 4.2!&lt;/p&gt;
-&lt;p&gt;Let&amp;rsquo;s run the tests!&lt;/p&gt;
-&lt;pre&gt;
-$ cd tests
-$ ./run_make_tests -make ../Build/bin/make
-&lt;/pre&gt;
-&lt;p&gt;The results are quite pleasant to look at - &lt;strong&gt;GNU Make built from latest source code on Mac OS X machine, passes all of its tests&lt;/strong&gt;:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;581 Tests in 118 Categories Complete ... No Failures :-)
-&lt;/code&gt;&lt;/pre&gt;&lt;h3 id=&#34;test-case-template&#34;&gt;Test case template&lt;/h3&gt;
-&lt;p&gt;The file &lt;code&gt;tests/scripts/test_template&lt;/code&gt; is a generic template, most of the tests are based on it:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
-
-$description = &amp;quot;&amp;lt;FILL IN SHORT DESCRIPTION HERE&amp;gt;&amp;quot;;
-$details = &amp;quot;&amp;lt;FILL IN DETAILS OF HOW YOU TEST WHAT YOU SAY YOU ARE TESTING&amp;gt;&amp;quot;;
-
-# Run a make test.  See the documentation of run_make_test() in
-# run_make_tests.pl, but briefly the first argument is a string with the
-# contents of a makefile to be tested, the second is a string containing the
-# arguments to be passed to the make invocation, the third is a string
-# containing the expected output.  The fourth is the expected exit code for
-# make.  If not specified, it&#39;s assumed that the make program should succeed
-# (exit with 0).
-
-run_make_test(&#39;Your test makefile goes here&#39;,
-              &#39;Arguments to pass to make go here&#39;,
-              &#39;Expected output from the invocation goes here&#39;);
-
-# There are various special tokens, options, etc.  See the full documentation
-# in run_make_tests.pl.
-
-
-# This tells the test driver that the perl test script executed properly.
-1;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Other tests follow a bit different approach: they use &lt;code&gt;run_make_with_options&lt;/code&gt;/&lt;code&gt;compare_output&lt;/code&gt; pair of functions to verify the expected output that Make produces. My assumption is that this alternative way is the old way of writing tests - we can clearly see that it is the easier and cleaner way to write tests using the test template from above. Below I have collected 3 examples which use both approaches based on either:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;run_make_test&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;or&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;run_make_with_options&lt;/code&gt;/&lt;code&gt;compare_output&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;These functions are located in the file: &lt;code&gt;tests/run_make_tests.pl&lt;/code&gt; which is a test driver file for the whole test suite (the file is too long so it is not discussed in this post).&lt;/p&gt;
-&lt;h4 id=&#34;test-case-example-1-simple-functionality-of-make&#34;&gt;Test case example #1: Simple functionality of make&lt;/h4&gt;
-&lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/misc/general1&lt;/code&gt;.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
-
-$description = &amp;quot;The following test creates a makefile to test the
-simple functionality of make.  It mimics the
-rebuilding of a product with dependencies.
-It also tests the simple definition of VPATH.&amp;quot;;
-
-open(MAKEFILE,&amp;quot;&amp;gt; $makefile&amp;quot;);
-
-print MAKEFILE &amp;lt;&amp;lt;EOF;
-VPATH = $workdir
-edit:  main.o kbd.o commands.o display.o \\
-       insert.o
-\t\@echo cc -o edit main.o kbd.o commands.o display.o \\
-                  insert.o
-main.o : main.c defs.h
-\t\@echo cc -c main.c
-kbd.o : kbd.c defs.h command.h
-\t\@echo cc -c kbd.c
-commands.o : command.c defs.h command.h
-\t\@echo cc -c commands.c
-display.o : display.c defs.h buffer.h
-\t\@echo cc -c display.c
-insert.o : insert.c defs.h buffer.h
-\t\@echo cc -c insert.c
-EOF
-
-close(MAKEFILE);
-
-
-@files_to_touch = (&amp;quot;$workdir${pathsep}main.c&amp;quot;,&amp;quot;$workdir${pathsep}defs.h&amp;quot;,
-               &amp;quot;$workdir${pathsep}kbd.c&amp;quot;,&amp;quot;$workdir${pathsep}command.h&amp;quot;,
-               &amp;quot;$workdir${pathsep}commands.c&amp;quot;,&amp;quot;$workdir${pathsep}display.c&amp;quot;,
-               &amp;quot;$workdir${pathsep}buffer.h&amp;quot;,&amp;quot;$workdir${pathsep}insert.c&amp;quot;,
-	       &amp;quot;$workdir${pathsep}command.c&amp;quot;);
-
-&amp;amp;touch(@files_to_touch);
-
-&amp;amp;run_make_with_options($makefile,&amp;quot;&amp;quot;,&amp;amp;get_logfile);
-
-# Create the answer to what should be produced by this Makefile
-$answer = &amp;quot;cc -c main.c\ncc -c kbd.c\ncc -c commands.c\ncc -c display.c
-cc -c insert.c\ncc -o edit main.o kbd.o commands.o display.o insert.o\n&amp;quot;;
-
-# COMPARE RESULTS
-
-if (&amp;amp;compare_output($answer,&amp;amp;get_logfile(1))) {
-  unlink @files_to_touch;
-}
-
-1;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h4 id=&#34;test-case-example-2-phony-targets&#34;&gt;Test case example #2: PHONY targets&lt;/h4&gt;
-&lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/targets/PHONY&lt;/code&gt;.&lt;/p&gt;
-&lt;pre&gt;
-#                                                                    -*-perl-*-
-
-$description = &#34;The following tests the use of a PHONY target.  It makes\n&#34;
-              .&#34;sure that the rules under a target get executed even if\n&#34;
-              .&#34;a filename of the same name of the target exists in the\n&#34;
-              .&#34;directory.\n&#34;;
-
-$details = &#34;This makefile in this test declares the target clean to be a \n&#34;
-          .&#34;PHONY target.  We then create a file named \&#34;clean\&#34; in the \n&#34;
-          .&#34;directory.  Although this file exists, the rule under the target\n&#34;
-          .&#34;clean should still execute because of it&#39;s phony status.&#34;;
-
-$example = &#34;EXAMPLE_FILE&#34;;
-
-open(MAKEFILE,&#34;&gt; $makefile&#34;);
-
-# The Contents of the MAKEFILE ...
-
-print MAKEFILE &#34;.PHONY : clean \n&#34;;
-print MAKEFILE &#34;all: \n&#34;;
-print MAKEFILE &#34;\t\@echo This makefile did not clean the dir ... good\n&#34;;
-print MAKEFILE &#34;clean: \n&#34;;
-print MAKEFILE &#34;\t$delete_command $example clean\n&#34;;
-
-# END of Contents of MAKEFILE
-
-close(MAKEFILE);
-
-&amp;touch($example);
-
-# Create a file named &#34;clean&#34;.  This is the same name as the target clean
-# and tricks the target into thinking that it is up to date.  (Unless you
-# use the .PHONY target.
-&amp;touch(&#34;clean&#34;);
-
-$answer = &#34;$delete_command $example clean\n&#34;;
-&amp;run_make_with_options($makefile,&#34;clean&#34;,&amp;get_logfile);
-
-if (-f $example) {
-  $test_passed = 0;
-}
-
-&amp;compare_output($answer,&amp;get_logfile(1));
-
-1;
-&lt;/pre&gt;
-&lt;h4 id=&#34;test-case-example-3---warn-undefined-variables-option&#34;&gt;Test case example #3: &amp;ndash;warn-undefined-variables option&lt;/h4&gt;
-&lt;p&gt;The following test is located at &lt;code&gt;tests/scripts/options/warn-undefined-variables&lt;/code&gt;.&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;#                                                                    -*-perl-*-
-
-$description = &amp;quot;Test the --warn-undefined-variables option.&amp;quot;;
-
-$details = &amp;quot;Verify that warnings are printed for referencing undefined variables.&amp;quot;;
-
-# Without --warn-undefined-variables, nothing should happen
-run_make_test(&#39;
-EMPTY =
-EREF = $(EMPTY)
-UREF = $(UNDEFINED)
-
-SEREF := $(EREF)
-SUREF := $(UREF)
-
-all: ; @echo ref $(EREF) $(UREF)&#39;,
-              &#39;&#39;, &#39;ref&#39;);
-
-# With --warn-undefined-variables, it should warn me
-run_make_test(undef, &#39;--warn-undefined-variables&#39;,
-              &amp;quot;#MAKEFILE#:7: warning: undefined variable &#39;UNDEFINED&#39;
-#MAKEFILE#:9: warning: undefined variable &#39;UNDEFINED&#39;
-ref&amp;quot;);
-
-1;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;h3 id=&#34;open-issues&#34;&gt;Open issues&lt;/h3&gt;
-&lt;p&gt;The file &lt;code&gt;tests/README&lt;/code&gt; contains interesting section that one may read as high-level TODO list for the project (bold below is mine). It seems that there is some interesting stuff waiting for someone to contribute ;)&lt;/p&gt;
-&lt;blockquote&gt;
-&lt;h2 id=&#34;open-issues-1&#34;&gt;Open Issues&lt;/h2&gt;
-&lt;/blockquote&gt;
-&lt;blockquote&gt;
-&lt;p&gt;The test suite has a number of problems which should be addressed. &lt;strong&gt;One
-VERY serious one is that there is no real documentation&lt;/strong&gt;.  You just have
-to see the existing tests. Use the newer tests: many of the tests
-haven&amp;rsquo;t been updated to use the latest/greatest test methods.  See the
-ChangeLog in the tests directory for pointers.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;blockquote&gt;
-&lt;p&gt;&lt;strong&gt;The second serious problem is that it&amp;rsquo;s not parallelizable&lt;/strong&gt;: it scribbles
-all over its installation directory and so can only test one make at a
-time. &lt;strong&gt;The third serious problem is that it&amp;rsquo;s not relocatable&lt;/strong&gt;: the only
-way it works when you build out of the source tree is to create
-symlinks, which doesn&amp;rsquo;t work on every system and is bogus to boot. &lt;strong&gt;The
-fourth serious problem is that it doesn&amp;rsquo;t create its own sandbox when
-running tests&lt;/strong&gt;, so that if a test forgets to clean up after itself that
-can impact future tests.&lt;/p&gt;
-&lt;/blockquote&gt;
-&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
-&lt;ol&gt;
-&lt;li&gt;GNU Make has 581 tests: solid test suite introduced as early as of 1992.&lt;/li&gt;
-&lt;li&gt;All of these tests are integration tests: the final executable &lt;code&gt;make&lt;/code&gt; is tested, not the parts of C code.&lt;/li&gt;
-&lt;li&gt;Default GNU Make 3.81 on OSX machine is 10 years old, it fails 212 tests compared to the latest GNU Make 4.2 build from source which passes all of its tests green.&lt;/li&gt;
-&lt;li&gt;There is always space for contribution: more documentation is needed, tests should have better sandboxing to achieve parallelism and removability.&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;So far we have Rust and Javascript programming languages, NeoVim editor and XTerm terminal emulator in our plans. Let us know what projects or tools you would like to see covered in this series: &lt;a href=&#34;http://lowlevelbits.org/system-under-test/&#34;&gt;System Under Test&lt;/a&gt;.&lt;/p&gt;
 </description>
       </item>
       

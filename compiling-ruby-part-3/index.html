@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Compiling Ruby. Part 3: MLIR and compilation - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="virtual machines ,ruby ,mruby ,yarv ,rite VM ,dragonruby ,firestorm ,mlir ,cfg ,SSA ,control flow graph ,single static assignment ,DFA ,dataflow ,analysis ,llvm ,bytecode" />
+  
+
+  
+  <meta name="description" content="The fourth article in the series &#39;Compiling Ruby&#39; in which I&#39;m documenting my journey of building an ahead-of-time (AOT) compiler for DragonRuby. This part covers the compilation and the role of MLIR." />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Compiling Ruby. Part 3: MLIR and compilation" />
+<meta name="twitter:description" content="The fourth article in the series &#39;Compiling Ruby&#39; in which I&#39;m documenting my journey of building an ahead-of-time (AOT) compiler for DragonRuby. This part covers the compilation and the role of MLIR." />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/aaa39cd123ecae87821d0d66a/cc68a3d3a46158689b68653cc.js");</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/compiling-ruby-part-3/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Compiling Ruby. Part 3: MLIR and compilation</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2023-01-06 02:00:00 &#43;0100 CET" pubdate>Jan 06, 2023</time></i>
+            </p>
+          </div>
+
+          
+            
+            
+
+<p>
+    This article is part of the series "Compiling Ruby,"
+    in which I'm documenting my journey of building an ahead-of-time (AOT) compiler for 
+    <a href="https://dragonruby.org" target="_blank">DragonRuby</a>,
+    which is based on <a href="https://mruby.org" target="_blank">mruby</a>
+    and heavily utilizes <a href="https://mlir.llvm.org" target="_blank">MLIR</a> infrastructure.
+</p>
+
+<p>Here is what you can expect from the series:</p>
+
+<ul>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-0/">Motivation</a>: some background reading on what and why
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-1/">Compilers vs Interpreters</a>: a high level overview of the chosen approach
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-2/">RiteVM</a>: a high-level overview of the mruby Virtual Machine
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+    <b>
+  
+  
+    <a href="/compiling-ruby-part-3/">MLIR and compilation</a>: covers what is MLIR and how it fits into the whole picture
+  
+  
+    </b>
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Exceptions (TBD): an overview of how mruby implements exception handling
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Garbage Collection (TBD): an overview of how mruby manages memory
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Fibers (TBD): what are fibers in Ruby, and how mruby makes them work
+  
+  
+  </li>
+
+</ul>
+
+<i>Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.</i>
+
+<hr />
+          
+
+          <div>
+            <p>Now as we have a decent understanding of how RiteVM works, we can tackle the compilation.
+The question I had around two years ago - how do I even do this?</p>
+<p><strong>A note of warning: so far, this is the longest article on this blog. And I&rsquo;m afraid the most cryptic one.</strong></p>
+<p>The topics covered here:</p>
+<ul>
+<li>MLIR</li>
+<li>Control-Flow Graphs (CFG)</li>
+<li>Static Single Assignment (SSA)</li>
+<li>Dataflow Analysis</li>
+</ul>
+<h3 id="compilation">Compilation</h3>
+<p>mruby is written in C, so the logic behind each opcode is implemented in C. To compile a Ruby program from bytecode, we can emit an equivalent C program that uses mruby C API.</p>
+<p>Some opcodes have direct API counterparts, e.g., <code>OP_LOADI</code> is equivalent to <code>mrb_value mrb_fixnum_value(mrb_int i);</code>. Yet, most opcodes are inlined in the giant dispatch loop in <code>vm.c</code>. However, we can extract these implementations into separate functions and call them from C.</p>
+<p>Consider the following Ruby program:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-ruby" data-lang="ruby"><span style="display:flex;"><span>puts <span style="color:#ae81ff">42</span>
+</span></span></code></pre></div><p>and its bytecode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#a6e22e">OP_LOADSELF</span> <span style="color:#66d9ef">R1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OP_LOADI</span>    <span style="color:#66d9ef">R2</span>  <span style="color:#ae81ff">42</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OP_SEND</span>     <span style="color:#66d9ef">R1</span>  :<span style="color:#66d9ef">puts</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OP_RETURN</span>   <span style="color:#66d9ef">R1</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OP_STOP</span>
+</span></span></code></pre></div><p>An equivalent C program looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mrb_state <span style="color:#f92672">*</span>mrb <span style="color:#f92672">=</span> mrb_open();
+</span></span><span style="display:flex;"><span>mrb_value receiver <span style="color:#f92672">=</span> fs_load_self();
+</span></span><span style="display:flex;"><span>mrb_value number <span style="color:#f92672">=</span> mrb_fixnum_value(<span style="color:#ae81ff">42</span>);
+</span></span><span style="display:flex;"><span>mrb_funcall(mrb, receiver, <span style="color:#e6db74">&#34;puts&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#f92672">&amp;</span>number);
+</span></span><span style="display:flex;"><span>mrb_close(mrb);
+</span></span></code></pre></div><p><em><code>fs_load_self</code> is a custom runtime function as <code>OP_LOADSELF</code> doesn&rsquo;t have a C API counterpart.</em></p>
+<p><em><code>OP_RETURN</code> is ignored in this small example.</em></p>
+<p>To compile a Ruby program from its bytecode, we &ldquo;just&rdquo; need to generate the equivalent C program. In fact, this is what I did to start two years ago.
+It worked well and had some nice debugging capabilities - in the end, it&rsquo;s just a C program.</p>
+<p>Yet, at some point, the implementation became daunting. As I was generating a C program, it was pretty hard to do some custom analysis or optimizations on the C code. I started adding my auxiliary data structures (really, just arrays of hashmaps of hashmaps of pairs and tuples) before I generated the C code.</p>
+<p>I realized I was about to invent my intermediate representation of questionable quality.</p>
+<p>I needed a better solution.</p>
+<h3 id="mlir">MLIR</h3>
+<p>I remember watching the <a href="https://www.youtube.com/watch?v=qzljG6DKgic">MLIR talk</a> by Tatiana Shpeisman and Chris Lattner live at EuroLLVM in Brussels. It went over my head back then, as there was a lot of talk about machine learning, tensors, heterogeneous accelerators, and some other dark magic.</p>
+<p>Yet, I also remember some mentions of custom intermediate representations. So I decided to give it a try and dig into it more. It turned out to be great.</p>
+<p>One of the key features of MLIR is the ability to define custom intermediate representations called <em>dialects</em>. MLIR provides an infrastructure to mix and match different dialects and run analyses or transformations against them. Further, the dialects can be lowered to machine code (e.g., for CPU or GPU).</p>
+<p>Here is a slide from my <a href="https://www.youtube.com/watch?v=Cl5SgDxvZ8w">LLVM Social talk</a> to illustrate the idea:</p>
+<p><img src="/img/compiling-ruby-3/what-is-mlir.png" alt="What is MLIR?"></p>
+<h3 id="mlir-rite-dialect">MLIR Rite Dialect</h3>
+<p>I need to define a custom dialect to make MLIR work for my use case. I called it &ldquo;Rite.&rdquo; The dialect needs an operation of each RiteVM opcode and some RiteVM types.</p>
+<p>Here is the minimum required to compile the code sample from above (<code>puts 42</code>).</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">Rite_Dialect</span> : Dialect {
+</span></span><span style="display:flex;"><span>  let name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;rite&#34;</span>;
+</span></span><span style="display:flex;"><span>  let summary <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;A one-to-one mapping from mruby RITE VM bytecode to MLIR&#34;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  let cppNamespace <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;rite&#34;</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">RiteType</span><span style="color:#f92672">&lt;</span>string name<span style="color:#f92672">&gt;</span> : TypeDef<span style="color:#f92672">&lt;</span>Rite_Dialect, name<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>  let summary <span style="color:#f92672">=</span> name;
+</span></span><span style="display:flex;"><span>  let mnemonic <span style="color:#f92672">=</span> name;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">ValueType</span> : RiteType<span style="color:#f92672">&lt;</span><span style="color:#e6db74">&#34;value&#34;</span><span style="color:#f92672">&gt;</span> {}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">StateType</span> : RiteType<span style="color:#f92672">&lt;</span><span style="color:#e6db74">&#34;state&#34;</span><span style="color:#f92672">&gt;</span> {}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Rite_Op</span><span style="color:#f92672">&lt;</span>string mnemonic, list<span style="color:#f92672">&lt;</span>Trait<span style="color:#f92672">&gt;</span> traits <span style="color:#f92672">=</span> []<span style="color:#f92672">&gt;</span> :
+</span></span><span style="display:flex;"><span>    Op<span style="color:#f92672">&lt;</span>Rite_Dialect, mnemonic, traits<span style="color:#f92672">&gt;</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">//</span> OPCODE(LOADSELF, B) <span style="color:#f92672">/*</span> R(a) <span style="color:#f92672">=</span> self <span style="color:#f92672">*/</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">LoadSelfOp</span> : Rite_Op<span style="color:#f92672">&lt;</span><span style="color:#e6db74">&#34;OP_LOADSELF&#34;</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>  let summary <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;OP_LOADSELF&#34;</span>;
+</span></span><span style="display:flex;"><span>  let results <span style="color:#f92672">=</span> (outs ValueType);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">//</span> OPCODE(LOADI, BB) <span style="color:#f92672">/*</span> R(a) <span style="color:#f92672">=</span> mrb_int(b) <span style="color:#f92672">*/</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">LoadIOp</span> : Rite_Op<span style="color:#f92672">&lt;</span><span style="color:#e6db74">&#34;OP_LOADI&#34;</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>  let summary <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;OP_LOADI&#34;</span>;
+</span></span><span style="display:flex;"><span>  let arguments <span style="color:#f92672">=</span> (ins SI64Attr:<span style="color:#960050;background-color:#1e0010">$</span>value);
+</span></span><span style="display:flex;"><span>  let results <span style="color:#f92672">=</span> (outs ValueType);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">//</span> OPCODE(SEND, BBB) <span style="color:#f92672">/*</span> R(a) <span style="color:#f92672">=</span> call(R(a),Syms(b),R(a<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>),<span style="color:#f92672">...</span>,R(a<span style="color:#f92672">+</span>c)) <span style="color:#f92672">*/</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">SendOp</span> : Rite_Op<span style="color:#f92672">&lt;</span><span style="color:#e6db74">&#34;OP_SEND&#34;</span><span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>  let summary <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;OP_SEND&#34;</span>;
+</span></span><span style="display:flex;"><span>  let arguments <span style="color:#f92672">=</span> (ins ValueType:<span style="color:#960050;background-color:#1e0010">$</span>receiver, StringAttr:<span style="color:#960050;background-color:#1e0010">$</span>symbol, UI32Attr:<span style="color:#960050;background-color:#1e0010">$</span>argc, Variadic<span style="color:#f92672">&lt;</span>ValueType<span style="color:#f92672">&gt;</span>:<span style="color:#960050;background-color:#1e0010">$</span>argv);
+</span></span><span style="display:flex;"><span>  let results <span style="color:#f92672">=</span> (outs ValueType);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">//</span> OPCODE(RETURN, B) <span style="color:#f92672">/*</span> <span style="color:#66d9ef">return</span> R(a) (normal) <span style="color:#f92672">*/</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">ReturnOp</span> : Rite_Op<span style="color:#f92672">&lt;</span><span style="color:#e6db74">&#34;OP_RETURN&#34;</span>, [Terminator]<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>  let summary <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;OP_RETURN&#34;</span>;
+</span></span><span style="display:flex;"><span>  let arguments <span style="color:#f92672">=</span> (ins ValueType:<span style="color:#960050;background-color:#1e0010">$</span>src);
+</span></span><span style="display:flex;"><span>  let results <span style="color:#f92672">=</span> (outs ValueType);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>It defines the dialect, the types needed, and the operations.
+Some entities come from the MLIR&rsquo;s predefined dialects (<code>StringAttr</code>, <code>UI32Attr</code>, <code>Variadic&lt;...&gt;</code>, <code>Terminator</code>). We define the rest.</p>
+<p>Each operation may take zero or more arguments, but it also may produce zero or more results. Unlike a &ldquo;typical&rdquo; programming language, MLIR dialects define a graph (as <code>ins</code> and <code>outs</code> hint at). The dialects also have some other properties, but one step at a time.</p>
+<p>With the dialect in place, I can generate an &ldquo;MLIR program&rdquo; which is roughly equivalent to the C program above:</p>
+<p><em>Note: I omit some details for brevity.</em></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span>module <span style="color:#960050;background-color:#1e0010">@</span><span style="color:#e6db74">&#34;test.rb&#34;</span> {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>    %0 = rite.OP_LOADSELF() : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>    %1 = rite.OP_LOADI() {value = <span style="color:#ae81ff">42</span> : si64} : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>    %2 = rite.OP_SEND(%0, %1) {argc = <span style="color:#ae81ff">1</span> : ui32, symbol = <span style="color:#e6db74">&#34;puts&#34;</span>} : (!rite.value, !rite.value) -&gt; !rite.value
+</span></span><span style="display:flex;"><span>    %3 = rite.OP_RETURN(%2) : (!rite.value) -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Here, I generated an MLIR module containing a function (<code>top</code>) with four operations corresponding to each bytecode operation.</p>
+<p>Let&rsquo;s take a detailed look at one operation:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span>%2 = rite.OP_SEND(%0, %1) {argc = <span style="color:#ae81ff">1</span> : ui32, symbol = <span style="color:#e6db74">&#34;puts&#34;</span>} : (!rite.value, !rite.value) -&gt; !rite.value
+</span></span></code></pre></div><p>This piece defines a value named <code>%2</code>, which takes two other values (<code>%0</code> and <code>%1</code>). In MLIR, constants are defined as &ldquo;attributes,&rdquo; which are <code>argc = 1 : ui32</code> and <code>symbol = &quot;puts&quot;</code> in this case. What follows is the operation signature <code>(!rite.value, !rite.value) -&gt; !rite.value</code>. The operation returns <code>rite.value</code> and takes several arguments: <code>%0</code> is the receiver, and <code>%1</code> is part of the <code>Variadic&lt;ValueType&gt;:$argv</code>.</p>
+<p>MLIR takes the declarative dialect definition and generates C++ code out of it. The C++ code serves as a programmatic API to generate the MLIR module.</p>
+<p>Once the module is generated, I can analyze and transform it. The next step is directly converting the Rite Dialect into LLVM Dialect and lowering it into LLVM IR.</p>
+<p>From there on, I can emit an object file (machine code) and link it with mruby runtime.</p>
+<h3 id="static-single-assignment-ssa">Static Single Assignment (SSA)</h3>
+<p>In the previous article, I mentioned that the virtual stack is essential, yet here in both C and MLIR programs, I use &ldquo;local variables&rdquo; instead of the stack. What&rsquo;s going on here?</p>
+<p>The answer is simple - MLIR uses a Static Single-Assignment form for all its representations.</p>
+<p>As a reminder, SSA means that each variable can only be defined once.</p>
+<p><em>Pedantic note: the &ldquo;variables&rdquo; should be referred to as &ldquo;values&rdquo; as they cannot vary.</em></p>
+<p>Here is an &ldquo;invalid&rdquo; SSA form:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>;
+</span></span><span style="display:flex;"><span>x <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>; <span style="color:#75715e">// redefinition not allowed in SSA
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>print(x);
+</span></span></code></pre></div><p>And here is the same code in the SSA form:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> x1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>; <span style="color:#75715e">// &#34;redefinition&#34; generates a new value
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>print(x1);
+</span></span></code></pre></div><p>We must convert the registers into SSA values to satisfy the MLIR requirement to be in SSA form.</p>
+<p>At first glance, the problem is trivial. We can maintain a map of definitions for each register at each point in time. For example, for the following bytecode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#a6e22e">OP_LOADSELF</span> <span style="color:#66d9ef">R1</span>    <span style="color:#75715e">// #1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">OP_LOADI</span>    <span style="color:#66d9ef">R2</span> <span style="color:#ae81ff">10</span> <span style="color:#75715e">// #2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">OP_LOADI</span>    <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">20</span> <span style="color:#75715e">// #3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">OP_LOADI</span>    <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">30</span> <span style="color:#75715e">// #4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">OP_ADD</span>      <span style="color:#66d9ef">R2</span> <span style="color:#66d9ef">R3</span> <span style="color:#75715e">// #5
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">OP_RETURN</span>   <span style="color:#66d9ef">R2</span>    <span style="color:#75715e">// #6
+</span></span></span></code></pre></div><p>The map changes as follows:</p>
+<pre tabindex="0"><code>Step #1: { empty }
+Step #2: {
+  R1 defined by #1
+}
+Step #3: {
+  R1 defined by #1
+  R2 defined by #2
+}
+Step #4: {
+  R1 defined by #1
+  R2 defined by #2
+  R3 defined by #3
+}
+Step #5: {
+  R1 defined by #1
+  R2 defined by #2
+  R3 defined by #4 // R3 redefined at #4
+}
+Step #5: {
+  R1 defined by #1
+  R2 defined by #5 // OP_ADD stores the result in the first operand
+  R3 defined by #4
+}
+</code></pre><p>With this map, we know precisely where a register was defined when an operation uses the register.</p>
+<p>So MLIR version will look like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#75715e">// OP_LOADSELF R1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>%0 = rite.OP_LOADSELF() : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// OP_LOADI    R2 10
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>%1 = rite.OP_LOADI() {value = <span style="color:#ae81ff">10</span> : si64} : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// OP_LOADI    R3 20
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>%2 = rite.OP_LOADI() {value = <span style="color:#ae81ff">20</span> : si64} : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// OP_LOADI    R3 30
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>%3 = rite.OP_LOADI() {value = <span style="color:#ae81ff">30</span> : si64} : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// OP_ADD      R2 R3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>%4 = rite.OP_ADD(%1, %3) : (!rite.value, !rite.value) -&gt; !rite.value
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// OP_RETURN   R2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>%5 = rite.OP_RETURN(%4) : (!rite.value) -&gt; !rite.value
+</span></span></code></pre></div><p><em>Side note: <code>%0</code> and <code>%2</code> are never used and can be eliminated (if <code>OP_LOADSELF</code>/<code>OP_LOADI</code> don&rsquo;t have side effects).</em></p>
+<p>This solution is pleasant until the code has branching such as <code>if</code>/<code>else</code>, loops, or exceptions.</p>
+<p>Consider the following non-SSA example:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>x <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (something) {
+</span></span><span style="display:flex;"><span>  x <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>;
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>  x <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>print(x); <span style="color:#75715e">// Where x is defined?
+</span></span></span></code></pre></div><p>Classical SSA solves this problem with artificial <code>phi</code>-nodes:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>x1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (something) {
+</span></span><span style="display:flex;"><span>  x2 <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>;
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>  x3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>x4 <span style="color:#f92672">=</span> phi(x2, x3); <span style="color:#75715e">// Will magically resolve to the right x depending on where it comes from
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>print(x4);
+</span></span></code></pre></div><p>MLIR approaches this differently and elegantly - via &ldquo;block arguments.&rdquo;</p>
+<p>But first, let&rsquo;s talk about Control-Flow Graphs.</p>
+<h3 id="control-flow-graph-cfg">Control-Flow Graph (CFG)</h3>
+<p>A control-flow graph is a form of intermediate representation that maintains the program in the form of a graph where operations are connected to each other based on the execution (or control) flow.</p>
+<p>Consider the following bytecode (the number on the left is an operation address):</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">001:</span> <span style="color:#a6e22e">OP_LOADT</span> <span style="color:#66d9ef">R1</span>      <span style="color:#75715e">// puts &#34;true&#34; in R1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">002:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R2</span> <span style="color:#ae81ff">42</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">003:</span> <span style="color:#a6e22e">OP_JMPIF</span> <span style="color:#66d9ef">R1</span> <span style="color:#ae81ff">006</span>  <span style="color:#75715e">// jump to 006 if R1 contains &#34;true&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                      <span style="color:#75715e">// otherwise implicitly falls through to 004
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">004:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">005:</span> <span style="color:#a6e22e">OP_JMP</span> <span style="color:#ae81ff">007</span>       <span style="color:#75715e">// jump to 007 unconditionally
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">006:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">007:</span> <span style="color:#a6e22e">OP_ADD</span> <span style="color:#66d9ef">R2</span> <span style="color:#66d9ef">R3</span>     <span style="color:#75715e">// R3 may be either 20 or 30, depending on the branching
+</span></span></span></code></pre></div><p>The same program in the form of a graph:</p>
+<p><img src="/img/compiling-ruby-3/naive-cfg.png" alt="CFG without basic blocks"></p>
+<p>This CFG can be further optimized: we can merge all the subsequent nodes unless the node has more than one incoming or more than one outgoing edge.</p>
+<p>The merged nodes are called basic blocks:</p>
+<p><img src="/img/compiling-ruby-3/complete-cfg.png" alt="CFG with basic blocks"></p>
+<p>Some more terms for completeness:</p>
+<ul>
+<li>the &ldquo;first&rdquo; basic block where the execution of a function starts is called &ldquo;entry.&rdquo;</li>
+<li>similarly, the &ldquo;last&rdquo; basic block is called &ldquo;exit.&rdquo;</li>
+<li>preceding (incoming, previous) basic blocks are called predecessors. The entry block doesn&rsquo;t have predecessors.</li>
+<li>succeeding (outgoing, next) basic blocks are called successors. Exit blocks don&rsquo;t have successors.</li>
+<li>the last operation in a basic block is called a terminator</li>
+</ul>
+<p>Based on the last picture:</p>
+<ul>
+<li><code>B1</code>: entry block</li>
+<li><code>B4</code>: single exit block. There could be several exit blocks, yet we can always add one &ldquo;empty&rdquo; block as a successor for the exit blocks to have only one exit block.</li>
+<li><code>B1</code>: predecessors: [], successors: [<code>B2</code>, <code>B3</code>], terminator: <code>OP_JMPIF</code></li>
+<li><code>B2</code>: predecessors: [<code>B1</code>], successors: [<code>B4</code>], terminator: <code>OP_JMP</code></li>
+<li><code>B3</code>: predecessors: [<code>B1</code>], successors: [<code>B4</code>], terminator: <code>OP_LOADI</code></li>
+<li><code>B4</code>: predecessors: [<code>B2</code>, <code>B3</code>], successors: [], terminator: <code>OP_ADD</code></li>
+</ul>
+<h3 id="cfgs-in-mlir">CFGs in MLIR</h3>
+<p>Now we can take a look at CFGs from the MLIR perspective. If you are familiar with CFGs in LLVM, then the important difference is that in MLIR, all the basic blocks may have arguments. Function arguments are, in fact, the block arguments from the entry block. For example, this is a more accurate representation of a function:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>() -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>^bb0(%arg0: !rite.state, %arg1: !rite.value):
+</span></span><span style="display:flex;"><span>  %0 = rite.OP_LOADSELF() : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %1 = rite.OP_LOADI() {value = <span style="color:#ae81ff">42</span> : si64} : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %2 = rite.OP_SEND(%0, %1) {argc = <span style="color:#ae81ff">1</span> : ui32, symbol = <span style="color:#e6db74">&#34;puts&#34;</span>} : (!rite.value, !rite.value) -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %3 = rite.OP_RETURN(%2) : (!rite.value) -&gt; !rite.value
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><em>Note, <code>^bbX</code> represents the basic blocks.</em></p>
+<p>To convert the following bytecode:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">001:</span> <span style="color:#a6e22e">OP_LOADT</span> <span style="color:#66d9ef">R1</span>      <span style="color:#75715e">// puts &#34;true&#34; in R1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">002:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R2</span> <span style="color:#ae81ff">42</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">003:</span> <span style="color:#a6e22e">OP_JMPIF</span> <span style="color:#66d9ef">R1</span> <span style="color:#ae81ff">006</span>  <span style="color:#75715e">// jump to 006 if R1 contains &#34;true&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                      <span style="color:#75715e">// otherwise implicitly falls through to 004
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">004:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">005:</span> <span style="color:#a6e22e">OP_JMP</span> <span style="color:#ae81ff">007</span>       <span style="color:#75715e">// jump to 007 unconditionally
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">006:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">007:</span> <span style="color:#a6e22e">OP_ADD</span> <span style="color:#66d9ef">R2</span> <span style="color:#66d9ef">R3</span>     <span style="color:#75715e">// R3 may be either 20 or 30, depending on the branching
+</span></span></span></code></pre></div><p>we need to take several steps:</p>
+<ul>
+<li>add an address attribute to all addressable operations (they could be jump targets)</li>
+<li>add &ldquo;targets&rdquo; attribute to all the jumps, including implicit fallthrough jumps</li>
+<li>add an explicit jump in place of the implicit jumps</li>
+<li>add the successor blocks for all jump instructions</li>
+<li>put all the operations in a single, entry basic block</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>  %0 = rite.PhonyValue() : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %1 = rite.OP_LOADT() { address = <span style="color:#ae81ff">001</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %2 = rite.OP_LOADI() { address = <span style="color:#ae81ff">002</span>, value = <span style="color:#ae81ff">42</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  rite.OP_JMPIF(%0)[^bb1, ^bb1] { address = <span style="color:#ae81ff">003</span>, targets = [<span style="color:#ae81ff">006</span>, <span style="color:#ae81ff">004</span>] }
+</span></span><span style="display:flex;"><span>  %3 = rite.OP_LOADI() { address = <span style="color:#ae81ff">004</span>, value = <span style="color:#ae81ff">20</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  rite.OP_JMP()[^bb1] { address = <span style="color:#ae81ff">005</span>, targets = [<span style="color:#ae81ff">007</span>] }
+</span></span><span style="display:flex;"><span>  %4 = rite.OP_LOADI() { address = <span style="color:#ae81ff">006</span>, value = <span style="color:#ae81ff">30</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  rite.FallthroughJump()[^bb1]
+</span></span><span style="display:flex;"><span>  %5 = rite.OP_ADD(%0, %0) { address = <span style="color:#ae81ff">007</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>^bb1:
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><em>Note: I&rsquo;m omitting some details from the textual representation for brevity.</em></p>
+<p>Notice, here, I added a &ldquo;phony value&rdquo; as a placeholder for SSA values as we cannot yet construct the proper SSA. We will remove them in the next section.</p>
+<p>Additionally, I added a phony basic block to serve as a placeholder successor for the jump targets.</p>
+<p>Now, the last steps are:</p>
+<ul>
+<li>split the entry basic block by cutting it right before each jump target operation</li>
+<li>rewire the jumps to point to the right target basic blocks</li>
+<li>delete the phony basic block used as a placeholder</li>
+</ul>
+<p>The final CFG looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>  %0 = rite.PhonyValue() : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %1 = rite.OP_LOADT() { address = <span style="color:#ae81ff">001</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %2 = rite.OP_LOADI() { address = <span style="color:#ae81ff">002</span>, value = <span style="color:#ae81ff">42</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  rite.OP_JMPIF(%0)[^bb1, ^bb2] { address = <span style="color:#ae81ff">003</span>, targets = [<span style="color:#ae81ff">006</span>, <span style="color:#ae81ff">004</span>] }
+</span></span><span style="display:flex;"><span>^bb1: <span style="color:#75715e">// pred: ^bb0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %3 = rite.OP_LOADI() { address = <span style="color:#ae81ff">004</span>, value = <span style="color:#ae81ff">20</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  rite.OP_JMP()[^bb3] { address = <span style="color:#ae81ff">005</span>, targets = [<span style="color:#ae81ff">007</span>] }
+</span></span><span style="display:flex;"><span>^bb2: <span style="color:#75715e">// pred: ^bb0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %4 = rite.OP_LOADI() { address = <span style="color:#ae81ff">006</span>, value = <span style="color:#ae81ff">30</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  rite.FallthroughJump()[^bb3]
+</span></span><span style="display:flex;"><span>^bb3: <span style="color:#75715e">// pred: ^bb1, ^bb2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %5 = rite.OP_ADD(%0, %0) { address = <span style="color:#ae81ff">007</span> } : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>It corresponds to the last picture above, except that we now have an explicit <code>rite.FallthroughJump()</code>.</p>
+<p>With the CFG in place, we can solve the SSA problem and eliminate the <code>rite.PhonyValue()</code> placeholder.</p>
+<h3 id="ssa-in-mlir">SSA in MLIR</h3>
+<p>As a reminder, here is the CFG of the &ldquo;problematic&rdquo; program:</p>
+<p><img src="/img/compiling-ruby-3/complete-cfg.png" alt="CFG with basic blocks"></p>
+<p>In the MLIR form, we no longer have registers from the virtual stack. We only have values such as <code>%2</code>, <code>%3</code>, <code>%4</code>, and so on. The tricky part is the <code>007: OP_ADD R2 R3</code> operation - where <code>R3</code> is coming from? Is it <code>%3</code> or <code>%4</code>?</p>
+<p>To answer this question, we can use <a href="https://en.wikipedia.org/wiki/Data-flow_analysis">Data-flow analysis</a>.</p>
+<p>Dataflow analysis is used to derive specific facts about the program. The analysis is an iterative process: first, collect the base facts for each basic block, then for each basic block, update the facts combining them with the facts from successors or predecessors. As the facts updated for a basic block may affect the facts from successors/predecessors, the process should run iteratively until no new facts are derived.</p>
+<p>A critical requirement for the facts - they should be monotonic. Once the fact is known, it cannot &ldquo;disappear.&rdquo; This way, the iterative process eventually stops as, in the worst case, the analysis will derive &ldquo;all&rdquo; the facts about the program and won&rsquo;t be able to derive any more.</p>
+<p>My favorite resource about dataflow analysis is Adrian Sampson&rsquo;s lectures on the subject - <a href="https://www.cs.cornell.edu/courses/cs6120/2020fa/lesson/4/">The Data Flow Framework</a>. I highly recommend it.</p>
+<p>In our case, the facts we need to derive are: which values/registers are required for each operation.</p>
+<p>Here is an algorithm briefly:</p>
+<ul>
+<li>at every point in time, there is a map of the values defined so far</li>
+<li>if an operation is using a value that is not defined, then this value is <code>required</code></li>
+<li>the required values become the block arguments and must be coming from the predecessors</li>
+<li>the terminators of the &ldquo;required&rdquo; predecessors now use the values required by the successors</li>
+<li>at the next iteration, the block arguments define the previously required values</li>
+</ul>
+<p>The process runs iteratively until no new required values appear.</p>
+<p>An important detail for the entry basic block is that, as it doesn&rsquo;t have a predecessor, all the required values must come from the virtual stack.</p>
+<p>Let&rsquo;s look a the example bytecode once again:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">001:</span> <span style="color:#a6e22e">OP_LOADT</span> <span style="color:#66d9ef">R1</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">002:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R2</span> <span style="color:#ae81ff">42</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">003:</span> <span style="color:#a6e22e">OP_JMPIF</span> <span style="color:#66d9ef">R1</span> <span style="color:#ae81ff">006</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">004:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">20</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">005:</span> <span style="color:#a6e22e">OP_JMP</span>   <span style="color:#ae81ff">007</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">006:</span> <span style="color:#a6e22e">OP_LOADI</span> <span style="color:#66d9ef">R3</span> <span style="color:#ae81ff">30</span>
+</span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">007:</span> <span style="color:#a6e22e">OP_ADD</span>   <span style="color:#66d9ef">R2</span> <span style="color:#66d9ef">R3</span>
+</span></span></code></pre></div><p>This is the initial state for the dataflow analysis. The comments above contain information about defined values for the given point in time. Comment on the side of each operation tells about the operation itself:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %0 = rite.PhonyValue() : () -&gt; !rite.value   <span style="color:#75715e">// defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %1 = rite.OP_LOADT() : () -&gt; !rite.value     <span style="color:#75715e">// defines: [R1], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %2 = rite.OP_LOADI(<span style="color:#ae81ff">42</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R2], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R1, R2]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.OP_JMPIF(%0)[^bb1, ^bb2]                <span style="color:#75715e">// defines: [], uses: [R1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb1: <span style="color:#75715e">// pred: ^bb0                            // defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %3 = rite.OP_LOADI(<span style="color:#ae81ff">20</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.OP_JMP()[^bb3]                          <span style="color:#75715e">// defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb2: <span style="color:#75715e">// pred: ^bb0                            // defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %4 = rite.OP_LOADI(<span style="color:#ae81ff">30</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.FallthroughJump()[^bb3]                 <span style="color:#75715e">// defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb3: <span style="color:#75715e">// pred: ^bb1, ^bb2                      // defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %5 = rite.OP_ADD(%0, %0) : () -&gt; !rite.value <span style="color:#75715e">// defines: [R2], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>The last operation uses values that are not defined. Therefore <code>R2</code> and <code>R3</code> are required and must come from the predecessors.</p>
+<p>Update predecessors and rerun the analysis.</p>
+<p><em>Note: I am using %RX_Y names to distinguish them from the original numerical value names. X is the register number, and Y is the basic block number.</em></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %0 = rite.PhonyValue() : () -&gt; !rite.value   <span style="color:#75715e">// defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %1 = rite.OP_LOADT() : () -&gt; !rite.value     <span style="color:#75715e">// defines: [R1], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %2 = rite.OP_LOADI(<span style="color:#ae81ff">42</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R2], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R1, R2]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.OP_JMPIF(%0)[^bb1, ^bb2]                <span style="color:#75715e">// defines: [], uses: [R1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb1: <span style="color:#75715e">// pred: ^bb0                            // defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %3 = rite.OP_LOADI(<span style="color:#ae81ff">20</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.OP_JMP(%0, %0)[^bb3]                    <span style="color:#75715e">// defines: [], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb2: <span style="color:#75715e">// pred: ^bb0                            // defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %4 = rite.OP_LOADI(<span style="color:#ae81ff">30</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.FallthroughJump(%0, %0)[^bb3]           <span style="color:#75715e">// defines: [], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb3(%R2_3, %R3_3): <span style="color:#75715e">// pred: ^bb1, ^bb2        // defines: [R2, R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %5 = rite.OP_ADD(%0, %0) : () -&gt; !rite.value <span style="color:#75715e">// defines: [R2], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>Basic block <code>^bb3</code> now has two block arguments.
+The terminators from its predecessors (<code>^bb1</code> and <code>^bb2</code>) now use an undefined value, <code>R2</code>. <code>R2</code> is now required. We must add it as a block argument and propagate it to the predecessors&rsquo; terminators.</p>
+<p>Rerun the analysis:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %0 = rite.PhonyValue() : () -&gt; !rite.value   <span style="color:#75715e">// defines: [], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %1 = rite.OP_LOADT() : () -&gt; !rite.value     <span style="color:#75715e">// defines: [R1], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R1]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %2 = rite.OP_LOADI(<span style="color:#ae81ff">42</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R2], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R1, R2]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.OP_JMPIF(%0, %0, %0)[^bb1, ^bb2]        <span style="color:#75715e">// defines: [], uses: [R1, R2, R2]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb1(%R2_1): <span style="color:#75715e">// pred: ^bb0                     // defines: [R2], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R2]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %3 = rite.OP_LOADI(<span style="color:#ae81ff">20</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.OP_JMP(%0, %0)[^bb3]                    <span style="color:#75715e">// defines: [], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb2(%R2_2): <span style="color:#75715e">// pred: ^bb0                     // defines: [R2], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R2]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %4 = rite.OP_LOADI(<span style="color:#ae81ff">30</span>) : () -&gt; !rite.value   <span style="color:#75715e">// defines: [R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  rite.FallthroughJump(%0, %0)[^bb3]           <span style="color:#75715e">// defines: [], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>^bb3(%R2_3, %R3_3): <span style="color:#75715e">// pred: ^bb1, ^bb2        // defines: [R2, R3], uses: []
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// defined: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %5 = rite.OP_ADD(%0, %0) : () -&gt; !rite.value <span style="color:#75715e">// defines: [R2], uses: [R2, R3]
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>We can run the analysis one more time, but it won&rsquo;t change anything, so that would conclude the analysis, and we should have all the information we need to replace the phony value with the correct values.</p>
+<p>Additionally, now we can replace our custom jump operations with the builtin ones from MLIR, so the final function looks like this:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-mlir" data-lang="mlir"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">@top</span>(%arg0: !rite.state, %arg1: !rite.value) -&gt; !rite.value {
+</span></span><span style="display:flex;"><span>  %1 = rite.OP_LOADT() : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  %2 = rite.OP_LOADI(<span style="color:#ae81ff">42</span>) : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  cond_br %1, ^bb1(%2), ^bb2(%2)
+</span></span><span style="display:flex;"><span>^bb1(%R2_1): <span style="color:#75715e">// pred: ^bb0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %3 = rite.OP_LOADI(<span style="color:#ae81ff">20</span>) : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  br ^bb3(%R2_1, %3)
+</span></span><span style="display:flex;"><span>^bb2(%R2_2): <span style="color:#75715e">// pred: ^bb0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %4 = rite.OP_LOADI(<span style="color:#ae81ff">30</span>) : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>  br ^bb3(%R2_2, %4)
+</span></span><span style="display:flex;"><span>^bb3(%R2_3, %R3_3): <span style="color:#75715e">// pred: ^bb1, ^bb2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  %5 = rite.OP_ADD(%R2_3, %R3_3) : () -&gt; !rite.value
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Now, onto drawing the rest of the fu**ing owl.</p>
+<hr>
+<p><strong>Thank you so much for reaching this far!</strong></p>
+<p>The following articles will focus on documenting mruby&rsquo;s implementation details.</p>
+<p><a href="https://lowlevelbits.org/subscribe/">Don&rsquo;t miss those details!</a></p>
+
+          </div>
+        </article>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on
+            <a href="https://twitter.com/1101_debian">twitter</a> or <a href="https://mastodon.social/@AlexDenisov">Mastodon</a> if you have questions!
+          </p>
+
+          <hr />
+          <a href="https://www.buymeacoffee.com/AlexDenisov" target="_blank"><img
+              src="https://cdn.buymeacoffee.com/buttons/v2/default-blue.png" alt="Buy Me A Coffee"
+              style="height: 40px !important;width: 145px !important;"></a>
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-3/"> Compiling Ruby. Part 3: MLIR and compilation</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-2/"> Compiling Ruby. Part 2: RiteVM</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-1/"> Compiling Ruby. Part 1: Compilers vs. Interpreters</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-0/"> Compiling Ruby. Part 0: Motivation</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/"> How to learn compilers: LLVM Edition</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+    
+  </article>
+</div>
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>
