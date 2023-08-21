@@ -225,11 +225,11 @@ The question I had around two years ago - how do I even do this?</p>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">OP_RETURN</span>   <span style="color:#66d9ef">R1</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">OP_STOP</span>
 </span></span></code></pre></div><p>An equivalent C program looks like this:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mrb_state <span style="color:#f92672">*</span>mrb <span style="color:#f92672">=</span> mrb_open();
-</span></span><span style="display:flex;"><span>mrb_value receiver <span style="color:#f92672">=</span> fs_load_self();
-</span></span><span style="display:flex;"><span>mrb_value number <span style="color:#f92672">=</span> mrb_fixnum_value(<span style="color:#ae81ff">42</span>);
-</span></span><span style="display:flex;"><span>mrb_funcall(mrb, receiver, <span style="color:#e6db74">&#34;puts&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#f92672">&amp;</span>number);
-</span></span><span style="display:flex;"><span>mrb_close(mrb);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>mrb_state <span style="color:#f92672">*</span>mrb <span style="color:#f92672">=</span> <span style="color:#a6e22e">mrb_open</span>();
+</span></span><span style="display:flex;"><span>mrb_value receiver <span style="color:#f92672">=</span> <span style="color:#a6e22e">fs_load_self</span>();
+</span></span><span style="display:flex;"><span>mrb_value number <span style="color:#f92672">=</span> <span style="color:#a6e22e">mrb_fixnum_value</span>(<span style="color:#ae81ff">42</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mrb_funcall</span>(mrb, receiver, <span style="color:#e6db74">&#34;puts&#34;</span>, <span style="color:#ae81ff">1</span>, <span style="color:#f92672">&amp;</span>number);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mrb_close</span>(mrb);
 </span></span></code></pre></div><p><em><code>fs_load_self</code> is a custom runtime function as <code>OP_LOADSELF</code> doesn&rsquo;t have a C API counterpart.</em></p>
 <p><em><code>OP_RETURN</code> is ignored in this small example.</em></p>
 <p>To compile a Ruby program from its bytecode, we &ldquo;just&rdquo; need to generate the equivalent C program. In fact, this is what I did to start two years ago.
@@ -318,11 +318,11 @@ Some entities come from the MLIR&rsquo;s predefined dialects (<code>StringAttr</
 <p>Here is an &ldquo;invalid&rdquo; SSA form:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>;
 </span></span><span style="display:flex;"><span>x <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>; <span style="color:#75715e">// redefinition not allowed in SSA
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>print(x);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">print</span>(x);
 </span></span></code></pre></div><p>And here is the same code in the SSA form:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">42</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> x1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">55</span>; <span style="color:#75715e">// &#34;redefinition&#34; generates a new value
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>print(x1);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">print</span>(x1);
 </span></span></code></pre></div><p>We must convert the registers into SSA values to satisfy the MLIR requirement to be in SSA form.</p>
 <p>At first glance, the problem is trivial. We can maintain a map of definitions for each register at each point in time. For example, for the following bytecode:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span><span style="color:#a6e22e">OP_LOADSELF</span> <span style="color:#66d9ef">R1</span>    <span style="color:#75715e">// #1
@@ -378,7 +378,7 @@ Step #5: {
 </span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
 </span></span><span style="display:flex;"><span>  x <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>;
 </span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>print(x); <span style="color:#75715e">// Where x is defined?
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">print</span>(x); <span style="color:#75715e">// Where x is defined?
 </span></span></span></code></pre></div><p>Classical SSA solves this problem with artificial <code>phi</code>-nodes:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>x1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (something) {
@@ -386,8 +386,8 @@ Step #5: {
 </span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
 </span></span><span style="display:flex;"><span>  x3 <span style="color:#f92672">=</span> <span style="color:#ae81ff">30</span>;
 </span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>x4 <span style="color:#f92672">=</span> phi(x2, x3); <span style="color:#75715e">// Will magically resolve to the right x depending on where it comes from
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>print(x4);
+</span></span><span style="display:flex;"><span>x4 <span style="color:#f92672">=</span> <span style="color:#a6e22e">phi</span>(x2, x3); <span style="color:#75715e">// Will magically resolve to the right x depending on where it comes from
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">print</span>(x4);
 </span></span></code></pre></div><p>MLIR approaches this differently and elegantly - via &ldquo;block arguments.&rdquo;</p>
 <p>But first, let&rsquo;s talk about Control-Flow Graphs.</p>
 <h3 id="control-flow-graph-cfg">Control-Flow Graph (CFG)</h3>
@@ -1111,13 +1111,13 @@ The terminators from its predecessors (<code>^bb1</code> and <code>^bb2</code>) 
       
       
       
+      
+      
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
-      
-      
-      
-      
       
       
       
@@ -1133,10 +1133,6 @@ The terminators from its predecessors (<code>^bb1</code> and <code>^bb2</code>) 
       
       
       
-      <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
-      </li>
-      
       
       
       <li>
@@ -1144,6 +1140,10 @@ The terminators from its predecessors (<code>^bb1</code> and <code>^bb2</code>) 
       </li>
       
       
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
       
       
       
@@ -1238,7 +1238,7 @@ The terminators from its predecessors (<code>^bb1</code> and <code>^bb2</code>) 
 <hr>
 
 <div class="row">
-  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+  <div class="copyright span12">Copyright &copy; 2014-2023 - Low Level Bits 🇺🇦 by Alex Denisov</div>
 </div>
 
   </div> 

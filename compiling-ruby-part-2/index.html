@@ -212,13 +212,13 @@ Or it can implement a behavior of an imaginary, artificial machine that doesn&rs
 <p>The mruby RiteVM is of a latter kind. It defines a set of &ldquo;CPU&rdquo; operations and provides a runtime to run them. The operations are referred to as bytecode. The bytecode consists of an operation kind (opcode) and its corresponding metadata (registers, flags, etc.).</p>
 <h3 id="bytecode">Bytecode</h3>
 <p>Here is a tiny snippet of various RiteVM operations (coming from <code>mruby/ops.h</code>):</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>OPCODE(NOP,   Z)  <span style="color:#75715e">/* no operation */</span>
-</span></span><span style="display:flex;"><span>OPCODE(MOVE,  BB) <span style="color:#75715e">/* R(a) = R(b) */</span>
-</span></span><span style="display:flex;"><span>OPCODE(ADD,   B)  <span style="color:#75715e">/* R(a) = R(a)+R(a+1) */</span>
-</span></span><span style="display:flex;"><span>OPCODE(ENTER, W)  <span style="color:#75715e">/* arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1) */</span>
-</span></span><span style="display:flex;"><span>OPCODE(JMP,   S)  <span style="color:#75715e">/* pc+=a */</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">OPCODE</span>(NOP,   Z)  <span style="color:#75715e">/* no operation */</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OPCODE</span>(MOVE,  BB) <span style="color:#75715e">/* R(a) = R(b) */</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OPCODE</span>(ADD,   B)  <span style="color:#75715e">/* R(a) = R(a)+R(a+1) */</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OPCODE</span>(ENTER, W)  <span style="color:#75715e">/* arg setup according to flags (23=m5:o5:r1:m5:k5:d1:b1) */</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">OPCODE</span>(JMP,   S)  <span style="color:#75715e">/* pc+=a */</span>
 </span></span></code></pre></div><p>All the opcodes follow the same form:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>OPCODE(name, operands) <span style="color:#75715e">/* comment */</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">OPCODE</span>(name, operands) <span style="color:#75715e">/* comment */</span>
 </span></span></code></pre></div><p>The <code>name</code> is self-explanatory. The <code>comment</code> describes (or hints at) an operation&rsquo;s semantics.
 The <code>operands</code> is a bit more tricky and is directly related to the bytecode encoding.</p>
 <p>Each letter in the <code>operands</code> describes the size of the operand. <code>Z</code> means that the operand&rsquo;s size is zero bytes (i.e., there is no operand).
@@ -835,22 +835,22 @@ height: auto;" /></p>
       
       
       <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
         <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
-      </li>
-      
-      
-      
-      
-      
-      <li>
         <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
+      
+      
       
       
       
@@ -945,7 +945,7 @@ height: auto;" /></p>
 <hr>
 
 <div class="row">
-  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+  <div class="copyright span12">Copyright &copy; 2014-2023 - Low Level Bits 🇺🇦 by Alex Denisov</div>
 </div>
 
   </div> 

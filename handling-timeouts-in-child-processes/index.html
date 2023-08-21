@@ -122,56 +122,56 @@ width: 80%;
 height: auto;" /></p>
 <p>It looks very straightforward, but there are few more details when it comes to the implementation. Let&rsquo;s
 look at them (full code listing is available <a href="https://github.com/AlexDenisov/articles/blob/04f74fff494b7288d3e68f48c60a106753782d48/timeouts/timers.c">online</a>).</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">void</span> (<span style="color:#f92672">*</span>work_t)(<span style="color:#66d9ef">void</span>);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">typedef</span> <span style="color:#a6e22e">void</span> (<span style="color:#f92672">*</span><span style="color:#66d9ef">work_t</span>)(<span style="color:#66d9ef">void</span>);
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">watchdog_worker_timer</span>(work_t work, <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t timer_pid <span style="color:#f92672">=</span> fork();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">watchdog_worker_timer</span>(<span style="color:#66d9ef">work_t</span> work, <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">pid_t</span> timer_pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (timer_pid <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;fork timer&#34;</span>);
-</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;fork timer&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">abort</span>();
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (timer_pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">/// Timer process
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    usleep(timeout <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>);
-</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">0</span>);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">usleep</span>(timeout <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t worker_pid <span style="color:#f92672">=</span> fork();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">pid_t</span> worker_pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;fork worker&#34;</span>);
-</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;fork worker&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">abort</span>();
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">/// Worker process
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    work();
-</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">0</span>);
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">work</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">0</span>);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> status <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t finished_first <span style="color:#f92672">=</span> waitpid_eintr(<span style="color:#f92672">&amp;</span>status);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">pid_t</span> finished_first <span style="color:#f92672">=</span> <span style="color:#a6e22e">waitpid_eintr</span>(<span style="color:#f92672">&amp;</span>status);
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (finished_first <span style="color:#f92672">==</span> timer_pid) {
-</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;timed out</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-</span></span><span style="display:flex;"><span>    kill(worker_pid, SIGKILL);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;timed out</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kill</span>(worker_pid, SIGKILL);
 </span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (finished_first <span style="color:#f92672">==</span> worker_pid) {
-</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;all good</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
-</span></span><span style="display:flex;"><span>    kill(timer_pid, SIGKILL);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;all good</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kill</span>(timer_pid, SIGKILL);
 </span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>    assert(<span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#e6db74">&#34;Something went wrong&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">assert</span>(<span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#e6db74">&#34;Something went wrong&#34;</span>);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  waitpid_eintr(<span style="color:#f92672">&amp;</span>status);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">waitpid_eintr</span>(<span style="color:#f92672">&amp;</span>status);
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>This function does exactly what is described above. It takes a pointer to a function that does the actual work and sets a timeout.
 The tricky part, however, is the call to <code>waitpid_eintr</code>. Here is the body:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>pid_t <span style="color:#a6e22e">waitpid_eintr</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">&amp;</span>status) {
-</span></span><span style="display:flex;"><span>  pid_t pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> ( (pid <span style="color:#f92672">=</span> waitpid(WAIT_ANY, status, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> ) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">pid_t</span> <span style="color:#a6e22e">waitpid_eintr</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">&amp;</span>status) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pid_t</span> pid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> ( (pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">waitpid</span>(WAIT_ANY, status, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> ) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (errno <span style="color:#f92672">==</span> EINTR) {
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">continue</span>;
 </span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>      perror(<span style="color:#e6db74">&#34;waitpid&#34;</span>);
-</span></span><span style="display:flex;"><span>      abort();
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;waitpid&#34;</span>);
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">abort</span>();
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> pid;
@@ -240,17 +240,17 @@ counts time spent both in the user space and in the kernel space.</p>
 <li>handle exit status</li>
 </ul>
 <p>However, you should be aware of some pitfalls.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handle_alarm_signal</span>(<span style="color:#66d9ef">int</span> signal, siginfo_t <span style="color:#f92672">*</span>info, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>context) {
-</span></span><span style="display:flex;"><span>  _exit(<span style="color:#ae81ff">112</span>);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">handle_alarm_signal</span>(<span style="color:#66d9ef">int</span> signal, <span style="color:#66d9ef">siginfo_t</span> <span style="color:#f92672">*</span>info, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>context) {
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">_exit</span>(<span style="color:#ae81ff">112</span>);
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setup_timer</span>(<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> sigaction action;
-</span></span><span style="display:flex;"><span>  memset(<span style="color:#f92672">&amp;</span>action, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(action));
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">memset</span>(<span style="color:#f92672">&amp;</span>action, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(action));
 </span></span><span style="display:flex;"><span>  action.sa_sigaction <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>handle_alarm_signal;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (sigaction(SIGALRM, <span style="color:#f92672">&amp;</span>action, NULL) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
-</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;sigaction&#34;</span>);
-</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">sigaction</span>(SIGALRM, <span style="color:#f92672">&amp;</span>action, NULL) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;sigaction&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">abort</span>();
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> itimerval timer;
@@ -263,33 +263,33 @@ counts time spent both in the user space and in the kernel space.</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  timer.it_interval.tv_sec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  timer.it_interval.tv_usec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (setitimer(ITIMER_REAL, <span style="color:#f92672">&amp;</span>timer, NULL) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
-</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;setitimer&#34;</span>);
-</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">setitimer</span>(ITIMER_REAL, <span style="color:#f92672">&amp;</span>timer, NULL) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;setitimer&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">abort</span>();
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">system_timers</span>(work_t work, <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> pid_t worker_pid <span style="color:#f92672">=</span> fork();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">system_timers</span>(<span style="color:#66d9ef">work_t</span> work, <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> timeout) {
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">pid_t</span> worker_pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">fork</span>();
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) {
-</span></span><span style="display:flex;"><span>    perror(<span style="color:#e6db74">&#34;fork worker&#34;</span>);
-</span></span><span style="display:flex;"><span>    abort();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">perror</span>(<span style="color:#e6db74">&#34;fork worker&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">abort</span>();
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (worker_pid <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
-</span></span><span style="display:flex;"><span>    setup_timer(timeout);
-</span></span><span style="display:flex;"><span>    work();
-</span></span><span style="display:flex;"><span>    exit(<span style="color:#ae81ff">144</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">setup_timer</span>(timeout);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">work</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">exit</span>(<span style="color:#ae81ff">144</span>);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> status <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  waitpid_eintr(status);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">waitpid_eintr</span>(status);
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (WIFEXITED(status) <span style="color:#f92672">&amp;&amp;</span> WEXITSTATUS(status) <span style="color:#f92672">==</span> <span style="color:#ae81ff">112</span>) {
-</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;timed out</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">WIFEXITED</span>(status) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">WEXITSTATUS</span>(status) <span style="color:#f92672">==</span> <span style="color:#ae81ff">112</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;timed out</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (WIFEXITED(status) <span style="color:#f92672">&amp;&amp;</span> WEXITSTATUS(status) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">144</span>) {
-</span></span><span style="display:flex;"><span>    printf(<span style="color:#e6db74">&#34;all good</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">WIFEXITED</span>(status) <span style="color:#f92672">&amp;&amp;</span> <span style="color:#a6e22e">WEXITSTATUS</span>(status) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">144</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;all good</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p><code>system_timers</code> function takes a pointer to a worker function and the desired timeout in milliseconds. Then, it forks a new process, the child process sets up a timer and runs the worker function. Then it handles the exit status of the worker process: this is where it gets interesting. <code>122</code> and <code>144</code> are some arbitrary numbers, but it is important to have there something that does not collide with a &rsquo;normal&rsquo; exit code. By using these exit codes, we can differentiate whether the process terminated because of timeout (122) or just because the work has finished (144).</p>
@@ -312,7 +312,7 @@ excellent on macOS, but it is buggy on Linux.</p>
 </span></span><span style="display:flex;"><span>new.it_value.tv_usec <span style="color:#f92672">=</span> usecs <span style="color:#f92672">%</span> USPS;
 </span></span><span style="display:flex;"><span>new.it_value.tv_sec <span style="color:#f92672">=</span> usecs <span style="color:#f92672">/</span> USPS;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (setitimer(ITIMER_REAL, <span style="color:#f92672">&amp;</span>new, <span style="color:#f92672">&amp;</span>old) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">setitimer</span>(ITIMER_REAL, <span style="color:#f92672">&amp;</span>new, <span style="color:#f92672">&amp;</span>old) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (old.it_value.tv_sec <span style="color:#f92672">*</span> USPS <span style="color:#f92672">+</span> old.it_value.tv_usec);
 </span></span><span style="display:flex;"><span><span style="color:#75715e">/* else */</span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>);
@@ -324,7 +324,7 @@ excellent on macOS, but it is buggy on Linux.</p>
 </span></span><span style="display:flex;"><span>timer.it_interval.tv_sec <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>timer.it_interval.tv_usec <span style="color:#f92672">=</span> interval;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (__setitimer (ITIMER_REAL, <span style="color:#f92672">&amp;</span>timer, <span style="color:#f92672">&amp;</span>otimer) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">__setitimer</span> (ITIMER_REAL, <span style="color:#f92672">&amp;</span>timer, <span style="color:#f92672">&amp;</span>otimer) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> (otimer.it_value.tv_sec <span style="color:#f92672">*</span> <span style="color:#ae81ff">1000000</span>) <span style="color:#f92672">+</span> otimer.it_value.tv_usec;
@@ -831,13 +831,11 @@ at the moment.</p>
       
       
       
+      
+      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
-      
-      
-      
-      
       
       
       
@@ -864,6 +862,8 @@ at the moment.</p>
       <li>
         <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
+      
+      
       
       
       
@@ -958,7 +958,7 @@ at the moment.</p>
 <hr>
 
 <div class="row">
-  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+  <div class="copyright span12">Copyright &copy; 2014-2023 - Low Level Bits 🇺🇦 by Alex Denisov</div>
 </div>
 
   </div> 

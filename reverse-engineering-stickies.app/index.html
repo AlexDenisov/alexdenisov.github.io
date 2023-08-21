@@ -258,19 +258,19 @@ height: auto;" /></p>
 </span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">8</span>;
 </span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">16</span>;
-</span></span><span style="display:flex;"><span>color1 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>color1 <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(r, g, b);
 </span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">24</span>;
 </span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">32</span>;
 </span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">40</span>;
-</span></span><span style="display:flex;"><span>color2 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>color2 <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(r, g, b);
 </span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">48</span>;
 </span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">56</span>;
 </span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">64</span>;
-</span></span><span style="display:flex;"><span>color3 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>color3 <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(r, g, b);
 </span></span><span style="display:flex;"><span>r <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">72</span>;
 </span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">80</span>;
 </span></span><span style="display:flex;"><span>b <span style="color:#f92672">=</span> base <span style="color:#f92672">+</span> <span style="color:#ae81ff">88</span>;
-</span></span><span style="display:flex;"><span>color4 <span style="color:#f92672">=</span> rgb(r, g, b);
+</span></span><span style="display:flex;"><span>color4 <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(r, g, b);
 </span></span></code></pre></div><p>This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.</p>
 <p>Here where the color index comes into play:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>base <span style="color:#f92672">=</span> (colorIndex <span style="color:#f92672">+</span> (colorIndex <span style="color:#f92672">*</span> <span style="color:#ae81ff">0x2</span>)) <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">0x5</span>
@@ -320,16 +320,16 @@ height: auto;" /></p>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">changeColor</span>(<span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> colorIndex, FILE <span style="color:#f92672">*</span>binary) {
 </span></span><span style="display:flex;"><span>  theme t;
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  t.background_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>);
-</span></span><span style="display:flex;"><span>  t.window_title_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">38</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">228</span>);
+</span></span><span style="display:flex;"><span>  t.background_color <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(<span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>, <span style="color:#ae81ff">255</span>);
+</span></span><span style="display:flex;"><span>  t.window_title_color <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(<span style="color:#ae81ff">38</span>, <span style="color:#ae81ff">173</span>, <span style="color:#ae81ff">228</span>);
 </span></span><span style="display:flex;"><span>  t.icon_color <span style="color:#f92672">=</span> t.window_title_color;
-</span></span><span style="display:flex;"><span>  t.border_color <span style="color:#f92672">=</span> rgb(<span style="color:#ae81ff">77</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">233</span>);
+</span></span><span style="display:flex;"><span>  t.border_color <span style="color:#f92672">=</span> <span style="color:#a6e22e">rgb</span>(<span style="color:#ae81ff">77</span>, <span style="color:#ae81ff">188</span>, <span style="color:#ae81ff">233</span>);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> ColorAddressBase <span style="color:#f92672">=</span> <span style="color:#ae81ff">0xc790</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">const</span> <span style="color:#66d9ef">int</span> offset <span style="color:#f92672">=</span> ColorAddressBase <span style="color:#f92672">+</span> colorIndex <span style="color:#f92672">*</span> <span style="color:#ae81ff">96</span>;
-</span></span><span style="display:flex;"><span>  fseek(binary, offset, SEEK_SET);
-</span></span><span style="display:flex;"><span>  fwrite(<span style="color:#f92672">&amp;</span>t, <span style="color:#66d9ef">sizeof</span>(theme), <span style="color:#ae81ff">1</span>, binary);
-</span></span><span style="display:flex;"><span>  rewind(binary);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">fseek</span>(binary, offset, SEEK_SET);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">fwrite</span>(<span style="color:#f92672">&amp;</span>t, <span style="color:#66d9ef">sizeof</span>(theme), <span style="color:#ae81ff">1</span>, binary);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">rewind</span>(binary);
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>After running this code, I see a much better Sticky Note!</p>
 <p><img src="/img/reverse-engineering-stickies/blue_sticky.png"
@@ -860,8 +860,6 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       
       
       
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -872,9 +870,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       
       
       
-      <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
-      </li>
+      
       
       
       
@@ -889,6 +885,10 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
       </li>
       
       
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
       
       
       
@@ -983,7 +983,7 @@ less pleasant - I would have to invalidate the whole Mach-O binary changing size
 <hr>
 
 <div class="row">
-  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+  <div class="copyright span12">Copyright &copy; 2014-2023 - Low Level Bits 🇺🇦 by Alex Denisov</div>
 </div>
 
   </div> 

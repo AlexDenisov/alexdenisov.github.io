@@ -120,10 +120,10 @@ But before we dive into details, let us say few more words about CPG and Joern.<
 <p>The core idea of the CPG is that different classic program representations are merged into a property graph, a single data structure that holds information about the program&rsquo;s syntax, control- and intra-procedural data-flow.</p>
 <p>Graphically speaking, the following piece of code:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">foo</span>() {
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> source();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#a6e22e">source</span>();
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (x <span style="color:#f92672">&lt;</span> MAX) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> y <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> x;
-</span></span><span style="display:flex;"><span>    sink(y);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">sink</span>(y);
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>combines these three different representations:</p>
@@ -172,7 +172,7 @@ If you are not interested in the implementation - scroll down :)</p>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>can be seen as a C program:</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>i32 <span style="color:#a6e22e">sum</span>(i32 a, i32 b) {
-</span></span><span style="display:flex;"><span>  i32 r <span style="color:#f92672">=</span> add(a, b);
+</span></span><span style="display:flex;"><span>  i32 r <span style="color:#f92672">=</span> <span style="color:#a6e22e">add</span>(a, b);
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> r;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><p>From the high-level perspective, the approach is simple, but there are some tiny details we had to overcome.</p>
@@ -791,8 +791,6 @@ So let&rsquo;s look at how to use <code>llvm2cpg</code> with Joern.</p>
       
       
       
-      
-      
       <li>
         <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
       </li>
@@ -802,10 +800,6 @@ So let&rsquo;s look at how to use <code>llvm2cpg</code> with Joern.</p>
       
       
       
-      
-      <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
-      </li>
       
       
       
@@ -817,6 +811,12 @@ So let&rsquo;s look at how to use <code>llvm2cpg</code> with Joern.</p>
       
       <li>
         <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
       
@@ -914,7 +914,7 @@ So let&rsquo;s look at how to use <code>llvm2cpg</code> with Joern.</p>
 <hr>
 
 <div class="row">
-  <div class="copyright span12">Copyright &copy; 2014-2022 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+  <div class="copyright span12">Copyright &copy; 2014-2023 - Low Level Bits 🇺🇦 by Alex Denisov</div>
 </div>
 
   </div> 
