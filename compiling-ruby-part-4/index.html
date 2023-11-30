@@ -12,17 +12,17 @@
 
 
   
-  <title>Circular Containers in Objective-C - Low Level Bits 🇺🇦</title>
+  <title>Compiling Ruby. Part 4: progress update - Low Level Bits 🇺🇦</title>
   
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   
-  <meta name="keywords" content="clang ,llvm ,objc ,objective-c ,Cocoa ,CocoaTouch ,NSArray ,circular containers" />
+  <meta name="keywords" content="virtual machines ,ruby ,mruby ,dragonruby ,firestorm ,llvm ,bytecode" />
   
 
   
-  <meta name="description" content="Patch to Clang that helps you to avoid circular containers in Objective-C" />
+  <meta name="description" content="This is a short update on the overall progress." />
   
 
   <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
@@ -52,10 +52,10 @@
   
 <meta name="twitter:card" content="summary" />
 <meta name="twitter:site" content="@1101_debian" />
-<meta name="twitter:title" content="Circular Containers in Objective-C" />
-<meta name="twitter:description" content="Patch to Clang that helps you to avoid circular containers in Objective-C" />
+<meta name="twitter:title" content="Compiling Ruby. Part 4: progress update" />
+<meta name="twitter:description" content="This is a short update on the overall progress." />
 
-<meta name="twitter:image" content="https://lowlevelbits.org/img/circular-containers/wwdc.png" />
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
 
 
 
@@ -64,7 +64,7 @@
   <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
   <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
 
-  <link rel="canonical" href="https://lowlevelbits.org/circular-containers-in-objective-c/" />
+  <link rel="canonical" href="https://lowlevelbits.org/compiling-ruby-part-4/" />
 
 </head>
 
@@ -91,64 +91,169 @@
     <div class="row main-content">
       <div class="offset3 span7 zone-content">
         <article>
-          <h1>Circular Containers in Objective-C</h1>
+          <h1>Compiling Ruby. Part 4: progress update</h1>
           <div>
             <p class="post-page-date">
-              <i>Published on <time datetime="2015-04-13 22:44:26 &#43;0200 CEST" pubdate>Apr 13, 2015</time></i>
+              <i>Published on <time datetime="2023-11-30 21:00:00 &#43;0100 CET" pubdate>Nov 30, 2023</time></i>
             </p>
           </div>
 
           
+            
+            
+
+<p>
+    This article is part of the series "Compiling Ruby,"
+    in which I'm documenting my journey of building an ahead-of-time (AOT) compiler for 
+    <a href="https://dragonruby.org" target="_blank">DragonRuby</a>,
+    which is based on <a href="https://mruby.org" target="_blank">mruby</a>
+    and heavily utilizes <a href="https://mlir.llvm.org" target="_blank">MLIR</a> and
+    <a href="https://llvm.org" target="_blank">LLVM</a> infrastructure.
+</p>
+
+<p>Here is what you can expect from the series:</p>
+
+<ul>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-0/">Motivation</a>: some background reading on what and why
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-1/">Compilers vs Interpreters</a>: a high level overview of the chosen approach
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-2/">RiteVM</a>: a high-level overview of the mruby Virtual Machine
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+    <a href="/compiling-ruby-part-3/">MLIR and compilation</a>: covers what is MLIR and how it fits into the whole picture
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+    <b>
+  
+  
+    <a href="/compiling-ruby-part-4/">Progress update</a>: short progress update with what&#39;s done and what&#39;s next
+  
+  
+    </b>
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Exceptions (TBD): an overview of how mruby implements exception handling
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Garbage Collection (TBD): an overview of how mruby manages memory
+  
+  
+  </li>
+
+  <li>
+  
+  
+  
+  
+  
+  Fibers (TBD): what are fibers in Ruby, and how mruby makes them work
+  
+  
+  </li>
+
+</ul>
+
+<i>Note: the list of TBD articles may change as I may want to split some parts into smaller chunks.</i>
+
+<hr />
+          
 
           <div>
-            <p>Some time ago I accidentally wrote this code:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span>NSMutableArray <span style="color:#f92672">*</span>environments <span style="color:#f92672">=</span> [NSMutableArray new];
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (NSString <span style="color:#f92672">*</span>key <span style="color:#66d9ef">in</span> [dictionary allKeys]) {
-</span></span><span style="display:flex;"><span>    XCCEnvironment <span style="color:#f92672">*</span>environment <span style="color:#f92672">=</span> [[XCCEnvironment alloc] initWithName:key
-</span></span><span style="display:flex;"><span>                                                            parameters:dictionary[key]];
-</span></span><span style="display:flex;"><span>    [environments addObject:environments];
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">return</span> environments;
-</span></span></code></pre></div><p>Did you notice the problem here? Well, I didn&rsquo;t.</p>
-<!-- more -->
-<h3 id="problem">Problem</h3>
-<p>When I run the program I got a crash:</p>
-<pre tabindex="0"><code>-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
-</code></pre><p>Consumer of <code>environments</code> expected to get <code>XCCEnvironment</code>, but got <code>NSMutableArray</code>.</p>
-<p>At the beginning it wasn&rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-objective-c" data-lang="objective-c"><span style="display:flex;"><span><span style="color:#75715e">// ...
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>NSMutableArray <span style="color:#f92672">*</span>environments <span style="color:#f92672">=</span> [NSMutableArray new];
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>[environments addObject:environments];
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// ...
-</span></span></span></code></pre></div><p>Documentation says nothing about collection&rsquo;s behaviour in such situation, the only valuable (imo) reading I&rsquo;ve found is Mike Ash&rsquo;s blog-post <a href="https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html">Let&rsquo;s break Cocoa</a>.</p>
-<p>The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.</p>
-<h3 id="solution">Solution</h3>
-<p>I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &lsquo;programmers do not dereference null pointers&rsquo; - it is still happens and probably it&rsquo;s kinda unexpected behaviour.</p>
-<p>I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&rsquo;t find any warning/flag/setting that does this check.</p>
-<p>Eventually I decided to implement it. Implementation took a couple of evenings but now it&rsquo;s <a href="https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248">in trunk</a>.</p>
-<p>Actual patch checks the following mutable collections:</p>
+            <p>It&rsquo;s been a while since I wrote the last blog post. One of the reasons is that so far, I had to change a lot of things in the implementation due to the exception support.</p>
+<p>I&rsquo;m writing a short progress update on where we are and what&rsquo;s coming next.</p>
+<h3 id="what-happened">What Happened</h3>
+<p>During this year, I gave two short talks related to this project:</p>
 <ul>
-<li>NSMutableArray</li>
-<li>NSMutableDictionary</li>
-<li>NSMutableSet</li>
-<li>NSMutableOrderedSet</li>
-<li>NSCountedSet</li>
+<li><a href="https://www.youtube.com/watch?v=NfMX-dFMSr0">a high-level overview of the project</a> (EuroLLVM dev meeting)</li>
+<li><a href="https://www.youtube.com/watch?v=gH5-lITYrMg">intro into exception handling in LLVM</a> (LLVM Social Berlin)</li>
 </ul>
-<p>And shows warning if you trying to put collection inside itself</p>
-<p>The warning could be enabled/disabled with <code>-wobjc-circular-container</code>/<code>-wno-objc-circular-container</code> respectively, though it&rsquo;s enabled &lsquo;by default&rsquo;.</p>
-<h3 id="conclusion">Conclusion</h3>
-<p>Recent clang version contains this feature, but it&rsquo;s not yet available within Xcode, and I guess it&rsquo;ll appear with the next major release - in a year or so.</p>
-<p>But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.</p>
-<p>Happy hacking!</p>
-<p><strong>UPD</strong></p>
-<p>This feature got into WWDC 2016, <a href="https://developer.apple.com/videos/play/wwdc2016/405/">What&rsquo;s new in LLVM</a></p>
-<p><img src="/img/circular-containers/wwdc.png"
-style=" display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;" /></p>
+<p>The state as of EuroLLVM (May 2023) was as follows:</p>
+<ul>
+<li>compiler supported <strong>104</strong> out of <strong>107</strong> bytecode operations</li>
+<li>it could compile <strong>~150</strong> out of <strong>~180</strong> files</li>
+<li>it could compile <strong>~15KLoC</strong> out of <strong>~20KLOC</strong></li>
+<li><strong>~72%</strong> of tests were passing (1033 out of 1416 it could compile)</li>
+</ul>
+<h3 id="current-status">Current Status</h3>
+<p>The three missing opcodes were all about exception handling, and this is what (so far) took the most time to implement. I have some drafts on the details, and I plan to publish them before the end of the year.</p>
+<p>With the proper exception handling in place, things are finally starting to take the right shape.
+There is still much work to do, but it&rsquo;s more predictable now.</p>
+<p>Some new stats:</p>
+<ul>
+<li>all bytecode operations are implemented 🎉</li>
+<li>all the ruby code in the repo is now compiled (stdlib, gems, tests) 🎉</li>
+<li><strong>~95%</strong> of the tests are passing (1378 out of 1450) 🎉</li>
+</ul>
+<h3 id="next-steps">Next Steps</h3>
+<p>The test suite now drives the next steps:</p>
+<ul>
+<li>the majority of the failing tests (42 out of 71) are due to the missing fibers implementation</li>
+<li>the second biggest group is various proc/methods metadata for runtime reflection</li>
+<li>the next big part is related to JIT/runtime evaluation (i.e., when you can execute arbitrary Ruby code not known/visible at compile time)</li>
+<li>and there is a long tail of more minor things</li>
+</ul>
+<p>Besides that, I need to figure out a better build system for all of it. Currently, It&rsquo;s a mess glued together by CMake scripts and CMake templates. It works perfectly for development and testing, but I&rsquo;d hate to use such a system as an end user.</p>
+<p>Ideally, I want a one-click solution that would take Ruby files as input and produce a native executable.</p>
+<p>What is the state of the art when it comes to build systems/orchestration of compilation? Please let me know if you have any pointers 🙌</p>
+<p><strong>Thank you so much for reaching this far!</strong></p>
+<p>The following articles will focus on exception handling.</p>
+<p><a href="https://lowlevelbits.org/subscribe/">Don&rsquo;t miss those details!</a></p>
 
           </div>
         </article>
@@ -666,13 +771,13 @@ height: auto;" /></p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
       

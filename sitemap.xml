@@ -2,19 +2,49 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://lowlevelbits.org/tags/bytecode/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/categories/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/categories/compilers/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/compiling-ruby-part-4/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/dragonruby/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/firestorm/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/llvm/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/mruby/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/post/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/ruby/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/virtual-machines/</loc>
+    <lastmod>2023-11-30T21:51:05+01:00</lastmod>
+  </url><url>
     <loc>https://lowlevelbits.org/tags/analysis/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/bytecode/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/categories/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
     <loc>https://lowlevelbits.org/tags/cfg/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/categories/compilers/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/compiling-ruby-part-3/</loc>
@@ -29,43 +59,16 @@
     <loc>https://lowlevelbits.org/tags/dfa/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/dragonruby/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/tags/firestorm/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/tags/llvm/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
     <loc>https://lowlevelbits.org/tags/mlir/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/mruby/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/post/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
     <loc>https://lowlevelbits.org/tags/rite-vm/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/tags/ruby/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/single-static-assignment/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/ssa/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/tags/</loc>
-    <lastmod>2023-01-06T02:16:50+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/tags/virtual-machines/</loc>
     <lastmod>2023-01-06T02:16:50+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/yarv/</loc>

@@ -7,8 +7,60 @@
     <language>en-us</language>
     <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
     <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
-    <lastBuildDate>Fri, 06 Jan 2023 02:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Thu, 30 Nov 2023 21:00:00 +0100</lastBuildDate>
     <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 4: progress update</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-4/</link>
+        <pubDate>Thu, 30 Nov 2023</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-4/</guid>
+        <description>&lt;p&gt;It&amp;rsquo;s been a while since I wrote the last blog post. One of the reasons is that so far, I had to change a lot of things in the implementation due to the exception support.&lt;/p&gt;
+&lt;p&gt;I&amp;rsquo;m writing a short progress update on where we are and what&amp;rsquo;s coming next.&lt;/p&gt;
+&lt;h3 id=&#34;what-happened&#34;&gt;What Happened&lt;/h3&gt;
+&lt;p&gt;During this year, I gave two short talks related to this project:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=NfMX-dFMSr0&#34;&gt;a high-level overview of the project&lt;/a&gt; (EuroLLVM dev meeting)&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.youtube.com/watch?v=gH5-lITYrMg&#34;&gt;intro into exception handling in LLVM&lt;/a&gt; (LLVM Social Berlin)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The state as of EuroLLVM (May 2023) was as follows:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;compiler supported &lt;strong&gt;104&lt;/strong&gt; out of &lt;strong&gt;107&lt;/strong&gt; bytecode operations&lt;/li&gt;
+&lt;li&gt;it could compile &lt;strong&gt;~150&lt;/strong&gt; out of &lt;strong&gt;~180&lt;/strong&gt; files&lt;/li&gt;
+&lt;li&gt;it could compile &lt;strong&gt;~15KLoC&lt;/strong&gt; out of &lt;strong&gt;~20KLOC&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;~72%&lt;/strong&gt; of tests were passing (1033 out of 1416 it could compile)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;current-status&#34;&gt;Current Status&lt;/h3&gt;
+&lt;p&gt;The three missing opcodes were all about exception handling, and this is what (so far) took the most time to implement. I have some drafts on the details, and I plan to publish them before the end of the year.&lt;/p&gt;
+&lt;p&gt;With the proper exception handling in place, things are finally starting to take the right shape.
+There is still much work to do, but it&amp;rsquo;s more predictable now.&lt;/p&gt;
+&lt;p&gt;Some new stats:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;all bytecode operations are implemented 🎉&lt;/li&gt;
+&lt;li&gt;all the ruby code in the repo is now compiled (stdlib, gems, tests) 🎉&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;~95%&lt;/strong&gt; of the tests are passing (1378 out of 1450) 🎉&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h3 id=&#34;next-steps&#34;&gt;Next Steps&lt;/h3&gt;
+&lt;p&gt;The test suite now drives the next steps:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the majority of the failing tests (42 out of 71) are due to the missing fibers implementation&lt;/li&gt;
+&lt;li&gt;the second biggest group is various proc/methods metadata for runtime reflection&lt;/li&gt;
+&lt;li&gt;the next big part is related to JIT/runtime evaluation (i.e., when you can execute arbitrary Ruby code not known/visible at compile time)&lt;/li&gt;
+&lt;li&gt;and there is a long tail of more minor things&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Besides that, I need to figure out a better build system for all of it. Currently, It&amp;rsquo;s a mess glued together by CMake scripts and CMake templates. It works perfectly for development and testing, but I&amp;rsquo;d hate to use such a system as an end user.&lt;/p&gt;
+&lt;p&gt;Ideally, I want a one-click solution that would take Ruby files as input and produce a native executable.&lt;/p&gt;
+&lt;p&gt;What is the state of the art when it comes to build systems/orchestration of compilation? Please let me know if you have any pointers 🙌&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Thank you so much for reaching this far!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following articles will focus on exception handling.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss those details!&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
     
 
       
@@ -2331,67 +2383,6 @@ It took a lot of time, but for me it is the most interesting and challenging OSS
 &lt;/ul&gt;
 &lt;h3 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it&lt;/h3&gt;
 &lt;p&gt;It took about 7 months to deliver this feature. While I didn’t work on it every week, it was quite the effort. Nonetheless, the result was worth it. So next time you feel like there is no end in sight with a patch you’re trying to get merged, don’t despair - that sweet LGTM will come!&lt;/p&gt;
-</description>
-      </item>
-      
-
-    
-
-      
-        <item>
-        <title>Circular Containers in Objective-C</title>
-        <link>https://lowlevelbits.org/circular-containers-in-objective-c/</link>
-        <pubDate>Mon, 13 Apr 2015</pubDate>
-        <author>alex@lowlevelbits.org (Alex Denisov)</author>
-        <guid>https://lowlevelbits.org/circular-containers-in-objective-c/</guid>
-        <description>&lt;p&gt;Some time ago I accidentally wrote this code:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;for&lt;/span&gt; (NSString &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;key &lt;span style=&#34;color:#66d9ef&#34;&gt;in&lt;/span&gt; [dictionary allKeys]) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    XCCEnvironment &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environment &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [[XCCEnvironment alloc] initWithName:key
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;                                                            parameters:dictionary[key]];
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;    [environments addObject:environments];
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;return&lt;/span&gt; environments;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Did you notice the problem here? Well, I didn&amp;rsquo;t.&lt;/p&gt;
-&lt;!-- more --&gt;
-&lt;h3 id=&#34;problem&#34;&gt;Problem&lt;/h3&gt;
-&lt;p&gt;When I run the program I got a crash:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;-[__NSArrayM someSelector]: unrecognized selector sent to instance 0x100211d80
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Consumer of &lt;code&gt;environments&lt;/code&gt; expected to get &lt;code&gt;XCCEnvironment&lt;/code&gt;, but got &lt;code&gt;NSMutableArray&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;At the beginning it wasn&amp;rsquo;t clear why it actually happened, but I took a closer look at the code and found that I put array into itself:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-objective-c&#34; data-lang=&#34;objective-c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;NSMutableArray &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;environments &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; [NSMutableArray new];
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;[environments addObject:environments];
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;// ...
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Documentation says nothing about collection&amp;rsquo;s behaviour in such situation, the only valuable (imo) reading I&amp;rsquo;ve found is Mike Ash&amp;rsquo;s blog-post &lt;a href=&#34;https://www.mikeash.com/pyblog/friday-qa-2014-01-10-lets-break-cocoa.html&#34;&gt;Let&amp;rsquo;s break Cocoa&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;The post says that mutable arrays, dictionaries and sets are going really crazy if you make so-called circular containers. Another problem is that they cause a memory leak when ARC is enabled: collection retains itself.&lt;/p&gt;
-&lt;h3 id=&#34;solution&#34;&gt;Solution&lt;/h3&gt;
-&lt;p&gt;I believe that normally developers do not put collection inside the collection. Though, it is the same kind of belief as &amp;lsquo;programmers do not dereference null pointers&amp;rsquo; - it is still happens and probably it&amp;rsquo;s kinda unexpected behaviour.&lt;/p&gt;
-&lt;p&gt;I was pretty sure that clang is able to prevent me and other people from doing this mistake, but I didn&amp;rsquo;t find any warning/flag/setting that does this check.&lt;/p&gt;
-&lt;p&gt;Eventually I decided to implement it. Implementation took a couple of evenings but now it&amp;rsquo;s &lt;a href=&#34;https://github.com/llvm-mirror/clang/commit/5dc6c6cd87f3a86fe9d5ba9d1b3892252c7de248&#34;&gt;in trunk&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;Actual patch checks the following mutable collections:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;NSMutableArray&lt;/li&gt;
-&lt;li&gt;NSMutableDictionary&lt;/li&gt;
-&lt;li&gt;NSMutableSet&lt;/li&gt;
-&lt;li&gt;NSMutableOrderedSet&lt;/li&gt;
-&lt;li&gt;NSCountedSet&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;And shows warning if you trying to put collection inside itself&lt;/p&gt;
-&lt;p&gt;The warning could be enabled/disabled with &lt;code&gt;-wobjc-circular-container&lt;/code&gt;/&lt;code&gt;-wno-objc-circular-container&lt;/code&gt; respectively, though it&amp;rsquo;s enabled &amp;lsquo;by default&amp;rsquo;.&lt;/p&gt;
-&lt;h3 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h3&gt;
-&lt;p&gt;Recent clang version contains this feature, but it&amp;rsquo;s not yet available within Xcode, and I guess it&amp;rsquo;ll appear with the next major release - in a year or so.&lt;/p&gt;
-&lt;p&gt;But, anyway, having open-source tools is really amazing: you can tweak it, extend it and make your life and, probably, lives of other people a bit better.&lt;/p&gt;
-&lt;p&gt;Happy hacking!&lt;/p&gt;
-&lt;p&gt;&lt;strong&gt;UPD&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;This feature got into WWDC 2016, &lt;a href=&#34;https://developer.apple.com/videos/play/wwdc2016/405/&#34;&gt;What&amp;rsquo;s new in LLVM&lt;/a&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/circular-containers/wwdc.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
 </description>
       </item>
       
