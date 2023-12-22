@@ -1,0 +1,138 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>call frame on Low Level Bits 🇺🇦</title>
+    <link>https://lowlevelbits.org/tags/call-frame/</link>
+    <description>Recent content in call frame on Low Level Bits 🇺🇦</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
+    <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
+    <lastBuildDate>Fri, 22 Dec 2023 02:00:00 +0100</lastBuildDate>
+    <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 5: exceptions</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-5/</link>
+        <pubDate>Fri, 22 Dec 2023</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-5/</guid>
+        <description>&lt;h3 id=&#34;call-stack-stack-frames-and-program-counter&#34;&gt;Call Stack, Stack Frames, and Program Counter&lt;/h3&gt;
+&lt;p&gt;During the program execution, a machine maintains a pointer to the instruction being executed. It&amp;rsquo;s called &lt;a href=&#34;https://en.wikipedia.org/wiki/Program_counter&#34;&gt;Program Counter&lt;/a&gt; (or &lt;code&gt;Instruction Pointer&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;When you call a method (or send a message if we are speaking of Ruby), the program counter is set to the first instruction on the called function (&lt;code&gt;callee&lt;/code&gt;).
+The program somehow needs to know how to get back to the call site once the &amp;ldquo;child&amp;rdquo; method has completed its execution.&lt;/p&gt;
+&lt;p&gt;This information is typically maintained using the concept of a &lt;a href=&#34;https://en.wikipedia.org/wiki/Call_stack&#34;&gt;Call Stack&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Consider the following program and its call stack on the right.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/call-stack.png&#34; alt=&#34;Call Stack&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The call stack consists of &lt;a href=&#34;https://en.wikipedia.org/wiki/Call_stack#Structure&#34;&gt;Stack Frames&lt;/a&gt;. Whenever a function is called, a new stack frame is created and &lt;code&gt;push&lt;/code&gt;ed onto the stack. When the called function returns - the stack frame is &lt;code&gt;pop&lt;/code&gt;ed.&lt;/p&gt;
+&lt;p&gt;At every point, the call stack represents the actual &lt;a href=&#34;https://en.wikipedia.org/wiki/Stack_trace&#34;&gt;Stack Trace&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The very top of the call stack represents the scope of the whole file, followed by the stack frame of the &lt;code&gt;first&lt;/code&gt; function, followed by the &lt;code&gt;second&lt;/code&gt; function, and so forth.
+In Ruby, the top function/file scope is referred to as simply &lt;code&gt;top&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now, imagine that we want to pass some information from the &lt;code&gt;second&lt;/code&gt; function to the &lt;code&gt;top&lt;/code&gt;. Some error or something &lt;em&gt;exceptional&lt;/em&gt; happened, and this specific program state needs some special handling.&lt;/p&gt;
+&lt;p&gt;There are several limited ways to handle such case: either return some special value up (thus, each function on the call stack should be aware of this), or we can use some global variable to communicate with the callers (e.g., &lt;code&gt;errno&lt;/code&gt; in C) which is again &amp;ldquo;pollutes&amp;rdquo; the business logic through the call stack.&lt;/p&gt;
+&lt;p&gt;One way to handle this problem more elegantly is to use particular language constructs - exceptions.&lt;/p&gt;
+&lt;p&gt;Instead of polluting the whole call stack, we can &lt;code&gt;throw&lt;/code&gt;/&lt;code&gt;raise&lt;/code&gt; an exception and then add special handling at the &lt;code&gt;top&lt;/code&gt;, like in this picture:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/exception-example.png&#34; alt=&#34;Simple Exception&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;stack-unwinding&#34;&gt;Stack Unwinding&lt;/h3&gt;
+&lt;p&gt;Now, the question is: How do we implement this feature? To answer it, let&amp;rsquo;s understand what needs to happen!&lt;/p&gt;
+&lt;p&gt;The program was in some specific state before it called the &lt;code&gt;first&lt;/code&gt; function at the top.
+Now, the program is in another specific state around the &lt;code&gt;raise &amp;quot;error&amp;quot;&lt;/code&gt; line in the &lt;code&gt;second&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;We need to restore the state somehow as it was right before the &lt;code&gt;first&lt;/code&gt; call and continue execution right after the &lt;code&gt;rescue&lt;/code&gt; in &lt;code&gt;top&lt;/code&gt; (by changing the program counter accordingly).&lt;/p&gt;
+&lt;p&gt;Conceptually, we can save the machine state before calling the &lt;code&gt;first&lt;/code&gt; method and restoring it later. The problem is that storing the state of the whole machine is too expensive and adds overhead by saving more than needed.&lt;/p&gt;
+&lt;p&gt;Instead, we can put the responsibility for maintaining the program on the actual program developers.&lt;/p&gt;
+&lt;p&gt;Most languages provide useful features for dealing with this:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Ruby has explicit &lt;code&gt;ensure&lt;/code&gt; blocks&lt;/li&gt;
+&lt;li&gt;Java has explicit &lt;code&gt;finally&lt;/code&gt; statements&lt;/li&gt;
+&lt;li&gt;C++ has RAII and implicit destructors&lt;/li&gt;
+&lt;li&gt;(C has &lt;code&gt;setjmp&lt;/code&gt;/&lt;code&gt;longjmp&lt;/code&gt;, but we are only talking about useful features)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Here is how it works in the case of Ruby.&lt;/p&gt;
+&lt;p&gt;Whenever the exception is thrown, the program climbs up through the call stack and executes code from those &lt;a href=&#34;https://en.wikipedia.org/wiki/Finalizer#Connection_with_finally&#34;&gt;finalizers&lt;/a&gt;until it reaches the exception handler.&lt;/p&gt;
+&lt;p&gt;This process is called &lt;code&gt;Stack Unwinding&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;I&amp;rsquo;m not a native speaker, but I&amp;rsquo;d say it should be called &amp;ldquo;Stack Winding&amp;rdquo;, but oh well&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Here is an updated example with explicit state restoration during the stack unwinding.&lt;/p&gt;
+&lt;p&gt;Without executing code from the &lt;code&gt;ensure&lt;/code&gt; block, the hypothetical lock would never be released, thus breaking the program in terrible ways.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/stack-unwinding.png&#34; alt=&#34;Stack Unwinding&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;exceptions-in-ruby&#34;&gt;Exceptions in Ruby&lt;/h3&gt;
+&lt;p&gt;Now, I can talk about different kinds of exceptions in Ruby.
+From my perspective, there are three different kinds:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;actual &lt;code&gt;raise&lt;/code&gt;d exceptions&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;break&lt;/code&gt; statements&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;return&lt;/code&gt; statements&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Both &lt;code&gt;break&lt;/code&gt; and &lt;code&gt;return&lt;/code&gt; statements have special meaning when used in the context of &lt;code&gt;Proc&lt;/code&gt;s.&lt;/p&gt;
+&lt;p&gt;Let me elaborate on all the three with the examples.&lt;/p&gt;
+&lt;h4 id=&#34;normal-exceptions&#34;&gt;Normal Exceptions&lt;/h4&gt;
+&lt;p&gt;Actual exceptions climb up the stack, calling finalizers until an exception handler is found.&lt;/p&gt;
+&lt;p&gt;These are the normal exceptions you are all familiar with.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/exception-example.png&#34; alt=&#34;Simple Exception&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;returns-from-a-block&#34;&gt;&lt;code&gt;return&lt;/code&gt;s from a block&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;return&lt;/code&gt; statements behave differently depending on the lexical scope they are part of.&lt;/p&gt;
+&lt;p&gt;Here is a little puzzle for you.&lt;/p&gt;
+&lt;p&gt;What will be printed on the screen:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/return_blk-puzzle.png&#34; alt=&#34;Return from a block puzzle&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;return&lt;/code&gt; is called from within a block. You may expect the &lt;code&gt;x * 4&lt;/code&gt; to be returned from the block, but it&amp;rsquo;s returned from the enclosing function (lexical scope).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/return_blk-example.png&#34; alt=&#34;Return from a block call stack&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As you can see, &lt;code&gt;return x * 4&lt;/code&gt; would return from &lt;code&gt;f&lt;/code&gt; instead of from the block.&lt;/p&gt;
+&lt;p&gt;The code prints&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;2: 8
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;instead of&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;1: 8
+2: 42
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;breaks&#34;&gt;&lt;code&gt;break&lt;/code&gt;s&lt;/h4&gt;
+&lt;p&gt;&lt;em&gt;Almost&lt;/em&gt; like &lt;code&gt;return&lt;/code&gt;s, &lt;code&gt;break&lt;/code&gt;s allow returning from the enclosing function, but in a slightly different way.&lt;/p&gt;
+&lt;p&gt;This is the most complex example here. Let me write down the steps explicitly.
+You may want to open the picture in a separate tab to read it.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/break-example.png&#34; alt=&#34;Break example&#34;&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;top&lt;/code&gt; calls the &lt;code&gt;loop&lt;/code&gt; function and passes the block to it. The block is just another function under the hood; it&amp;rsquo;s presented separately here as the &lt;code&gt;__anonymous_block.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Runtime creates a new stack frame for &lt;code&gt;loop&lt;/code&gt; and puts it on the call stack.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loop&lt;/code&gt; calls the passed block (&lt;code&gt;__anonymous_block&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Runtime creates new stack frame for &lt;code&gt;__anonymous_block&lt;/code&gt; and puts it on the stack.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;__anonymous_block&lt;/code&gt; increments &lt;code&gt;i&lt;/code&gt;, checks for equality, and returns to &lt;code&gt;loop&lt;/code&gt;, nothing special.&lt;/li&gt;
+&lt;li&gt;Runtime removes the &lt;code&gt;__anonymous_block&lt;/code&gt; stack frame from the call stack.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loop&lt;/code&gt;s stack frame is kept on the call stack, and the next iteration of &lt;code&gt;while true&lt;/code&gt; calls the &lt;code&gt;__anonymous_block&lt;/code&gt; again.&lt;/li&gt;
+&lt;li&gt;Runtime creates new stack frame for &lt;code&gt;__anonymous_block&lt;/code&gt; and puts it on the stack.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;__anonymous_block&lt;/code&gt; increments &lt;code&gt;i&lt;/code&gt;, checks for equality, and invokes &lt;code&gt;break&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;break&lt;/code&gt; initiates stack unwinding and returns from the enclosing function (&lt;code&gt;loop&lt;/code&gt;). See the dashed line.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loop&lt;/code&gt; returns, thus bypassing the endless loop &lt;code&gt;while true&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The &lt;code&gt;break&lt;/code&gt; construct is effectively equivalent to the following code:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/break-exception.png&#34; alt=&#34;Break implemented using exception&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;implementation&#34;&gt;Implementation&lt;/h3&gt;
+&lt;p&gt;All the language constructs described above (exceptions, &lt;code&gt;return&lt;/code&gt;s and &lt;code&gt;break&lt;/code&gt;s within a block) behave similarly: they unwind the stack (calling the finalizers on the way up) and stop at some well-defined point.&lt;/p&gt;
+&lt;p&gt;They are implemented slightly differently in the original mruby runtime. Still, I implemented them all as exceptions, with &lt;code&gt;return&lt;/code&gt;s and &lt;code&gt;break&lt;/code&gt;s being special exceptions: they need to carry a value and store information on where to stop the unwinding process.&lt;/p&gt;
+&lt;p&gt;The implementation from the LLVM perspective is covered in my recent talk at LLVM Social Berlin: &lt;a href=&#34;https://www.youtube.com/watch?v=gH5-lITYrMg&#34;&gt;Stack unwinding, landing pads, and other catches&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here, I&amp;rsquo;ll mainly focus on the details from the Mruby runtime perspective.&lt;/p&gt;
+&lt;p&gt;Consider the following example:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/landing-pads.png&#34; alt=&#34;Landing pads&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The blocks following &lt;code&gt;rescue&lt;/code&gt; and &lt;code&gt;ensure&lt;/code&gt; are called &lt;em&gt;&lt;strong&gt;Landing Pads&lt;/strong&gt;&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;This example has two kinds of landing pads: catch (&lt;code&gt;rescue&lt;/code&gt;) and cleanup (&lt;code&gt;ensure&lt;/code&gt;).
+Catches are &amp;ldquo;conditional&amp;rdquo; landing pads: they will be executed only if the exception type matches their type. Note the last &lt;code&gt;rescue&lt;/code&gt;: it doesn&amp;rsquo;t have any type attached, so it will just catch any exception.&lt;/p&gt;
+&lt;p&gt;Conversely, cleanups are &amp;ldquo;unconditional&amp;rdquo; - they will always run, but they will also forward the exception up to the next function on the call stack.&lt;/p&gt;
+&lt;p&gt;Another important detail in this example is the second &lt;code&gt;rescue&lt;/code&gt;: it uses function argument as its type. That is, the landing pad type is only known at run time, and it could be anything.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;In C++, for example, all the &lt;code&gt;catch&lt;/code&gt; types must be known upfront, and the compiler emits special Runtime Type Information (RTTI). Again, IMO, it should be Compile Time Type Information, but it&amp;rsquo;s C++&amp;hellip;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;For this reason, Ruby VM always enters each landing pad. For catches, it first checks (at run time!) if the exception type matches the landing pad&amp;rsquo;s type, and if so, the exception is marked as caught, and the landing pad&amp;rsquo;s execution continues.&lt;/p&gt;
+&lt;p&gt;If the exception type doesn&amp;rsquo;t match - the exception is immediately re-thrown so the next landing pad can try to catch it.&lt;/p&gt;
+&lt;h3 id=&#34;mlir&#34;&gt;MLIR&lt;/h3&gt;
+&lt;p&gt;I&amp;rsquo;d love to describe how I modeled exceptions at the MLIR level, but it will take more time to do it for several reasons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;my original approach to constructing SSA right away didn&amp;rsquo;t work due to the way exceptions work (namely, some registers must spill on the stack), so the dialects have changed a bit, and I need to clean them up a bit&lt;/li&gt;
+&lt;li&gt;the way I model them currently is more of a hack and only works because I have certain conventions, so it&amp;rsquo;s not a solid model yet&lt;/li&gt;
+&lt;li&gt;I added JIT support (for &lt;code&gt;Kernel.eval&lt;/code&gt;) and need to do some tweaking there to make exceptions work during just-in-time evaluation&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I&amp;rsquo;ll write down all the low-level details at some point, but I don&amp;rsquo;t have an ETA, so I&amp;rsquo;ll stop here.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Thank you so much for reaching this far!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following articles will focus on JIT compilation and debug information.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss those details!&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+  </channel>
+</rss>

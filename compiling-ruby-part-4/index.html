@@ -111,6 +111,11 @@
     <a href="https://llvm.org" target="_blank">LLVM</a> infrastructure.
 </p>
 
+<p>
+  This series is mostly a brain dump, though sometimes I'm trying to make things easy to understand.
+  Please, let me know if some specific part is unclear and you'd want me to elaborate on it.
+</p>
+
 <p>Here is what you can expect from the series:</p>
 
 <ul>
@@ -179,9 +184,13 @@
   
   
   
+    <b>
   
-  Exceptions (TBD): an overview of how mruby implements exception handling
   
+    <a href="/compiling-ruby-part-4/">Exceptions</a>: an overview of how exceptions work in Ruby
+  
+  
+    </b>
   
   </li>
 
@@ -251,9 +260,9 @@ There is still much work to do, but it&rsquo;s more predictable now.</p>
 <p>Besides that, I need to figure out a better build system for all of it. Currently, It&rsquo;s a mess glued together by CMake scripts and CMake templates. It works perfectly for development and testing, but I&rsquo;d hate to use such a system as an end user.</p>
 <p>Ideally, I want a one-click solution that would take Ruby files as input and produce a native executable.</p>
 <p>What is the state of the art when it comes to build systems/orchestration of compilation? Please let me know if you have any pointers 🙌</p>
+<hr>
 <p><strong>Thank you so much for reaching this far!</strong></p>
-<p>The following articles will focus on exception handling.</p>
-<p><a href="https://lowlevelbits.org/subscribe/">Don&rsquo;t miss those details!</a></p>
+<p>The next article is about exceptions - <a href="https://lowlevelbits.org/compiling-ruby-part-5/">Exceptions</a></p>
 
           </div>
         </article>
@@ -297,6 +306,15 @@ There is still much work to do, but it&rsquo;s more predictable now.</p>
 
     
     
+    
+    
+    
+    
+    
+    
+
+    
+
     
     
     
@@ -771,12 +789,6 @@ There is still much work to do, but it&rsquo;s more predictable now.</p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
-      </li>
-      
-      
-      
-      <li>
         <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
       </li>
       
@@ -786,6 +798,12 @@ There is still much work to do, but it&rsquo;s more predictable now.</p>
       
       <li>
         <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
       </li>
       
       
@@ -820,10 +838,16 @@ There is still much work to do, but it&rsquo;s more predictable now.</p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/compiling-ruby-part-4/"> Compiling Ruby. Part 4: progress update</a>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-5/"> Compiling Ruby. Part 5: exceptions</a>
       </li>
       
       
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-4/"> Compiling Ruby. Part 4: progress update</a>
+      </li>
       
       
       
@@ -841,12 +865,6 @@ There is still much work to do, but it&rsquo;s more predictable now.</p>
       
       <li>
         <a href="https://lowlevelbits.org/compiling-ruby-part-1/"> Compiling Ruby. Part 1: Compilers vs. Interpreters</a>
-      </li>
-      
-      
-      
-      <li>
-        <a href="https://lowlevelbits.org/compiling-ruby-part-0/"> Compiling Ruby. Part 0: Motivation</a>
       </li>
       
       

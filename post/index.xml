@@ -7,8 +7,132 @@
     <language>en-us</language>
     <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
     <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
-    <lastBuildDate>Thu, 30 Nov 2023 21:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 22 Dec 2023 02:00:00 +0100</lastBuildDate>
     <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Compiling Ruby. Part 5: exceptions</title>
+        <link>https://lowlevelbits.org/compiling-ruby-part-5/</link>
+        <pubDate>Fri, 22 Dec 2023</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/compiling-ruby-part-5/</guid>
+        <description>&lt;h3 id=&#34;call-stack-stack-frames-and-program-counter&#34;&gt;Call Stack, Stack Frames, and Program Counter&lt;/h3&gt;
+&lt;p&gt;During the program execution, a machine maintains a pointer to the instruction being executed. It&amp;rsquo;s called &lt;a href=&#34;https://en.wikipedia.org/wiki/Program_counter&#34;&gt;Program Counter&lt;/a&gt; (or &lt;code&gt;Instruction Pointer&lt;/code&gt;).&lt;/p&gt;
+&lt;p&gt;When you call a method (or send a message if we are speaking of Ruby), the program counter is set to the first instruction on the called function (&lt;code&gt;callee&lt;/code&gt;).
+The program somehow needs to know how to get back to the call site once the &amp;ldquo;child&amp;rdquo; method has completed its execution.&lt;/p&gt;
+&lt;p&gt;This information is typically maintained using the concept of a &lt;a href=&#34;https://en.wikipedia.org/wiki/Call_stack&#34;&gt;Call Stack&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Consider the following program and its call stack on the right.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/call-stack.png&#34; alt=&#34;Call Stack&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The call stack consists of &lt;a href=&#34;https://en.wikipedia.org/wiki/Call_stack#Structure&#34;&gt;Stack Frames&lt;/a&gt;. Whenever a function is called, a new stack frame is created and &lt;code&gt;push&lt;/code&gt;ed onto the stack. When the called function returns - the stack frame is &lt;code&gt;pop&lt;/code&gt;ed.&lt;/p&gt;
+&lt;p&gt;At every point, the call stack represents the actual &lt;a href=&#34;https://en.wikipedia.org/wiki/Stack_trace&#34;&gt;Stack Trace&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;The very top of the call stack represents the scope of the whole file, followed by the stack frame of the &lt;code&gt;first&lt;/code&gt; function, followed by the &lt;code&gt;second&lt;/code&gt; function, and so forth.
+In Ruby, the top function/file scope is referred to as simply &lt;code&gt;top&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Now, imagine that we want to pass some information from the &lt;code&gt;second&lt;/code&gt; function to the &lt;code&gt;top&lt;/code&gt;. Some error or something &lt;em&gt;exceptional&lt;/em&gt; happened, and this specific program state needs some special handling.&lt;/p&gt;
+&lt;p&gt;There are several limited ways to handle such case: either return some special value up (thus, each function on the call stack should be aware of this), or we can use some global variable to communicate with the callers (e.g., &lt;code&gt;errno&lt;/code&gt; in C) which is again &amp;ldquo;pollutes&amp;rdquo; the business logic through the call stack.&lt;/p&gt;
+&lt;p&gt;One way to handle this problem more elegantly is to use particular language constructs - exceptions.&lt;/p&gt;
+&lt;p&gt;Instead of polluting the whole call stack, we can &lt;code&gt;throw&lt;/code&gt;/&lt;code&gt;raise&lt;/code&gt; an exception and then add special handling at the &lt;code&gt;top&lt;/code&gt;, like in this picture:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/exception-example.png&#34; alt=&#34;Simple Exception&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;stack-unwinding&#34;&gt;Stack Unwinding&lt;/h3&gt;
+&lt;p&gt;Now, the question is: How do we implement this feature? To answer it, let&amp;rsquo;s understand what needs to happen!&lt;/p&gt;
+&lt;p&gt;The program was in some specific state before it called the &lt;code&gt;first&lt;/code&gt; function at the top.
+Now, the program is in another specific state around the &lt;code&gt;raise &amp;quot;error&amp;quot;&lt;/code&gt; line in the &lt;code&gt;second&lt;/code&gt; function.&lt;/p&gt;
+&lt;p&gt;We need to restore the state somehow as it was right before the &lt;code&gt;first&lt;/code&gt; call and continue execution right after the &lt;code&gt;rescue&lt;/code&gt; in &lt;code&gt;top&lt;/code&gt; (by changing the program counter accordingly).&lt;/p&gt;
+&lt;p&gt;Conceptually, we can save the machine state before calling the &lt;code&gt;first&lt;/code&gt; method and restoring it later. The problem is that storing the state of the whole machine is too expensive and adds overhead by saving more than needed.&lt;/p&gt;
+&lt;p&gt;Instead, we can put the responsibility for maintaining the program on the actual program developers.&lt;/p&gt;
+&lt;p&gt;Most languages provide useful features for dealing with this:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Ruby has explicit &lt;code&gt;ensure&lt;/code&gt; blocks&lt;/li&gt;
+&lt;li&gt;Java has explicit &lt;code&gt;finally&lt;/code&gt; statements&lt;/li&gt;
+&lt;li&gt;C++ has RAII and implicit destructors&lt;/li&gt;
+&lt;li&gt;(C has &lt;code&gt;setjmp&lt;/code&gt;/&lt;code&gt;longjmp&lt;/code&gt;, but we are only talking about useful features)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Here is how it works in the case of Ruby.&lt;/p&gt;
+&lt;p&gt;Whenever the exception is thrown, the program climbs up through the call stack and executes code from those &lt;a href=&#34;https://en.wikipedia.org/wiki/Finalizer#Connection_with_finally&#34;&gt;finalizers&lt;/a&gt;until it reaches the exception handler.&lt;/p&gt;
+&lt;p&gt;This process is called &lt;code&gt;Stack Unwinding&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;I&amp;rsquo;m not a native speaker, but I&amp;rsquo;d say it should be called &amp;ldquo;Stack Winding&amp;rdquo;, but oh well&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;Here is an updated example with explicit state restoration during the stack unwinding.&lt;/p&gt;
+&lt;p&gt;Without executing code from the &lt;code&gt;ensure&lt;/code&gt; block, the hypothetical lock would never be released, thus breaking the program in terrible ways.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/stack-unwinding.png&#34; alt=&#34;Stack Unwinding&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;exceptions-in-ruby&#34;&gt;Exceptions in Ruby&lt;/h3&gt;
+&lt;p&gt;Now, I can talk about different kinds of exceptions in Ruby.
+From my perspective, there are three different kinds:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;actual &lt;code&gt;raise&lt;/code&gt;d exceptions&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;break&lt;/code&gt; statements&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;return&lt;/code&gt; statements&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Both &lt;code&gt;break&lt;/code&gt; and &lt;code&gt;return&lt;/code&gt; statements have special meaning when used in the context of &lt;code&gt;Proc&lt;/code&gt;s.&lt;/p&gt;
+&lt;p&gt;Let me elaborate on all the three with the examples.&lt;/p&gt;
+&lt;h4 id=&#34;normal-exceptions&#34;&gt;Normal Exceptions&lt;/h4&gt;
+&lt;p&gt;Actual exceptions climb up the stack, calling finalizers until an exception handler is found.&lt;/p&gt;
+&lt;p&gt;These are the normal exceptions you are all familiar with.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/exception-example.png&#34; alt=&#34;Simple Exception&#34;&gt;&lt;/p&gt;
+&lt;h4 id=&#34;returns-from-a-block&#34;&gt;&lt;code&gt;return&lt;/code&gt;s from a block&lt;/h4&gt;
+&lt;p&gt;&lt;code&gt;return&lt;/code&gt; statements behave differently depending on the lexical scope they are part of.&lt;/p&gt;
+&lt;p&gt;Here is a little puzzle for you.&lt;/p&gt;
+&lt;p&gt;What will be printed on the screen:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/return_blk-puzzle.png&#34; alt=&#34;Return from a block puzzle&#34;&gt;&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;return&lt;/code&gt; is called from within a block. You may expect the &lt;code&gt;x * 4&lt;/code&gt; to be returned from the block, but it&amp;rsquo;s returned from the enclosing function (lexical scope).&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/return_blk-example.png&#34; alt=&#34;Return from a block call stack&#34;&gt;&lt;/p&gt;
+&lt;p&gt;As you can see, &lt;code&gt;return x * 4&lt;/code&gt; would return from &lt;code&gt;f&lt;/code&gt; instead of from the block.&lt;/p&gt;
+&lt;p&gt;The code prints&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;2: 8
+&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;instead of&lt;/p&gt;
+&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;1: 8
+2: 42
+&lt;/code&gt;&lt;/pre&gt;&lt;h4 id=&#34;breaks&#34;&gt;&lt;code&gt;break&lt;/code&gt;s&lt;/h4&gt;
+&lt;p&gt;&lt;em&gt;Almost&lt;/em&gt; like &lt;code&gt;return&lt;/code&gt;s, &lt;code&gt;break&lt;/code&gt;s allow returning from the enclosing function, but in a slightly different way.&lt;/p&gt;
+&lt;p&gt;This is the most complex example here. Let me write down the steps explicitly.
+You may want to open the picture in a separate tab to read it.&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/break-example.png&#34; alt=&#34;Break example&#34;&gt;&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;top&lt;/code&gt; calls the &lt;code&gt;loop&lt;/code&gt; function and passes the block to it. The block is just another function under the hood; it&amp;rsquo;s presented separately here as the &lt;code&gt;__anonymous_block.&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Runtime creates a new stack frame for &lt;code&gt;loop&lt;/code&gt; and puts it on the call stack.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loop&lt;/code&gt; calls the passed block (&lt;code&gt;__anonymous_block&lt;/code&gt;).&lt;/li&gt;
+&lt;li&gt;Runtime creates new stack frame for &lt;code&gt;__anonymous_block&lt;/code&gt; and puts it on the stack.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;__anonymous_block&lt;/code&gt; increments &lt;code&gt;i&lt;/code&gt;, checks for equality, and returns to &lt;code&gt;loop&lt;/code&gt;, nothing special.&lt;/li&gt;
+&lt;li&gt;Runtime removes the &lt;code&gt;__anonymous_block&lt;/code&gt; stack frame from the call stack.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loop&lt;/code&gt;s stack frame is kept on the call stack, and the next iteration of &lt;code&gt;while true&lt;/code&gt; calls the &lt;code&gt;__anonymous_block&lt;/code&gt; again.&lt;/li&gt;
+&lt;li&gt;Runtime creates new stack frame for &lt;code&gt;__anonymous_block&lt;/code&gt; and puts it on the stack.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;__anonymous_block&lt;/code&gt; increments &lt;code&gt;i&lt;/code&gt;, checks for equality, and invokes &lt;code&gt;break&lt;/code&gt;.&lt;/li&gt;
+&lt;li&gt;The &lt;code&gt;break&lt;/code&gt; initiates stack unwinding and returns from the enclosing function (&lt;code&gt;loop&lt;/code&gt;). See the dashed line.&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;loop&lt;/code&gt; returns, thus bypassing the endless loop &lt;code&gt;while true&lt;/code&gt;.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;The &lt;code&gt;break&lt;/code&gt; construct is effectively equivalent to the following code:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/break-exception.png&#34; alt=&#34;Break implemented using exception&#34;&gt;&lt;/p&gt;
+&lt;h3 id=&#34;implementation&#34;&gt;Implementation&lt;/h3&gt;
+&lt;p&gt;All the language constructs described above (exceptions, &lt;code&gt;return&lt;/code&gt;s and &lt;code&gt;break&lt;/code&gt;s within a block) behave similarly: they unwind the stack (calling the finalizers on the way up) and stop at some well-defined point.&lt;/p&gt;
+&lt;p&gt;They are implemented slightly differently in the original mruby runtime. Still, I implemented them all as exceptions, with &lt;code&gt;return&lt;/code&gt;s and &lt;code&gt;break&lt;/code&gt;s being special exceptions: they need to carry a value and store information on where to stop the unwinding process.&lt;/p&gt;
+&lt;p&gt;The implementation from the LLVM perspective is covered in my recent talk at LLVM Social Berlin: &lt;a href=&#34;https://www.youtube.com/watch?v=gH5-lITYrMg&#34;&gt;Stack unwinding, landing pads, and other catches&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Here, I&amp;rsquo;ll mainly focus on the details from the Mruby runtime perspective.&lt;/p&gt;
+&lt;p&gt;Consider the following example:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/compiling-ruby-5/landing-pads.png&#34; alt=&#34;Landing pads&#34;&gt;&lt;/p&gt;
+&lt;p&gt;The blocks following &lt;code&gt;rescue&lt;/code&gt; and &lt;code&gt;ensure&lt;/code&gt; are called &lt;em&gt;&lt;strong&gt;Landing Pads&lt;/strong&gt;&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;This example has two kinds of landing pads: catch (&lt;code&gt;rescue&lt;/code&gt;) and cleanup (&lt;code&gt;ensure&lt;/code&gt;).
+Catches are &amp;ldquo;conditional&amp;rdquo; landing pads: they will be executed only if the exception type matches their type. Note the last &lt;code&gt;rescue&lt;/code&gt;: it doesn&amp;rsquo;t have any type attached, so it will just catch any exception.&lt;/p&gt;
+&lt;p&gt;Conversely, cleanups are &amp;ldquo;unconditional&amp;rdquo; - they will always run, but they will also forward the exception up to the next function on the call stack.&lt;/p&gt;
+&lt;p&gt;Another important detail in this example is the second &lt;code&gt;rescue&lt;/code&gt;: it uses function argument as its type. That is, the landing pad type is only known at run time, and it could be anything.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;In C++, for example, all the &lt;code&gt;catch&lt;/code&gt; types must be known upfront, and the compiler emits special Runtime Type Information (RTTI). Again, IMO, it should be Compile Time Type Information, but it&amp;rsquo;s C++&amp;hellip;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;For this reason, Ruby VM always enters each landing pad. For catches, it first checks (at run time!) if the exception type matches the landing pad&amp;rsquo;s type, and if so, the exception is marked as caught, and the landing pad&amp;rsquo;s execution continues.&lt;/p&gt;
+&lt;p&gt;If the exception type doesn&amp;rsquo;t match - the exception is immediately re-thrown so the next landing pad can try to catch it.&lt;/p&gt;
+&lt;h3 id=&#34;mlir&#34;&gt;MLIR&lt;/h3&gt;
+&lt;p&gt;I&amp;rsquo;d love to describe how I modeled exceptions at the MLIR level, but it will take more time to do it for several reasons:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;my original approach to constructing SSA right away didn&amp;rsquo;t work due to the way exceptions work (namely, some registers must spill on the stack), so the dialects have changed a bit, and I need to clean them up a bit&lt;/li&gt;
+&lt;li&gt;the way I model them currently is more of a hack and only works because I have certain conventions, so it&amp;rsquo;s not a solid model yet&lt;/li&gt;
+&lt;li&gt;I added JIT support (for &lt;code&gt;Kernel.eval&lt;/code&gt;) and need to do some tweaking there to make exceptions work during just-in-time evaluation&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;I&amp;rsquo;ll write down all the low-level details at some point, but I don&amp;rsquo;t have an ETA, so I&amp;rsquo;ll stop here.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;strong&gt;Thank you so much for reaching this far!&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The following articles will focus on JIT compilation and debug information.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss those details!&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
     
 
       
@@ -54,9 +178,9 @@ There is still much work to do, but it&amp;rsquo;s more predictable now.&lt;/p&g
 &lt;p&gt;Besides that, I need to figure out a better build system for all of it. Currently, It&amp;rsquo;s a mess glued together by CMake scripts and CMake templates. It works perfectly for development and testing, but I&amp;rsquo;d hate to use such a system as an end user.&lt;/p&gt;
 &lt;p&gt;Ideally, I want a one-click solution that would take Ruby files as input and produce a native executable.&lt;/p&gt;
 &lt;p&gt;What is the state of the art when it comes to build systems/orchestration of compilation? Please let me know if you have any pointers 🙌&lt;/p&gt;
+&lt;hr&gt;
 &lt;p&gt;&lt;strong&gt;Thank you so much for reaching this far!&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;The following articles will focus on exception handling.&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss those details!&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The next article is about exceptions - &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-5/&#34;&gt;Exceptions&lt;/a&gt;&lt;/p&gt;
 </description>
       </item>
       
@@ -485,8 +609,7 @@ The terminators from its predecessors (&lt;code&gt;^bb1&lt;/code&gt; and &lt;cod
 &lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Now, onto drawing the rest of the fu**ing owl.&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;&lt;strong&gt;Thank you so much for reaching this far!&lt;/strong&gt;&lt;/p&gt;
-&lt;p&gt;The following articles will focus on documenting mruby&amp;rsquo;s implementation details.&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss those details!&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The next article gives a short &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-4/&#34;&gt;progress update&lt;/a&gt;.&lt;/p&gt;
 </description>
       </item>
       
@@ -622,8 +745,7 @@ width: 80%;
 height: auto;&#34; /&gt;&lt;/p&gt;
 &lt;hr&gt;
 &lt;p&gt;Hopefully, now you better understand how RiteVM uses bytecode, and we are one step closer to the actual fun part - compilation!&lt;/p&gt;
-&lt;p&gt;The following article will examine MLIR and how it fits the whole compilation story.&lt;/p&gt;
-&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.org/subscribe/&#34;&gt;Don&amp;rsquo;t miss the next part!&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The following article covers MLIR and the way I modeled dialects - &lt;a href=&#34;https://lowlevelbits.org/compiling-ruby-part-3/&#34;&gt;MLIR and compilation&lt;/a&gt;&lt;/p&gt;
 </description>
       </item>
       
@@ -2715,283 +2837,6 @@ program without restarting potentially long running process.&lt;/p&gt;
 &lt;/ul&gt;
 &lt;h2 id=&#34;thats-it&#34;&gt;That&amp;rsquo;s it&lt;/h2&gt;
 &lt;p&gt;Feel free to ask questions. There are must be many things I missed about the topic.&lt;/p&gt;
-</description>
-      </item>
-      
-
-    
-
-      
-        <item>
-        <title>Reverse Engineering Stickies.app</title>
-        <link>https://lowlevelbits.org/reverse-engineering-stickies.app/</link>
-        <pubDate>Mon, 13 Feb 2017</pubDate>
-        <author>alex@lowlevelbits.org (Alex Denisov)</author>
-        <guid>https://lowlevelbits.org/reverse-engineering-stickies.app/</guid>
-        <description>&lt;p&gt;Recently I have discovered the nice Stickies app that comes along with OS X. This is exactly what I needed for making quick notes while watching lectures or during debug sessions.&lt;/p&gt;
-&lt;p&gt;However, the first thing I did when I run the app first time - I opened preferences attempting to change the colors of notes. But there are no preferences, and there is no way to use a color other than six predefined.&lt;/p&gt;
-&lt;p&gt;I decided to fix that. Here is the result:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/before_after.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 60%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/colors.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 60%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;The explanation is following.&lt;/p&gt;
-&lt;h3 id=&#34;reversing-ui&#34;&gt;Reversing UI&lt;/h3&gt;
-&lt;p&gt;The task becomes easy since the six colors are hardcoded in the binary. I just need to find where exactly and change the values to ones I like more.&lt;/p&gt;
-&lt;p&gt;I don&amp;rsquo;t know where to start, but I have an idea.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/menu_before.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 30%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;The colors are listed in the menu. Each color has a name next to an icon. The names should be localized using some string as a key. If I can find the key, then I can get the place where it&amp;rsquo;s used. Maybe then I will get another hint.&lt;/p&gt;
-&lt;p&gt;Localizations are stored within the app&amp;rsquo;s bundle, at &lt;code&gt;Contents/Resources&lt;/code&gt; folder. I am particularly interested in &lt;code&gt;Contents/Resources/English.lproj/Localizable.strings&lt;/code&gt;. By default, strings are Binary Plists. One can use &lt;code&gt;plutil&lt;/code&gt; to convert them into human-readable XML:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/English.lproj/Localizable.strings
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;The &lt;code&gt;Localizable.strings&lt;/code&gt; contains many things, but colors are not there.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/localizable_strings.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;It looks like the menu was created using Interface Builder.&lt;/p&gt;
-&lt;p&gt;Indeed, there is a menu and a view for a sticky note as well:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/ls_nibs.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;As far as I know nib files used to have some proprietary binary format. Nowadays, however, they are just Binary Plists, which are easy to convert into XML:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;plutil -convert xml1 Contents/Resources/Base.lproj/MainMenu.nib
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Unlikely that I can find something useful inside, but let&amp;rsquo;s see.
-The &lt;code&gt;MainMenu&lt;/code&gt; contains 20k lines. Also, it is quite cryptic:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/main_menu_nib.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 40%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;The best thing one can do is to try find something. For instance look for a color name:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/main_menu_nib_color.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 40%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;If I replace &amp;ldquo;Blue&amp;rdquo; with &amp;ldquo;Blur&amp;rdquo; and restart the app, then I see the change:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/menu_color_name_changed.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 30%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;Ok, I can modify menu entries. It doesn&amp;rsquo;t help me to achieve the initial goal, but at least I know where to look at if I ever decide to change a menu.&lt;/p&gt;
-&lt;h3 id=&#34;reversing-code&#34;&gt;Reversing Code&lt;/h3&gt;
-&lt;p&gt;My attempt to find traces from UI has failed.
-What&amp;rsquo;s left? The binary itself!&lt;/p&gt;
-&lt;p&gt;I usually use &lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt; if I need to look into a binary. Let&amp;rsquo;s see if I can find a method related to the colors.&lt;/p&gt;
-&lt;p&gt;Search for &amp;ldquo;blue&amp;rdquo; shows one hit &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt; that comes from AppKit&amp;rsquo;s &lt;code&gt;NSColor&lt;/code&gt; class. Search for &amp;ldquo;yellow&amp;rdquo; and other colors gives no results.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/machoview.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;It feels like a dead end.&lt;/p&gt;
-&lt;p&gt;Instead of searching for other words hoping that I will find something useful I can ask &lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt; for help.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-bash&#34; data-lang=&#34;bash&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;class-dump Contents/MacOS/Stickies &amp;gt; Stickies.h
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Shallow look at &lt;code&gt;Stickies.h&lt;/code&gt; shows that class &lt;code&gt;StickiesWindow&lt;/code&gt; has a method &lt;code&gt;setColorByIndex:&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/stickies_window.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 60%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;Perfect. It looks like this method receives an index of a color from the menu.&lt;/p&gt;
-&lt;p&gt;Let&amp;rsquo;s explore the program in the wild.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/lldb_no_location.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;Hm, what does it mean? Why can&amp;rsquo;t LLDB find the symbol?
-Eventually, I left the questions open.&lt;/p&gt;
-&lt;p&gt;Then I decided to look at the binary through the excellent &lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;The Hopper app has a beautiful feature: pseudo-code mode.&lt;/p&gt;
-&lt;p&gt;It (almost) clearly shows what happens inside of &lt;code&gt;setColorByIndex:&lt;/code&gt; method:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/hopper_pseudo_code.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;&lt;code&gt;r14&lt;/code&gt; contains a color index. Then, based on this index some offset is calculated. If an index is zero, then the offset is zero as well. Hence we can ignore it at this stage.&lt;/p&gt;
-&lt;p&gt;What is important here: three consecutive values starting at &lt;code&gt;0x10000c790&lt;/code&gt; moved to &lt;code&gt;xmm_&lt;/code&gt; registers. I&amp;rsquo;m not 100% sure, but I&amp;rsquo;d assume that they are used to pass parameters into &lt;code&gt;colorWithDeviceRed:green:blue:alpha:&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;The method accepts color components as &lt;code&gt;double&lt;/code&gt;s, where 0 corresponds to 0, and 1 corresponds to 255. An interval between the values - 8 bytes, which perfectly fits into a &lt;code&gt;double&lt;/code&gt;.&lt;/p&gt;
-&lt;p&gt;It looks like these are exactly the colors I am looking for. This pattern repeats four times, meaning that four colors are used to colorize a sticky note view.&lt;/p&gt;
-&lt;p&gt;Let&amp;rsquo;s use lldb to confirm the hypothesis.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/lldb_color_values.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;So, I found the following address/value pairs:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 : 0.99607800000000002 (or 254)
-0x10000c798 : 0.95686199999999999 (or 244)
-0x10000c7a0 : 0.61176399999999997 (or 156)
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;I&amp;rsquo;m pretty sure I&amp;rsquo;m done here, but one more check, just to make sure there is no mistake.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/color_picker.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;Perfect! Now I need to patch the binary and change the values.&lt;/p&gt;
-&lt;h3 id=&#34;patching-the-binary&#34;&gt;Patching The Binary&lt;/h3&gt;
-&lt;p&gt;Now I know where the colors reside in code. I need to find them in the binary.
-The address of a first color component is 0x10000c790. To find its on-disk address I need to subtract a base address from it.
-The base address can be obtained via LLDB as well.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/lldb_base_address.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;Little math:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0x10000c790 - 0x0000000100000000 = 0xc790
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;Now I can use xxd with -s (&lt;code&gt;--seek&lt;/code&gt;) and -l (&lt;code&gt;--length&lt;/code&gt;) parameters to get exactly 8 bytes at a given address.&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/xxd_color_value.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 100%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;In this case, these bytes are: &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt;. Guess what I would see if I write 0.99607800000000002 into a file? Exactly, I&amp;rsquo;d see &lt;code&gt;9a7b 48f8 dedf ef3f&lt;/code&gt; there.&lt;/p&gt;
-&lt;p&gt;Now I can pick value I want to use and start writing them one by one starting at &lt;code&gt;0xc790&lt;/code&gt;. But I have a better idea.&lt;/p&gt;
-&lt;p&gt;Let&amp;rsquo;s recall and rewrite a pseudo-code from Hopper:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc790&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;8&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;16&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color1 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(r, g, b);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;24&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;32&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;40&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color2 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(r, g, b);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;48&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;56&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;64&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color3 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(r, g, b);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;r &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;72&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;g &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;80&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;b &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; base &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;88&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color4 &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(r, g, b);
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;This is a pseudo-code to handle one group of colors, the Yellow group. Code for the next group, Blue, will be almost the same. One difference: base address.&lt;/p&gt;
-&lt;p&gt;Here where the color index comes into play:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;base &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; (colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; (colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x2&lt;/span&gt;)) &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0x5&lt;/span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Depending on the value of &lt;code&gt;colorIndex&lt;/code&gt; it will give the following numbers:&lt;/p&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;0: 0
-1: 96
-2: 192
-3: 288
-4: 384
-5: 480
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;The step is 96: this number of bytes is needed to store four colors.
-I don&amp;rsquo;t know how the source code looked initially, but I can represent it using the following structures:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; red;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; green;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;double&lt;/span&gt; blue;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} color;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c1;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c2;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c3;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color c4;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} theme;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;/// One color theme for each color index
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;static&lt;/span&gt; theme themes[&lt;span style=&#34;color:#ae81ff&#34;&gt;6&lt;/span&gt;] &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt; &lt;span style=&#34;color:#75715e&#34;&gt;/// actual color definitions
-&lt;/span&gt;&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#75715e&#34;&gt;&lt;/span&gt;};
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;I know that four colors are used, but I don&amp;rsquo;t yet know what they are used for.
-Patching them one by one gives the following result:&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/colored_window.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 80%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;p&gt;I can now rename field name to be more descriptive.&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;typedef&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;struct&lt;/span&gt; {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color background_color;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color border_color;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color window_title_color;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  color icon_color;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;} theme;
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;Once I have this in place changing the colors becomes a trivial task:&lt;/p&gt;
-&lt;div class=&#34;highlight&#34;&gt;&lt;pre tabindex=&#34;0&#34; style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;&#34;&gt;&lt;code class=&#34;language-c&#34; data-lang=&#34;c&#34;&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;color &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; r, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; g, &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; b);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;void&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;changeColor&lt;/span&gt;(&lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; colorIndex, FILE &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt;binary) {
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  theme t;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.background_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;255&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.window_title_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;38&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;173&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;228&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.icon_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; t.window_title_color;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  t.border_color &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#a6e22e&#34;&gt;rgb&lt;/span&gt;(&lt;span style=&#34;color:#ae81ff&#34;&gt;77&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;188&lt;/span&gt;, &lt;span style=&#34;color:#ae81ff&#34;&gt;233&lt;/span&gt;);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;0xc790&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#66d9ef&#34;&gt;const&lt;/span&gt; &lt;span style=&#34;color:#66d9ef&#34;&gt;int&lt;/span&gt; offset &lt;span style=&#34;color:#f92672&#34;&gt;=&lt;/span&gt; ColorAddressBase &lt;span style=&#34;color:#f92672&#34;&gt;+&lt;/span&gt; colorIndex &lt;span style=&#34;color:#f92672&#34;&gt;*&lt;/span&gt; &lt;span style=&#34;color:#ae81ff&#34;&gt;96&lt;/span&gt;;
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;fseek&lt;/span&gt;(binary, offset, SEEK_SET);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;fwrite&lt;/span&gt;(&lt;span style=&#34;color:#f92672&#34;&gt;&amp;amp;&lt;/span&gt;t, &lt;span style=&#34;color:#66d9ef&#34;&gt;sizeof&lt;/span&gt;(theme), &lt;span style=&#34;color:#ae81ff&#34;&gt;1&lt;/span&gt;, binary);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;  &lt;span style=&#34;color:#a6e22e&#34;&gt;rewind&lt;/span&gt;(binary);
-&lt;/span&gt;&lt;/span&gt;&lt;span style=&#34;display:flex;&#34;&gt;&lt;span&gt;}
-&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;p&gt;After running this code, I see a much better Sticky Note!&lt;/p&gt;
-&lt;p&gt;&lt;img src=&#34;https://lowlevelbits.org/img/reverse-engineering-stickies/blue_sticky.png&#34;
-style=&#34; display: block;
-margin-left: auto;
-margin-right: auto;
-width: 60%;
-height: auto;&#34; /&gt;&lt;/p&gt;
-&lt;h3 id=&#34;summary&#34;&gt;Summary&lt;/h3&gt;
-&lt;p&gt;Reverse Engineering can be not as straightforward and easy as I described
-above. Indeed, I didn&amp;rsquo;t describe some &amp;lsquo;wrong&amp;rsquo; paths I went through during this
-&amp;lsquo;research&amp;rsquo;.
-Here are few examples:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;I first was looking for integers instead doubles and could not make any sense out of it.&lt;/li&gt;
-&lt;li&gt;I converted first double into hex, and it didn&amp;rsquo;t match one in the binary. Few hours later I realized that there must be different endianness, which was the case.&lt;/li&gt;
-&lt;li&gt;I didn&amp;rsquo;t have to change the machine code. Otherwise, the process would be
-less pleasant - I would have to invalidate the whole Mach-O binary changing sizes of sections and offsets.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;Anyway, I enjoyed this exercise and learned a few new things. So if you are in doubt, I can recommend following my instructions. Though, only for educational purposes!&lt;/p&gt;
-&lt;p&gt;Here are few helpful tips I can give:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;Work only with a copy of a program; it&amp;rsquo;s very easy to break things.&lt;/li&gt;
-&lt;li&gt;Put everything under version control, and make commit after each small change. It will be easier to take another direction if you&amp;rsquo;re stuck.&lt;/li&gt;
-&lt;li&gt;Make sure you preserve a size and a length if you change something. Otherwise, it may break the whole thing.&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;This is a list of tools that may be helpful for reverse engineering:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://sourceforge.net/projects/machoview/&#34;&gt;MachOView&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper app&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/nygard/class-dump&#34;&gt;class-dump&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;lldb, xxd, plutil&amp;hellip;&lt;/li&gt;
-&lt;/ul&gt;
-&lt;p&gt;The code for this patch is on Github: &lt;a href=&#34;https://github.com/AlexDenisov/ModernStickies&#34;&gt;ModernStickies&lt;/a&gt;.&lt;/p&gt;
-&lt;p&gt;Happy Hacking!&lt;/p&gt;
 </description>
       </item>
       
