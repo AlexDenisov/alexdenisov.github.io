@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+
+
+
+
+<html class="no-js" lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  
+
+
+  
+  <title>Building LLVM plugins with Bazel - Low Level Bits 🇺🇦</title>
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  
+  <meta name="keywords" content="llvm ,bazel ,llvm plugins" />
+  
+
+  
+  <meta name="description" content="Technical note on how to build an LLVM plugin using Bazel" />
+  
+
+  <link rel="shortcut icon" href="/favicon.png" type="image/x-icon" />
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,300' rel='stylesheet' type='text/css'>
+
+  
+  
+  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  
+  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+
+  
+  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+
+  
+  <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
+    data-cf-beacon='{"token": "b911a163ce714374a123a7d59d6c1342"}'></script>
+
+  
+  
+
+  
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:site" content="@1101_debian" />
+<meta name="twitter:title" content="Building LLVM plugins with Bazel" />
+<meta name="twitter:description" content="Technical note on how to build an LLVM plugin using Bazel" />
+
+<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+
+
+
+  <script id="mcjs">!function(c,h,i,m,p){m=c.createElement(h),p=c.getElementsByTagName(h)[0],m.async=1,m.src=i,p.parentNode.insertBefore(m,p)}(document,"script","https://chimpstatic.com/mcjs-connected/js/users/aaa39cd123ecae87821d0d66a/cc68a3d3a46158689b68653cc.js");</script>
+
+  <script defer data-domain="lowlevelbits.org" src="https://plausible.io/js/plausible.js"></script>
+  <script>window.plausible = window.plausible || function () { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
+
+  <link rel="canonical" href="https://lowlevelbits.org/building-llvm-plugins-with-bazel/" />
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="masthead clearfix">
+
+  
+
+  <div>
+    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    </a>
+    <ul id="nav" class="nav ww-nav pull-right hidden-phone">
+      <li><a href="https://lowlevelbits.org/about">About</a></li>
+    </ul>
+  </div>
+
+</div>
+
+    <hr>
+
+    <div class="row main-content">
+      <div class="offset3 span7 zone-content">
+        <article>
+          <h1>Building LLVM plugins with Bazel</h1>
+          <div>
+            <p class="post-page-date">
+              <i>Published on <time datetime="2025-04-01 02:00:00 &#43;0100 &#43;0100" pubdate>Apr 01, 2025</time></i>
+            </p>
+          </div>
+
+          
+
+          <div>
+            <div id="wrap" class="text-center">
+  <div style="display: inline-block;" class="content-upgrade">
+    <div style="margin: 6px;">
+    This is a mirror of the Substack article <br/>
+      <a href="https://lowlevelbits.com/p/building-llvm-plugin-with-bazel">
+      Building LLVM plugins with Bazel
+      </a><br/>
+    The most recent version is there.
+    </div>
+  </div>
+</div>
+<p>One of the premises of <a href="https://bazel.build">Bazel</a> is to provide reproducible, hermetic builds, thus you shouldn’t depend on whatever is installed on the host OS and all the dependencies typically managed by Bazel directly.</p>
+<p>However, if you want to build plugins for LLVM (or any other project really), then you should link against the specific versions installed on the user’s system.</p>
+<p>As I’m working on <a href="https://github.com/mull-project/mull">such a plugin</a>, it’s been a long “dream” of mine to migrate to Bazel for the many benefits it provides. Over time, the existing build system (CMake) has grown its capabilities and I have certain requirements for how the builds should work.Namely:</p>
+<ul>
+<li>the plugin must work on different versions of OS (Ubuntu 20.xx-24.xx, macOS)</li>
+<li>the plugin must support different versions of LLVM, which are different on each OS (e.g., LLVM 12 on Ubuntu 20.04, LLVM 16, 17, 18 on Ubuntu 24.04 etc)</li>
+<li>the plugin must be linking against the system libraries due to the ABI requirements</li>
+<li>the build system should support multiple versions at the same time</li>
+</ul>
+<p>None of these are necessarily hard or impossible with Bazel, but the devil is always in the details.</p>
+<p>What follows is my take on solving this problem.</p>
+<p>Source code is available here <a href="https://github.com/AlexDenisov/bazel-llvm-plugin">https://github.com/AlexDenisov/bazel-llvm-plugin</a>.</p>
+<blockquote>
+<p>Following the <a href="https://meta.wikimedia.org/wiki/Cunningham%27s_Law">Cunningham&rsquo;s Law</a> I claim that there is no better way to do it.</p>
+</blockquote>
+<h3 id="detecting-available-llvm-versions">Detecting available LLVM versions</h3>
+<p>Third-party dependencies in Bazel are typically coming in a form of external repositories, thus all supported LLVM versions must be defined in MODULE.bazel upfront. However, what happens if the version is not supported or not installed on the host OS? In this case, these repositories must be defined dynamically.</p>
+<p>To do so, first we need to define a custom dynamic repository which will check which versions are installed on the host OS and store this information in a global variable available for later use by different parts of the build system:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># available_llvm_versions.bzl</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_is_macos</span>(ctx):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ctx<span style="color:#f92672">.</span>os<span style="color:#f92672">.</span>name<span style="color:#f92672">.</span>find(<span style="color:#e6db74">&#34;mac&#34;</span>) <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">llvm_path</span>(ctx, version):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> _is_macos(ctx):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;/opt/homebrew/opt/llvm@&#34;</span> <span style="color:#f92672">+</span> version
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;/usr/lib/llvm-&#34;</span> <span style="color:#f92672">+</span> version
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_is_supported</span>(repository_ctx, version):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> repository_ctx<span style="color:#f92672">.</span>path(llvm_path(repository_ctx, version))<span style="color:#f92672">.</span>exists
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_llvm_versions_repo_impl</span>(repository_ctx):
+</span></span><span style="display:flex;"><span>    available_versions <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> version <span style="color:#f92672">in</span> repository_ctx<span style="color:#f92672">.</span>attr<span style="color:#f92672">.</span>versions:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> _is_supported(repository_ctx, version):
+</span></span><span style="display:flex;"><span>            available_versions<span style="color:#f92672">.</span>append(version)
+</span></span><span style="display:flex;"><span>    repository_ctx<span style="color:#f92672">.</span>file(<span style="color:#e6db74">&#34;llvm_versions.bzl&#34;</span>,
+</span></span><span style="display:flex;"><span>        content <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;AVAILABLE_LLVM_VERSIONS = &#34;</span> <span style="color:#f92672">+</span> str(available_versions),
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>    repository_ctx<span style="color:#f92672">.</span>file(
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;BUILD&#34;</span>,
+</span></span><span style="display:flex;"><span>        content <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>available_llvm_versions_repo <span style="color:#f92672">=</span> repository_rule(
+</span></span><span style="display:flex;"><span>    local <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>,
+</span></span><span style="display:flex;"><span>    implementation <span style="color:#f92672">=</span> _llvm_versions_repo_impl,
+</span></span><span style="display:flex;"><span>    attrs <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;versions&#34;</span>: attr<span style="color:#f92672">.</span>string_list(),
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_available_llvm_versions_impl</span>(module_ctx):
+</span></span><span style="display:flex;"><span>    versions <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> mod <span style="color:#f92672">in</span> module_ctx<span style="color:#f92672">.</span>modules:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> data <span style="color:#f92672">in</span> mod<span style="color:#f92672">.</span>tags<span style="color:#f92672">.</span>detect_available:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> version <span style="color:#f92672">in</span> data<span style="color:#f92672">.</span>versions:
+</span></span><span style="display:flex;"><span>                versions<span style="color:#f92672">.</span>append(version)
+</span></span><span style="display:flex;"><span>    available_llvm_versions_repo(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;available_llvm_versions&#34;</span>, versions <span style="color:#f92672">=</span> versions)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>available_llvm_versions <span style="color:#f92672">=</span> module_extension(
+</span></span><span style="display:flex;"><span>    implementation <span style="color:#f92672">=</span> _available_llvm_versions_impl,
+</span></span><span style="display:flex;"><span>    tag_classes <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;detect_available&#34;</span>: tag_class(attrs <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;versions&#34;</span>: attr<span style="color:#f92672">.</span>string_list(allow_empty <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>)}),
+</span></span><span style="display:flex;"><span>    },
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p>Which must be defined in MODULE.bazel:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># MODULE.bazel</span>
+</span></span><span style="display:flex;"><span>SUPPORTED_LLVM_VERSIONS <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;17&#34;</span>, <span style="color:#e6db74">&#34;18&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>available_llvm_versions <span style="color:#f92672">=</span> use_extension(<span style="color:#e6db74">&#34;//:bazel/available_llvm_versions.bzl&#34;</span>, <span style="color:#e6db74">&#34;available_llvm_versions&#34;</span>)
+</span></span><span style="display:flex;"><span>available_llvm_versions<span style="color:#f92672">.</span>detect_available(versions <span style="color:#f92672">=</span> SUPPORTED_LLVM_VERSIONS)
+</span></span><span style="display:flex;"><span>use_repo(available_llvm_versions, <span style="color:#e6db74">&#34;available_llvm_versions&#34;</span>)
+</span></span></code></pre></div><h3 id="defining-llvm-repositories">Defining LLVM repositories</h3>
+<p>Now, as we know which versions are available installed on the host system, we can define LLVM repositories which will expose <code>libLLVM.so</code> and all the needed headers.</p>
+<p>This part requires a dynamic module extension which will either define a real repository, or will define a “fake” empty repo. This is needed so that all the repositories can be later defined in MODULE.bazel safely.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># llvm_repos.bzl</span>
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@available_llvm_versions//:llvm_versions.bzl&#34;</span>, <span style="color:#e6db74">&#34;AVAILABLE_LLVM_VERSIONS&#34;</span>)
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@bazel_tools//tools/build_defs/repo:local.bzl&#34;</span>, <span style="color:#e6db74">&#34;new_local_repository&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_empty_repo_impl</span>(repository_ctx):
+</span></span><span style="display:flex;"><span>    repository_ctx<span style="color:#f92672">.</span>file(
+</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;BUILD&#34;</span>,
+</span></span><span style="display:flex;"><span>        content <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>,
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>empty_repo <span style="color:#f92672">=</span> repository_rule(
+</span></span><span style="display:flex;"><span>    local <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>,
+</span></span><span style="display:flex;"><span>    implementation <span style="color:#f92672">=</span> _empty_repo_impl,
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">_llvm_repos_extension</span>(module_ctx):
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;&#34;&#34;Module extension to dynamically declare local LLVM repositories.&#34;&#34;&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> mod <span style="color:#f92672">in</span> module_ctx<span style="color:#f92672">.</span>modules:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> data <span style="color:#f92672">in</span> mod<span style="color:#f92672">.</span>tags<span style="color:#f92672">.</span>configure:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> version <span style="color:#f92672">in</span> data<span style="color:#f92672">.</span>versions:
+</span></span><span style="display:flex;"><span>                llvm_repo_name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;llvm_&#34;</span> <span style="color:#f92672">+</span> version
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> version <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> AVAILABLE_LLVM_VERSIONS:
+</span></span><span style="display:flex;"><span>                    empty_repo(name <span style="color:#f92672">=</span> llvm_repo_name)
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>                path <span style="color:#f92672">=</span> llvm_path(module_ctx, version)
+</span></span><span style="display:flex;"><span>                new_local_repository(
+</span></span><span style="display:flex;"><span>                    name <span style="color:#f92672">=</span> llvm_repo_name,
+</span></span><span style="display:flex;"><span>                    path <span style="color:#f92672">=</span> path,
+</span></span><span style="display:flex;"><span>                    build_file <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;:third_party/LLVM/llvm.BUILD&#34;</span>
+</span></span><span style="display:flex;"><span>                )
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> modules<span style="color:#f92672">.</span>use_all_repos(module_ctx)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>llvm_repos <span style="color:#f92672">=</span> module_extension(
+</span></span><span style="display:flex;"><span>    implementation <span style="color:#f92672">=</span> _llvm_repos_extension,
+</span></span><span style="display:flex;"><span>    tag_classes <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;configure&#34;</span>: tag_class(attrs <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;versions&#34;</span>: attr<span style="color:#f92672">.</span>string_list()})},
+</span></span><span style="display:flex;"><span>)
+</span></span></code></pre></div><p>How we can tell Bazel that these repos are available for consumption:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># MODULE.bazel</span>
+</span></span><span style="display:flex;"><span>SUPPORTED_LLVM_VERSIONS <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;17&#34;</span>, <span style="color:#e6db74">&#34;18&#34;</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>available_llvm_versions <span style="color:#f92672">=</span> use_extension(<span style="color:#e6db74">&#34;//:bazel/available_llvm_versions.bzl&#34;</span>, <span style="color:#e6db74">&#34;available_llvm_versions&#34;</span>)
+</span></span><span style="display:flex;"><span>available_llvm_versions<span style="color:#f92672">.</span>detect_available(versions <span style="color:#f92672">=</span> SUPPORTED_LLVM_VERSIONS)
+</span></span><span style="display:flex;"><span>use_repo(available_llvm_versions, <span style="color:#e6db74">&#34;available_llvm_versions&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>llvm_repos <span style="color:#f92672">=</span> use_extension(<span style="color:#e6db74">&#34;:bazel/llvm_repos.bzl&#34;</span>, <span style="color:#e6db74">&#34;llvm_repos&#34;</span>)
+</span></span><span style="display:flex;"><span>llvm_repos<span style="color:#f92672">.</span>configure(versions <span style="color:#f92672">=</span> SUPPORTED_LLVM_VERSIONS)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[use_repo(llvm_repos, <span style="color:#e6db74">&#34;llvm_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span> v) <span style="color:#66d9ef">for</span> v <span style="color:#f92672">in</span> SUPPORTED_LLVM_VERSIONS]
+</span></span></code></pre></div><h3 id="defining-plugin-targets">Defining plugin targets</h3>
+<p>Now, the rest is rather trivial. We can define all the plugin libraries depending on the LLVM versions available on the host OS:</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># src/BUILD</span>
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@available_llvm_versions//:llvm_versions.bzl&#34;</span>, <span style="color:#e6db74">&#34;AVAILABLE_LLVM_VERSIONS&#34;</span>)
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@rules_cc//cc:defs.bzl&#34;</span>, <span style="color:#e6db74">&#34;cc_binary&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>    cc_binary(
+</span></span><span style="display:flex;"><span>        name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;llvm_plugin_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span> llvm_version,
+</span></span><span style="display:flex;"><span>        srcs <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;plugin.cpp&#34;</span>,
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>        linkshared <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>,
+</span></span><span style="display:flex;"><span>        visibility <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;//visibility:public&#34;</span>],
+</span></span><span style="display:flex;"><span>        deps <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;@llvm_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">//:libllvm&#34;</span> <span style="color:#f92672">%</span> llvm_version,
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> llvm_version <span style="color:#f92672">in</span> AVAILABLE_LLVM_VERSIONS
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><h3 id="defining-test-targets">Defining test targets</h3>
+<p>Obviously, we must have tests for the plugin. This is also relatively trivial, we need to define a test case for each available LLVM versions as well, thus producing NxM tests where N is the number of tests and M is the number of LLVM versions.</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># tests/BUILD</span>
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@available_llvm_versions//:llvm_versions.bzl&#34;</span>, <span style="color:#e6db74">&#34;AVAILABLE_LLVM_VERSIONS&#34;</span>)
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@bazel_itertools//lib:itertools.bzl&#34;</span>, <span style="color:#e6db74">&#34;itertools&#34;</span>)
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@pypi//:requirements.bzl&#34;</span>, <span style="color:#e6db74">&#34;requirement&#34;</span>)
+</span></span><span style="display:flex;"><span>load(<span style="color:#e6db74">&#34;@rules_python//python:defs.bzl&#34;</span>, <span style="color:#e6db74">&#34;py_test&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>[
+</span></span><span style="display:flex;"><span>    py_test(
+</span></span><span style="display:flex;"><span>        name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">_test&#34;</span> <span style="color:#f92672">%</span> (test, llvm_version),
+</span></span><span style="display:flex;"><span>        srcs <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#34;lit_runner.py&#34;</span>],
+</span></span><span style="display:flex;"><span>        args <span style="color:#f92672">=</span> [ <span style="color:#e6db74">&#34;-v&#34;</span>, test],
+</span></span><span style="display:flex;"><span>        data <span style="color:#f92672">=</span> [
+</span></span><span style="display:flex;"><span>            requirement(<span style="color:#e6db74">&#34;lit&#34;</span>),
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;:lit.cfg.py&#34;</span>,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;@llvm_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">//:clang&#34;</span> <span style="color:#f92672">%</span> llvm_version,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;@llvm_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">//:FileCheck&#34;</span> <span style="color:#f92672">%</span> llvm_version,
+</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;//src:llvm_plugin_</span><span style="color:#e6db74">%s</span><span style="color:#e6db74">&#34;</span> <span style="color:#f92672">%</span> llvm_version,
+</span></span><span style="display:flex;"><span>            test,
+</span></span><span style="display:flex;"><span>        ],
+</span></span><span style="display:flex;"><span>        main <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lit_runner.py&#34;</span>,
+</span></span><span style="display:flex;"><span>        deps <span style="color:#f92672">=</span> [requirement(<span style="color:#e6db74">&#34;lit&#34;</span>), <span style="color:#e6db74">&#34;@rules_python//python/runfiles&#34;</span>],
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (test, llvm_version) <span style="color:#f92672">in</span> itertools<span style="color:#f92672">.</span>product(
+</span></span><span style="display:flex;"><span>        glob([<span style="color:#e6db74">&#34;*.c&#34;</span>]),
+</span></span><span style="display:flex;"><span>        AVAILABLE_LLVM_VERSIONS,
+</span></span><span style="display:flex;"><span>    )
+</span></span><span style="display:flex;"><span>]
+</span></span></code></pre></div><h3 id="conclusion">Conclusion</h3>
+<p>With all the little pieces above, the builds are now completely transparent and smooth for the end user:</p>
+<p><img src="/img/llvm-plugins-bazel/plugin-build.png" alt="Build &amp; test the plugin"></p>
+<p>Full working example can be found here: <a href="https://github.com/AlexDenisov/bazel-llvm-plugin">https://github.com/AlexDenisov/bazel-llvm-plugin</a></p>
+
+          </div>
+        </article>
+        <div>
+          <iframe src="https://lowlevelbits.substack.com/embed" width="680" height="320" style="border:1px solid #EEE; background:white;" frameborder="0" scrolling="no"></iframe>
+
+        </div>
+
+        <div>
+          <hr />
+          <p class="post-page-rfc">
+            <a href="mailto:alex@lowlevelbits.org">Drop me a line</a> or ping me on
+            <a href="https://twitter.com/1101_debian">twitter</a> or <a href="https://mastodon.social/@AlexDenisov">Mastodon</a> if you have questions!
+          </p>
+
+          
+          
+        </div>
+
+      </div>
+
+    </div>
+
+    <hr>
+
+<div class="row triple-row">
+
+  <div id="triple-first" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget categories-widget">
+    <header>
+      <h1>Favorite Categories</h1>
+    </header>
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+    
+
+    
+
+    
+    
+    
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+    </ul>
+  </article>
+</div>
+  </div>
+
+  <div id="triple-second" class="span4 triple">
+    <div class="zone">
+  <article class="widget-html-widget widget recent-posts-widget">
+
+    <header>
+      <h1>Recent Posts</h1>
+    </header>
+
+    <ul>
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/building-llvm-plugins-with-bazel/"> Building LLVM plugins with Bazel</a>
+      </li>
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-5/"> Compiling Ruby. Part 5: exceptions</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-4/"> Compiling Ruby. Part 4: progress update</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-3/"> Compiling Ruby. Part 3: MLIR and compilation</a>
+      </li>
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org/compiling-ruby-part-2/"> Compiling Ruby. Part 2: RiteVM</a>
+      </li>
+      
+      
+    </ul>
+
+  </article>
+</div>
+  </div>
+
+  <div id="triple-third" class="span4 triple">
+    
+
+<div class="zone">
+  <article class="widget widget-html-widget share-connect-widget">
+    <header>
+      <h1>Connect</h1>
+    </header>
+    <ul>
+      <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
+      <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
+      <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
+      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+
+    </ul>
+  </article>
+</div>
+
+  </div>
+</div>
+
+<hr>
+
+<div class="row">
+  <div class="copyright span12">Copyright &copy; 2014-2025 - Low Level Bits 🇺🇦 by Alex Denisov</div>
+</div>
+
+
+  </div> 
+
+
+  
+
+
+<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org/js/tinynav.js"></script>
+<script src="https://lowlevelbits.org/js/template.js"></script>
+</body>
+
+</html>

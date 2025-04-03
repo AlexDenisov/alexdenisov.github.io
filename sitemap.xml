@@ -2,6 +2,36 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
+    <loc>https://lowlevelbits.org/tags/bazel/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/categories/build-systems/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/building-llvm-plugins-with-bazel/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/categories/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/categories/compilers/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/llvm/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/llvm-plugins/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/post/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/</loc>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+  </url><url>
     <loc>https://lowlevelbits.org/tags/activation-record/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
@@ -12,12 +42,6 @@
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/call-stack/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/categories/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/categories/compilers/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/compiling-ruby-part-5/</loc>
@@ -35,16 +59,7 @@
     <loc>https://lowlevelbits.org/tags/libunwind/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/llvm/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
-  </url><url>
     <loc>https://lowlevelbits.org/tags/mruby/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/post/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/ruby/</loc>
@@ -54,9 +69,6 @@
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/stack-unwinding/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/tags/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/virtual-machines/</loc>
@@ -69,13 +81,13 @@
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/cfg/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/compiling-ruby-part-3/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/control-flow-graph/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/dataflow/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
@@ -90,10 +102,10 @@
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/single-static-assignment/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/ssa/</loc>
-    <lastmod>2023-12-22T02:00:27+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/yarv/</loc>
     <lastmod>2023-12-22T02:00:27+01:00</lastmod>
@@ -108,55 +120,55 @@
     <lastmod>2023-01-04T22:30:03+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/assembly/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/bitcode/</loc>
-    <lastmod>2022-11-21T22:29:19+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/coff/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/compiler-construction/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/compilers/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/cpu/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/elf/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/intermediate-representation/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/categories/llvm/</loc>
-    <lastmod>2022-11-21T22:57:53+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/llvm-bitcode/</loc>
-    <lastmod>2022-11-21T22:29:19+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/llvm-course/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/llvm-ir/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/llvm-tutorial/</loc>
-    <lastmod>2022-11-21T22:57:53+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/mach-o/</loc>
-    <lastmod>2022-11-21T22:29:19+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/optimizations/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/performance/</loc>
-    <lastmod>2021-11-04T20:43:46+01:00</lastmod>
+    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/code-property-graph/</loc>
     <lastmod>2021-11-03T22:54:56+01:00</lastmod>
@@ -240,9 +252,6 @@
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/bottom-up-cmake-introduction/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
-  </url><url>
-    <loc>https://lowlevelbits.org/categories/build-systems/</loc>
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/cmake-function/</loc>
