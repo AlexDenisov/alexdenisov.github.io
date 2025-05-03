@@ -7,8 +7,83 @@
     <language>en-us</language>
     <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
     <webMaster>alex@lowlevelbits.org (Alex Denisov)</webMaster>
-    <lastBuildDate>Fri, 06 Jan 2023 02:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Fri, 02 May 2025 02:00:00 +0100</lastBuildDate>
     <atom:link href="" rel="self" type="application/rss+xml" />
+    
+
+      
+        <item>
+        <title>Different ways to build LLVM/MLIR tools</title>
+        <link>https://lowlevelbits.org/different-ways-to-build-llvm/mlir-tools/</link>
+        <pubDate>Fri, 02 May 2025</pubDate>
+        <author>alex@lowlevelbits.org (Alex Denisov)</author>
+        <guid>https://lowlevelbits.org/different-ways-to-build-llvm/mlir-tools/</guid>
+        <description>&lt;div id=&#34;wrap&#34; class=&#34;text-center&#34;&gt;
+  &lt;div style=&#34;display: inline-block;&#34; class=&#34;content-upgrade&#34;&gt;
+    &lt;div style=&#34;margin: 6px;&#34;&gt;
+    This is a mirror of the Substack article &lt;br/&gt;
+      &lt;a href=&#34;https://lowlevelbits.com/p/different-ways-to-build-llvmmlir&#34;&gt;
+      Different ways to build LLVM/MLIR tools
+      &lt;/a&gt;&lt;br/&gt;
+    The most recent version is there.
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;LLVM and MLIR frameworks are typically used to build compilers for various use cases, but I’m using word “tools” here to cover a broader set of possibilities (compilers, language plugins, analyzers, etc.).&lt;/p&gt;
+&lt;p&gt;If you want to build such a tool, then you obviously need to somehow “connect” your code to LLVM or MLIR libraries.&lt;/p&gt;
+&lt;p&gt;In this article I’m not going to cover how to do the build itself (I believe there are plenty of great resources out there already), but rather focus on various ways to actually obtain those LLVM libraries and what kinds of features those options bring with them.&lt;/p&gt;
+&lt;p&gt;I’m also considering the simplest integration: CMake and C++, no fancy build systems, no fancy languages. Different build systems and languages would require different considerations.&lt;/p&gt;
+&lt;p&gt;Effectively, this article is organized as a table with different ways to get LLVM/MLIR on one axis, and various available features on another.&lt;/p&gt;
+&lt;p&gt;The actual table is at the very end.&lt;/p&gt;
+&lt;h2&gt;Features&lt;/h2&gt;
+&lt;p&gt;Here is a non-exhaustive list of different features that I consider important.&lt;br /&gt;
+If you believe something is missing, please leave a comment.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://lowlevelbits.com/p/different-ways-to-build-llvmmlir/comments&#34;&gt;Leave a comment&lt;/a&gt;&lt;/p&gt;
+&lt;h3&gt;(Fast) Build Times&lt;/h3&gt;
+&lt;p&gt;Obviously, everyone wants to have fast build times. There are two slightly different angles to this story: if you decide to build LLVM from scratch, it would obviously take long time. But even if you don’t build LLVM from scratch, you may still have to wait for way too long due to the static linking.&lt;/p&gt;
+&lt;p&gt;Also, building LLVM/MLIR from scratch without caching is going to be a huge bottleneck on the CI.&lt;/p&gt;
+&lt;h3&gt;Debugging Experience&lt;/h3&gt;
+&lt;p&gt;Once in a while things go south, so you need to debug not only your code, but also look into what’s “wrong” inside of LLVM.&lt;br /&gt;
+What I mean here is not just having debug info and assertions enabled, but also facilities like &lt;code&gt;-debug-only=.&lt;/code&gt;&lt;br /&gt;
+One example from MLIR is debugging long conversion pipelines/pattern matching, when things don’t quite work the way you’d expect.&lt;/p&gt;
+&lt;h3&gt;Testing Infrastructure&lt;/h3&gt;
+&lt;p&gt;Both LLVM and MLIR heavily rely on integration testing using &lt;a href=&#34;https://llvm.org/docs/CommandGuide/lit.html&#34;&gt;lit&lt;/a&gt; and &lt;a href=&#34;https://llvm.org/docs/CommandGuide/FileCheck.html&#34;&gt;filecheck&lt;/a&gt;.&lt;br /&gt;
+None of these are part of the “official distribution” unfortunately. While the official lit can be installed as a separate python package, for filecheck your best bet is third-party solutions, which are actually pretty good starting points if you don’t need very advanced filecheck features (e.g. &lt;a href=&#34;https://github.com/mull-project/filecheck.py&#34;&gt;mull-project/filecheck.py&lt;/a&gt; or &lt;a href=&#34;https://github.com/AntonLydike/filecheck&#34;&gt;AntonLydike/filecheck&lt;/a&gt;).&lt;/p&gt;
+&lt;h3&gt;Bleeding Edge&lt;/h3&gt;
+&lt;p&gt;This is also an important factor. As a starting point, you can just use whatever is available from your default OS package manager (e.g. apt or homebrew), but at some point you may need to pick something much newer due to bugfixes or new features.&lt;/p&gt;
+&lt;h3&gt;Dynamic Linking&lt;/h3&gt;
+&lt;p&gt;This is more of a niche feature, but it is very important if you are working on any kind of plugins, or if you don’t want to deal with long static linking time during development.&lt;/p&gt;
+&lt;h2&gt;Different LLVM distributions&lt;/h2&gt;
+&lt;p&gt;Here I’m considering more or less cross-platform solutions, so I’m not covering Debian/Ubuntu specific &lt;a href=&#34;https://apt.llvm.org&#34;&gt;repo&lt;/a&gt;. Which leaves us with three options: (semi-)official versions from an OS package manager, precompiled binaries (submitted by volunteers), and BYOB: “bring your own build” story.&lt;/p&gt;
+&lt;h3&gt;(Semi-)official OS packages&lt;/h3&gt;
+&lt;p&gt;These are the packages maintained by the OS maintainers and not necessarily by LLVM maintainers. These packages are the easiest way to start: just call &lt;code&gt;apt/brew install llvm&lt;/code&gt; and you are done.&lt;/p&gt;
+&lt;p&gt;The packages come with dynamic libraries, which enables both fast build times and plugin support. The packages usually contain everything that is needed for testing, but they of course lack the debugging story.&lt;/p&gt;
+&lt;p&gt;The other inconvenience might be the age of the package: depending on the OS and its stability guarantees, the package might be way too old for your use case.&lt;br /&gt;
+For LLVM it’s probably fine, but it gets trickier for MLIR as the APIs are less stable across the recent versions.&lt;/p&gt;
+&lt;h3&gt;Precompiled packages&lt;/h3&gt;
+&lt;p&gt;These packages are available as the release artifacts, for example &lt;a href=&#34;https://github.com/llvm/llvm-project/releases/tag/llvmorg-20.1.4&#34;&gt;20.1.4&lt;/a&gt; or &lt;a href=&#34;https://github.com/llvm/llvm-project/releases/tag/llvmorg-18.1.8&#34;&gt;18.1.8&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;On one hand, this is the most convenient way to get those binaries: the most recent binaries appear there just a few days after the official release.&lt;br /&gt;
+On the other hand, some packages are prepared by volunteers, so some releases might be missing the build for your specific OS/version, and the presence of e.g. &lt;a href=&#34;https://github.com/llvm/llvm-project/releases/download/llvmorg-20.1.4/LLVM-20.1.4-Linux-X64.tar.xz&#34;&gt;LLVM-20.1.4-Linux-X64.tar.xz&lt;/a&gt; build doesn’t guarantee compatibility with e.g. Ubuntu 20.04 due to the the “old” glibc.&lt;/p&gt;
+&lt;p&gt;Just as with the official OS packages, the debugging story is not there: the packages are built in the release mode.&lt;/p&gt;
+&lt;p&gt;In general, these packages are kinda the “best effort”: if it works - great, if not - well, you are out of luck.&lt;/p&gt;
+&lt;h3&gt;Build your own LLVM&lt;/h3&gt;
+&lt;p&gt;This is obviously the most flexible approach: you can build any version/commit on any supported OS, you get the debugging facilities if you wish so, all the testing infrastructure is there, it’s your choice whether to use dynamic or static linking.&lt;/p&gt;
+&lt;p&gt;But of course the price is the long build times, especially if you want to get more than just LLVM (e.g, MLIR or clang libraries).&lt;/p&gt;
+&lt;h2&gt;Summary&lt;/h2&gt;
+&lt;p&gt;As a conclusion, the exact option depends on your use case.&lt;br /&gt;
+Just to start with, you can pick the official package available on your OS and then decide whether you need more.&lt;/p&gt;
+&lt;p&gt;If you need the newest version, then the precompiled packages from LLVM releases page is your best bet, especially when it comes to CI integration.&lt;/p&gt;
+&lt;p&gt;However, at least at some point, you may consider building your own version of LLVM/MLIR libraries for local development, but still stick to the precompiled packages for CI checks.&lt;/p&gt;
+&lt;p&gt;To wrap it up, here is a table that sums it all up.&lt;/p&gt;
+&lt;p&gt;&lt;a href=&#34;https://substackcdn.com/image/fetch/f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F670d014b-2b4f-4576-982b-a7066b2d4dcd_3268x1716.png&#34;&gt;&lt;img alt=&#34;&#34; src=&#34;https://substackcdn.com/image/fetch/w_1456,c_limit,f_auto,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F670d014b-2b4f-4576-982b-a7066b2d4dcd_3268x1716.png&#34; /&gt;&lt;/a&gt;&lt;/p&gt;
+</description>
+      </item>
+      
+
+    
+
+      
+
     
 
       
@@ -209,10 +284,6 @@
 &lt;p&gt;Full working example can be found here: &lt;a href=&#34;https://github.com/AlexDenisov/bazel-llvm-plugin&#34;&gt;https://github.com/AlexDenisov/bazel-llvm-plugin&lt;/a&gt;&lt;/p&gt;
 </description>
       </item>
-      
-
-    
-
       
 
     
@@ -2558,71 +2629,6 @@ your own:&lt;/p&gt;
 &lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://cmake.org/cmake/help/latest/index.html&#34;&gt;All the rest&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</description>
-      </item>
-      
-
-    
-
-      
-        <item>
-        <title>Debugging Dyld</title>
-        <link>https://lowlevelbits.org/debugging-dyld/</link>
-        <pubDate>Tue, 13 Nov 2018</pubDate>
-        <author>alex@lowlevelbits.org (Alex Denisov)</author>
-        <guid>https://lowlevelbits.org/debugging-dyld/</guid>
-        <description>&lt;p&gt;Recently, I was debugging an interesting issue: a program crashes whenever it tries to call a particular function from a dynamic library. It was not clear how to debug this issue. Eventually, I did resolve the problem: the key was in the dynamic linker, dyld.&lt;/p&gt;
-&lt;p&gt;In this article, I want to make a short intro on where to start if you have a similar issue. It is by no means an exhaustive guide, but rather a starting point that could have saved me a few hours would I have known this information before.&lt;/p&gt;
-&lt;h2 id=&#34;inspect-the-dyld-from-inside&#34;&gt;Inspect the dyld from inside&lt;/h2&gt;
-&lt;p&gt;The source code of dyld is generally available but is outdated. At the time of writing, you can get the source code for macOS High Sierra, 10.13.6, from &lt;a href=&#34;https://opensource.apple.com&#34;&gt;here&lt;/a&gt;. If you are running the latest version of macOS, 10.14, Mojave, then your last resort is binaries shipped with the OS. Though, the source code from previous versions is still helpful. So to get the full picture, I recommend doing the following:&lt;/p&gt;
-&lt;ol&gt;
-&lt;li&gt;Get the latest version of the source code from &lt;a href=&#34;https://opensource.apple.com/&#34;&gt;https://opensource.apple.com/&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;Use disassembler (&lt;a href=&#34;https://www.hopperapp.com&#34;&gt;Hopper&lt;/a&gt; ftw) to inspect dyld binaries: &lt;code&gt;/usr/lib/dyld&lt;/code&gt;, &lt;code&gt;/usr/lib/system/libdyld.dylib&lt;/code&gt; , and &lt;code&gt;/usr/lib/closure/libclosured.dylib&lt;/code&gt;.&lt;/li&gt;
-&lt;li&gt;Disable &lt;a href=&#34;https://en.wikipedia.org/wiki/System_Integrity_Protection&#34;&gt;SIP&lt;/a&gt; (optional) and run you binary under &lt;code&gt;lldb&lt;/code&gt;. You can set breakpoints on all dyld related functions: &lt;code&gt;br set -r dyld&lt;/code&gt; or &lt;code&gt;br set -r dyld3&lt;/code&gt; for dyld3 only.&lt;/li&gt;
-&lt;/ol&gt;
-&lt;p&gt;During debugging, please be ready to jump a lot between the source code and the three libraries mentioned in step two.&lt;/p&gt;
-&lt;h2 id=&#34;inspect-the-dyld-from-the-outside&#34;&gt;Inspect the dyld from the outside&lt;/h2&gt;
-&lt;p&gt;There are a few other options to observe the behavior of dyld without looking at the code, source or binary.
-You will also need to disable &lt;a href=&#34;https://en.wikipedia.org/wiki/System_Integrity_Protection&#34;&gt;SIP&lt;/a&gt; if you want to exercise it on systems apps.
-All the options are controlled via environment variables. These are the ones I found the most useful:&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;DYLD_PRINT_APIS&lt;/code&gt;: documented, prints a nice trace of almost everything that is happening inside of dyld. Here is an example output:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;_dyld_register_func_for_add_image(0x7fff7696ab92)
-_dyld_get_image_slide(0x1000f1000)
-_dyld_register_func_for_add_image(0x7fff7689cd98)
-_dyld_get_image_slide(0x1000f1000)
-_dyld_register_func_for_add_image(0x7fff76be67cb)
-dyld_image_path_containing_address(0x7fff75221000)
-...
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;It looks cryptic, but it greatly helps to understand the program execution flow.&lt;/p&gt;
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;DYLD_PRINT_LIBRARIES&lt;/code&gt;, documented, prints all the dynamic libraries that are being loaded during the app startup. Here is an example output:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dyld: loaded: /usr/lib/libiconv.2.dylib
-dyld: loaded: /System/Library/Frameworks/Security.framework/Versions/A/Security
-dyld: loaded: /System/Library/Frameworks/CoreFoundation.framework/Versions/A/CoreFoundation
-dyld: loaded: /usr/lib/libz.1.dylib
-dyld: loaded: /usr/lib/libSystem.B.dylib
-dyld: loaded: /usr/lib/libresolv.9.dylib
-dyld: loaded: /usr/lib/system/libcache.dylib
-dyld: loaded: /usr/lib/system/libcommonCrypto.dylib
-dyld: loaded: /usr/lib/system/libcompiler_rt.dylib
-&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;DYLD_PRINT_WARNINGS&lt;/code&gt;, undocumented, may print some useful information. Currently, it definitely prints some info about &lt;a href=&#34;https://allegro.tech/2018/05/Static-linking-vs-dyld3.html&#34;&gt;dyld3 closures&lt;/a&gt;.
-An example output:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;dyld: found closure 0x7ffff48ae9ac (size=844) in dyld shared cache
-dyld: closure 0x7ffff48ae9ac not used because DYLD_FRAMEWORK_PATH changed
-&lt;/code&gt;&lt;/pre&gt;&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;DYLD_*_PATH&lt;/code&gt;, documented, changes the order of directories where dyld will search for dynamic libraries. The nice side effect of using these variables is that their presence disables the dyld3 closure cache. So if your suspect is dyld3 closures, then export any of the &lt;code&gt;DYLD_*_PATH&lt;/code&gt; variables to disable them. Some examples:&lt;/li&gt;
-&lt;/ul&gt;
-&lt;pre tabindex=&#34;0&#34;&gt;&lt;code&gt;export DYLD_FRAMEWORK_PATH=
-export DYLD_LIBRARY_PATH=
-&lt;/code&gt;&lt;/pre&gt;&lt;p&gt;For more info, please consult the dyld man page (&lt;code&gt;man dyld&lt;/code&gt;) or dig through the code, source or binary.&lt;/p&gt;
-&lt;h2 id=&#34;summary&#34;&gt;Summary&lt;/h2&gt;
-&lt;p&gt;Debugging such thing as dyld is a nontrivial task, but it is indeed possible. If you know any other hints or tricks, please share them.&lt;/p&gt;
-&lt;p&gt;Happy debugging!&lt;/p&gt;
 </description>
       </item>
       
