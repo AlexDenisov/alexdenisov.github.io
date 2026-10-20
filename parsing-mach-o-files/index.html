@@ -32,15 +32,15 @@
 
   
   
-  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
-  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
-  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/template.css" rel="stylesheet">
   
-  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+  <link href="https://lowlevelbits.org//css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
 
   
-  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+  <script src="https://lowlevelbits.org//js/modernizr.js"></script>
 
   
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
@@ -55,7 +55,7 @@
 <meta name="twitter:title" content="Parsing Mach-O files" />
 <meta name="twitter:description" content="The article covers basics of Mach-O parsing. If you&#39;re looking for a &#39;how to start&#39;, then you are at the right place." />
 
-<meta name="twitter:image" content="https://lowlevelbits.org/img/parse-mach-o-files/macho_memory_layout.png" />
+<meta name="twitter:image" content="https://lowlevelbits.org//img/parse-mach-o-files/macho_memory_layout.png" />
 
 
 
@@ -77,10 +77,10 @@
   
 
   <div>
-    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    <a href="/"><img id="logo" src="https://lowlevelbits.org//img/lowlevelbits.png" alt="Low Level Bits">
     </a>
     <ul id="nav" class="nav ww-nav pull-right hidden-phone">
-      <li><a href="https://lowlevelbits.org/about">About</a></li>
+      <li><a href="https://lowlevelbits.org//about">About</a></li>
     </ul>
   </div>
 
@@ -101,15 +101,23 @@
           
 
           <div>
-            <p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
+            <div id="wrap" class="text-center">
+  <div style="display: inline-block;" class="content-upgrade">
+    <div style="margin: 6px;">
+    Want to look inside a binary without writing a parser first? <br/>
+      Check out <a href="https://binfs.dev">binfs</a>, a tool for exploring and reverse engineering binary files. <br/>
+    Browse the contents of an executable instead of decoding headers and load commands by hand.
+    </div>
+  </div>
+</div>
+<p>This article describes how to parse Mach-O file and explains its format a little bit. It’s not a definitive guide, though it might be helpful if you don’t know where to start.
 For more information consider reading official documentation and header files provided by operating system.</p>
 <!-- more -->
 <h2 id="what-is-mach-o-file">What is Mach-O file</h2>
 <p>Brief description taken from <a href="https://en.wikipedia.org/wiki/Mach-O">Wikipedia</a>:</p>
 <blockquote>
 <p>Mach-O, short for Mach object file format, is a file format for executables, object code, shared libraries, dynamically-loaded code, and core dumps. A replacement for the a.out format, Mach-O offers more extensibility and faster access to information in the symbol table.</p>
-<p>Mach-O is used by most systems based on the Mach kernel. NeXTSTEP, OS X, and iOS are examples of systems that have used this format for native executables, libraries and object code.</p>
-</blockquote>
+<p>Mach-O is used by most systems based on the Mach kernel. NeXTSTEP, OS X, and iOS are examples of systems that have used this format for native executables, libraries and object code.</p></blockquote>
 <h2 id="mach-o-format">Mach-O format</h2>
 <p>Mach-O doesn’t have any special format like XML/YAML/JSON/whatnot, it’s just a binary stream of bytes grouped in meaningful data chunks. These chunks contain a meta-information, e.g.: byte order, cpu type, size of the chunk and so on.</p>
 <p>Typical Mach-O file (<a href="https://github.com/aidansteele/osx-abi-macho-file-format-reference">copy of the (now removed) official documentation</a>) consists of a three regions:</p>
@@ -928,7 +936,7 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+        <a href="https://lowlevelbits.org//categories/llvm/">llvm (11)</a>
       </li>
       
       
@@ -938,10 +946,8 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
+        <a href="https://lowlevelbits.org//categories/clang/">clang (4)</a>
       </li>
-      
-      
       
       
       
@@ -954,22 +960,24 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org//categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org//categories/systems-programming/">systems programming (2)</a>
       </li>
-      
-      
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+        <a href="https://lowlevelbits.org//categories/mutation-testing/">mutation testing (2)</a>
       </li>
+      
+      
+      
+      
       
       
       
@@ -1049,8 +1057,8 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
       <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
       <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
       <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
-      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
-      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+      <li><a href="https://lowlevelbits.org//atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org//subscribe">Mailing list</a></li>
 
     </ul>
   </article>
@@ -1072,10 +1080,10 @@ I believe this is not the best option, but it&rsquo;s acceptable for this artifi
   
 
 
-<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
-<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
-<script src="https://lowlevelbits.org/js/tinynav.js"></script>
-<script src="https://lowlevelbits.org/js/template.js"></script>
+<script src="https://lowlevelbits.org//js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org//js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org//js/tinynav.js"></script>
+<script src="https://lowlevelbits.org//js/template.js"></script>
 </body>
 
 </html>

@@ -1,8 +1,8 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>systems programming on Low Level Bits 🇺🇦</title>
+    <title>Systems Programming on Low Level Bits 🇺🇦</title>
     <link>https://lowlevelbits.org/categories/systems-programming/</link>
-    <description>Recent content in systems programming on Low Level Bits 🇺🇦</description>
+    <description>Recent content in Systems Programming on Low Level Bits 🇺🇦</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <managingEditor>alex@lowlevelbits.org (Alex Denisov)</managingEditor>
@@ -117,8 +117,7 @@ Just to start with, you can pick the official package available on your OS and t
 &lt;p&gt;What follows is my take on solving this problem.&lt;/p&gt;
 &lt;p&gt;Source code is available here &lt;a href=&#34;https://github.com/AlexDenisov/bazel-llvm-plugin&#34;&gt;https://github.com/AlexDenisov/bazel-llvm-plugin&lt;/a&gt;.&lt;/p&gt;
 &lt;blockquote&gt;
-&lt;p&gt;Following the &lt;a href=&#34;https://meta.wikimedia.org/wiki/Cunningham%27s_Law&#34;&gt;Cunningham&amp;rsquo;s Law&lt;/a&gt; I claim that there is no better way to do it.&lt;/p&gt;
-&lt;/blockquote&gt;
+&lt;p&gt;Following the &lt;a href=&#34;https://meta.wikimedia.org/wiki/Cunningham%27s_Law&#34;&gt;Cunningham&amp;rsquo;s Law&lt;/a&gt; I claim that there is no better way to do it.&lt;/p&gt;&lt;/blockquote&gt;
 &lt;h3 id=&#34;detecting-available-llvm-versions&#34;&gt;Detecting available LLVM versions&lt;/h3&gt;
 &lt;p&gt;Third-party dependencies in Bazel are typically coming in a form of external repositories, thus all supported LLVM versions must be defined in MODULE.bazel upfront. However, what happens if the version is not supported or not installed on the host OS? In this case, these repositories must be defined dynamically.&lt;/p&gt;
 &lt;p&gt;To do so, first we need to define a custom dynamic repository which will check which versions are installed on the host OS and store this information in a global variable available for later use by different parts of the build system:&lt;/p&gt;

@@ -32,15 +32,15 @@
 
   
   
-  <link href="https://lowlevelbits.org/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://lowlevelbits.org/css/bootstrap-responsive.min.css" rel="stylesheet">
-  <link href="https://lowlevelbits.org/css/socialicons.css" rel="stylesheet">
-  <link href="https://lowlevelbits.org/css/template.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/bootstrap-responsive.min.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/socialicons.css" rel="stylesheet">
+  <link href="https://lowlevelbits.org//css/template.css" rel="stylesheet">
   
-  <link href="https://lowlevelbits.org/css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
+  <link href="https://lowlevelbits.org//css/colors/color-nytimes.css" rel="stylesheet" id="colorcss">
 
   
-  <script src="https://lowlevelbits.org/js/modernizr.js"></script>
+  <script src="https://lowlevelbits.org//js/modernizr.js"></script>
 
   
   <script defer src='https://static.cloudflareinsights.com/beacon.min.js'
@@ -55,7 +55,7 @@
 <meta name="twitter:title" content="System Under Test: GNU Make" />
 <meta name="twitter:description" content="Overview of GNU Make testing infrastructure" />
 
-<meta name="twitter:image" content="https://lowlevelbits.org/img/low_level_bits_logo.png" />
+<meta name="twitter:image" content="https://lowlevelbits.org//img/low_level_bits_logo.png" />
 
 
 
@@ -77,10 +77,10 @@
   
 
   <div>
-    <a href="/"><img id="logo" src="https://lowlevelbits.org/img/lowlevelbits.png" alt="Low Level Bits">
+    <a href="/"><img id="logo" src="https://lowlevelbits.org//img/lowlevelbits.png" alt="Low Level Bits">
     </a>
     <ul id="nav" class="nav ww-nav pull-right hidden-phone">
-      <li><a href="https://lowlevelbits.org/about">About</a></li>
+      <li><a href="https://lowlevelbits.org//about">About</a></li>
     </ul>
   </div>
 
@@ -109,15 +109,12 @@
 <h3 id="getting-gnu-makes-sources">Getting GNU Make&rsquo;s sources</h3>
 <p>GNU Make&rsquo;s source code is available from git repository and can be found 2 links away from the Make&rsquo;s main home page: <a href="https://www.gnu.org/software/make/">GNU Make</a>:</p>
 <blockquote>
-<p>Development</p>
-</blockquote>
+<p>Development</p></blockquote>
 <blockquote>
-<p>For development sources, issue trackers, and other information, please see the Make project page at savannah.gnu.org.</p>
-</blockquote>
+<p>For development sources, issue trackers, and other information, please see the Make project page at savannah.gnu.org.</p></blockquote>
 <p>On <a href="http://savannah.gnu.org/projects/make">Make&rsquo;s Savannah&rsquo;s page</a>:</p>
 <blockquote>
-<p><a href="http://savannah.gnu.org/git/?group=make">Git Source Code Manager: Git Repository</a></p>
-</blockquote>
+<p><a href="http://savannah.gnu.org/git/?group=make">Git Source Code Manager: Git Repository</a></p></blockquote>
 <p>To get Make&rsquo;s sources:</p>
 <pre>
 git clone git://git.savannah.gnu.org/make.git GNUMake
@@ -408,7 +405,7 @@ if (-f $example) {
 
 1;
 </pre>
-<h4 id="test-case-example-3---warn-undefined-variables-option">Test case example #3: &ndash;warn-undefined-variables option</h4>
+<h4 id="test-case-example-3-warn-undefined-variables-option">Test case example #3: &ndash;warn-undefined-variables option</h4>
 <p>The following test is located at <code>tests/scripts/options/warn-undefined-variables</code>.</p>
 <pre><code>#                                                                    -*-perl-*-
 
@@ -439,15 +436,13 @@ ref&quot;);
 <h3 id="open-issues">Open issues</h3>
 <p>The file <code>tests/README</code> contains interesting section that one may read as high-level TODO list for the project (bold below is mine). It seems that there is some interesting stuff waiting for someone to contribute ;)</p>
 <blockquote>
-<h2 id="open-issues-1">Open Issues</h2>
-</blockquote>
+<h2 id="open-issues-1">Open Issues</h2></blockquote>
 <blockquote>
 <p>The test suite has a number of problems which should be addressed. <strong>One
 VERY serious one is that there is no real documentation</strong>.  You just have
 to see the existing tests. Use the newer tests: many of the tests
 haven&rsquo;t been updated to use the latest/greatest test methods.  See the
-ChangeLog in the tests directory for pointers.</p>
-</blockquote>
+ChangeLog in the tests directory for pointers.</p></blockquote>
 <blockquote>
 <p><strong>The second serious problem is that it&rsquo;s not parallelizable</strong>: it scribbles
 all over its installation directory and so can only test one make at a
@@ -456,8 +451,7 @@ way it works when you build out of the source tree is to create
 symlinks, which doesn&rsquo;t work on every system and is bogus to boot. <strong>The
 fourth serious problem is that it doesn&rsquo;t create its own sandbox when
 running tests</strong>, so that if a test forgets to clean up after itself that
-can impact future tests.</p>
-</blockquote>
+can impact future tests.</p></blockquote>
 <h3 id="conclusion">Conclusion</h3>
 <ol>
 <li>GNU Make has 581 tests: solid test suite introduced as early as of 1992.</li>
@@ -995,7 +989,17 @@ can impact future tests.</p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/llvm/">llvm (11)</a>
+        <a href="https://lowlevelbits.org//categories/llvm/">llvm (11)</a>
+      </li>
+      
+      
+      
+      
+      
+      
+      
+      <li>
+        <a href="https://lowlevelbits.org//categories/clang/">clang (4)</a>
       </li>
       
       
@@ -1006,16 +1010,6 @@ can impact future tests.</p>
       
       
       
-      <li>
-        <a href="https://lowlevelbits.org/categories/clang/">clang (4)</a>
-      </li>
-      
-      
-      
-      
-      
-      
-      
       
       
       
@@ -1023,19 +1017,19 @@ can impact future tests.</p>
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/reverse-engineering/">reverse engineering (2)</a>
+        <a href="https://lowlevelbits.org//categories/reverse-engineering/">reverse engineering (2)</a>
       </li>
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/mutation-testing/">mutation testing (2)</a>
+        <a href="https://lowlevelbits.org//categories/systems-programming/">systems programming (2)</a>
       </li>
       
       
       
       <li>
-        <a href="https://lowlevelbits.org/categories/systems-programming/">systems programming (2)</a>
+        <a href="https://lowlevelbits.org//categories/mutation-testing/">mutation testing (2)</a>
       </li>
       
       
@@ -1116,8 +1110,8 @@ can impact future tests.</p>
       <li><a href="mailto:alex@lowlevelbits.org" target="_blank">E-Mail</a></li>
       <li><a href="https://mastodon.social/@AlexDenisov" target="_blank">Mastodon</a></li>
       <li><a href="https://twitter.com/1101_debian" target="_blank">Twitter</a></li>
-      <li><a href="https://lowlevelbits.org/atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
-      <li><a href="https://lowlevelbits.org/subscribe">Mailing list</a></li>
+      <li><a href="https://lowlevelbits.org//atom.xml" type="application/rss+xml" target="_blank">RSS</a></li>
+      <li><a href="https://lowlevelbits.org//subscribe">Mailing list</a></li>
 
     </ul>
   </article>
@@ -1139,10 +1133,10 @@ can impact future tests.</p>
   
 
 
-<script src="https://lowlevelbits.org/js/jquery-1.9.1.js"></script>
-<script src="https://lowlevelbits.org/js/bootstrap.js"></script>
-<script src="https://lowlevelbits.org/js/tinynav.js"></script>
-<script src="https://lowlevelbits.org/js/template.js"></script>
+<script src="https://lowlevelbits.org//js/jquery-1.9.1.js"></script>
+<script src="https://lowlevelbits.org//js/bootstrap.js"></script>
+<script src="https://lowlevelbits.org//js/tinynav.js"></script>
+<script src="https://lowlevelbits.org//js/template.js"></script>
 </body>
 
 </html>

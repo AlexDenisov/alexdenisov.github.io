@@ -3,7 +3,7 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://lowlevelbits.org/categories/</loc>
-    <lastmod>2025-05-03T11:47:43+02:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/categories/compilers/</loc>
     <lastmod>2025-05-03T11:47:43+02:00</lastmod>
@@ -18,16 +18,16 @@
     <lastmod>2025-05-03T11:47:43+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/</loc>
-    <lastmod>2025-05-03T11:47:43+02:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/mlir/</loc>
     <lastmod>2025-05-03T11:47:43+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/post/</loc>
-    <lastmod>2025-05-03T11:47:43+02:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/</loc>
-    <lastmod>2025-05-03T11:47:43+02:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/bazel/</loc>
     <lastmod>2025-04-03T17:55:28+02:00</lastmod>
@@ -165,7 +165,7 @@
     <lastmod>2025-04-03T17:55:28+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/mach-o/</loc>
-    <lastmod>2025-04-03T17:55:28+02:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/optimizations/</loc>
     <lastmod>2025-04-03T17:55:28+02:00</lastmod>
@@ -333,7 +333,7 @@
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/linker/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/loader/</loc>
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
@@ -423,10 +423,10 @@
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/categories/mach-o/</loc>
-    <lastmod>2022-11-21T22:29:19+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/reverse-engineering/</loc>
-    <lastmod>2022-11-21T22:29:19+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/reverse-engineering-stickies.app/</loc>
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
@@ -437,28 +437,28 @@
     <loc>https://lowlevelbits.org/subscribe/</loc>
     <lastmod>2017-03-01T12:02:17+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/java/</loc>
+    <loc>https://lowlevelbits.org/categories/java/</loc>
     <lastmod>2017-02-14T10:12:59+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/categories/java/</loc>
+    <loc>https://lowlevelbits.org/tags/java/</loc>
     <lastmod>2017-02-14T10:12:59+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/java-papers/</loc>
     <lastmod>2017-02-14T10:12:59+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/scientific-papers/</loc>
+    <loc>https://lowlevelbits.org/categories/scientific-papers/</loc>
     <lastmod>2017-02-14T10:12:59+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/categories/scientific-papers/</loc>
+    <loc>https://lowlevelbits.org/tags/scientific-papers/</loc>
     <lastmod>2017-02-14T10:12:59+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/about/</loc>
     <lastmod>2024-03-11T11:30:16+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/make/</loc>
+    <loc>https://lowlevelbits.org/categories/make/</loc>
     <lastmod>2019-04-06T23:27:17+02:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/categories/make/</loc>
+    <loc>https://lowlevelbits.org/tags/make/</loc>
     <lastmod>2019-04-06T23:27:17+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/makefile/</loc>
@@ -470,11 +470,11 @@
     <loc>https://lowlevelbits.org/system-under-test-gnu-make/</loc>
     <lastmod>2019-04-06T23:27:17+02:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/testing/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
-  </url><url>
     <loc>https://lowlevelbits.org/categories/testing/</loc>
     <lastmod>2022-11-21T22:57:53+01:00</lastmod>
+  </url><url>
+    <loc>https://lowlevelbits.org/tags/testing/</loc>
+    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/llvm-based-mutation-testing-system.-request-for-comments/</loc>
     <lastmod>2021-11-03T00:16:32+01:00</lastmod>
@@ -566,10 +566,10 @@
     <loc>https://lowlevelbits.org/tags/cocoapods/</loc>
     <lastmod>2022-11-21T22:57:53+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/components/</loc>
+    <loc>https://lowlevelbits.org/categories/components/</loc>
     <lastmod>2022-11-21T22:57:53+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/categories/components/</loc>
+    <loc>https://lowlevelbits.org/tags/components/</loc>
     <lastmod>2022-11-21T22:57:53+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/components-taking-a-step-back-from-dependency-management/</loc>
@@ -594,40 +594,40 @@
     <lastmod>2022-11-21T22:29:19+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/file-format/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/load-command/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/mach-o-memory-layout/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/macho/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/memory-layout/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/object-code/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/object-type/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/parse-mach-o/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/parse-object-files/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/parsing-mach-o-files/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/segment-load-command/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/shared-libraries/</loc>
-    <lastmod>2021-11-03T00:16:32+01:00</lastmod>
+    <lastmod>2026-10-20T19:51:19+02:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/boxed-expressions/</loc>
     <lastmod>2020-05-25T09:58:40+02:00</lastmod>
@@ -641,10 +641,10 @@
     <loc>https://lowlevelbits.org/nsvalue-and-boxed-expressions/</loc>
     <lastmod>2020-05-25T09:58:40+02:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/tags/objc/</loc>
+    <loc>https://lowlevelbits.org/categories/objc/</loc>
     <lastmod>2022-11-21T22:57:53+01:00</lastmod>
   </url><url>
-    <loc>https://lowlevelbits.org/categories/objc/</loc>
+    <loc>https://lowlevelbits.org/tags/objc/</loc>
     <lastmod>2022-11-21T22:57:53+01:00</lastmod>
   </url><url>
     <loc>https://lowlevelbits.org/tags/objc_boxable/</loc>
